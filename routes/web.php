@@ -1,0 +1,47 @@
+<?php
+
+use App\Http\Controllers\ProfileController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/employees', [\App\Http\Controllers\EmployeeController::class, 'index'])->name('employees.index');
+    Route::get('/employees/{employeeId}/incidencias', \App\Livewire\Incidencias\Manager::class)->name('employees.incidencias');
+    Route::get('/qnas', [\App\Http\Controllers\QnaController::class, 'index'])->name('qnas.index');
+
+    // Búsqueda de empleados para el switcher de incidencias
+    Route::get('/api/employees/search', function (\Illuminate\Http\Request $request) {
+        $q = trim($request->get('q', ''));
+        if (strlen($q) < 2) return response()->json([]);
+
+        return response()->json(
+            \App\Models\Employe::where('active', '1')
+                ->where(function ($query) use ($q) {
+                    $query->where('num_empleado', 'like', "%{$q}%")
+                          ->orWhere('name', 'like', "%{$q}%")
+                          ->orWhere('father_lastname', 'like', "%{$q}%")
+                          ->orWhere('mother_lastname', 'like', "%{$q}%");
+                })
+                ->orderBy('num_empleado')
+                ->limit(20)
+                ->get(['id','num_empleado','name','father_lastname','mother_lastname'])
+                ->map(fn($e) => [
+                    'id'    => $e->id,
+                    'label' => $e->num_empleado . ' - ' . $e->name . ' ' . $e->father_lastname . ' ' . $e->mother_lastname,
+                ])
+        );
+    })->name('employees.search');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';
