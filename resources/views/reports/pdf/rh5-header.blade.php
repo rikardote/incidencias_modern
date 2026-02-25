@@ -7,7 +7,6 @@
             <td class="title-box">
                 <div class="title-main">
                     REPRESENTACION ESTATAL BAJA CALIFORNIA<br>
-                    CALIFORNIA<br>
                     SUBDELEGACION DE ADMINISTRACION<br>
                     DEPARTAMENTO DE RECURSOS HUMANOS
                 </div>

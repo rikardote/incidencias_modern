@@ -9,6 +9,7 @@ use Livewire\Component;
 
 class GeneralReport extends Component
 {
+    public $year;
     public $qnaId;
     public $departmentId;
     public $results = null;
@@ -17,8 +18,27 @@ class GeneralReport extends Component
     {
         $activeQna = Qna::where('active', '1')->first();
         if ($activeQna) {
+            $this->year = $activeQna->year;
             $this->qnaId = $activeQna->id;
+        } else {
+            $this->year = date('Y');
         }
+    }
+
+    public function updatedYear()
+    {
+        $this->qnaId = null;
+        $this->results = null;
+    }
+
+    public function updatedQnaId()
+    {
+        $this->results = null;
+    }
+
+    public function updatedDepartmentId()
+    {
+        $this->results = null;
     }
 
     public function generate()
@@ -57,13 +77,26 @@ class GeneralReport extends Component
                 ])
             ];
         }
+
+        ksort($this->results);
     }
 
     public function render()
     {
+        $user = auth()->user();
+        if ($user->admin()) {
+            $departments = Department::orderBy('code')->get();
+        } else {
+            $departments = $user->departments()->orderBy('code')->get();
+        }
+
+        $years = Qna::select('year')->distinct()->orderBy('year', 'desc')->pluck('year');
+        $qnas = Qna::where('year', $this->year)->orderBy('qna', 'desc')->get();
+
         return view('livewire.reports.general-report', [
-            'qnas' => Qna::orderBy('year', 'desc')->orderBy('qna', 'desc')->get(),
-            'departments' => Department::orderBy('code')->get(),
+            'years' => $years,
+            'qnas' => $qnas,
+            'departments' => $departments,
         ])->layout('layouts.app');
     }
 }

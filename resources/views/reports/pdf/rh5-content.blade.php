@@ -1,4 +1,4 @@
-<table class="content-table">
+<table class="content-table" autosize="1">
     <thead>
     <tr>
         <th style="width: 10%;">Num Empleado</th>
@@ -23,20 +23,22 @@
             <td class="text-center">{{ $isNewEmp ? $empId : '' }}</td>
             <td>
                 @if($isNewEmp)
-                    {{ $firstInGroup->employee->father_lastname }} {{ $firstInGroup->employee->mother_lastname }} {{ $firstInGroup->employee->name }}
+                    <div style="font-size: 10pt; margin-bottom: 2px;">
+                        {{ $firstInGroup->employee->father_lastname }} {{ $firstInGroup->employee->mother_lastname }} {{ $firstInGroup->employee->name }}
+                    </div>
                 @endif
 
                 @if($firstInGroup->otorgado)
-                   <span class="comment-text">{{ $firstInGroup->otorgado }}</span>
+                   <div class="comment-text">{{ $firstInGroup->otorgado }}</div>
                 @endif
                 @if($firstInGroup->becas_comments)
-                   <span class="comment-text">{{ $firstInGroup->becas_comments }}</span>
+                   <div class="comment-text">{{ $firstInGroup->becas_comments }}</div>
                 @endif
                 @if($firstInGroup->horas_otorgadas)
-                   <span class="comment-text">{{ $firstInGroup->horas_otorgadas }}</span>
+                   <div class="comment-text">{{ $firstInGroup->horas_otorgadas }}</div>
                 @endif
                 @if($firstInGroup->codigo->code == 900 && $firstInGroup->autoriza_txt)
-                   <span class="comment-text">{{ $firstInGroup->autoriza_txt }}</span>
+                   <div class="comment-text">{{ $firstInGroup->autoriza_txt }}</div>
                 @endif
             </td>
             <td class="text-center">

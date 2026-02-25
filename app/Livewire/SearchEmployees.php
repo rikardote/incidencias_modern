@@ -19,17 +19,24 @@ class SearchEmployees extends Component
 
     public function render()
     {
-        $employees = Employe::with(['department', 'puesto'])
+        $query = Employe::with(['department', 'puesto'])
             ->active()
-            ->whereDoesntHave('department', function ($query) {
-                $query->where('code', '99999');
-            })
-            ->when($this->search, function ($query, $search) {
-                return $query->where(function ($q) use ($search) {
-                    $q->where('num_empleado', 'LIKE', "%{$search}%")
-                      ->orWhere('name', 'LIKE', "%{$search}%")
-                      ->orWhere('father_lastname', 'LIKE', "%{$search}%")
-                      ->orWhere('mother_lastname', 'LIKE', "%{$search}%");
+            ->whereDoesntHave('department', function ($q) {
+                $q->where('code', '99999');
+            });
+
+        $user = auth()->user();
+        if (!$user->admin()) {
+            $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
+            $query->whereIn('deparment_id', $departmentIds);
+        }
+
+        $employees = $query->when($this->search, function ($q, $search) {
+                return $q->where(function ($subQ) use ($search) {
+                    $subQ->where('num_empleado', 'LIKE', "%{$search}%")
+                        ->orWhere('name', 'LIKE', "%{$search}%")
+                        ->orWhere('father_lastname', 'LIKE', "%{$search}%")
+                        ->orWhere('mother_lastname', 'LIKE', "%{$search}%");
                 });
             })
             ->orderBy('num_empleado', 'ASC')

@@ -26,15 +26,22 @@ Route::middleware('auth')->group(function () {
         $q = trim($request->get('q', ''));
         if (strlen($q) < 2) return response()->json([]);
 
+        $user = auth()->user();
+        $query = \App\Models\Employe::where('active', '1')
+            ->where(function ($query) use ($q) {
+                $query->where('num_empleado', 'like', "%{$q}%")
+                      ->orWhere('name', 'like', "%{$q}%")
+                      ->orWhere('father_lastname', 'like', "%{$q}%")
+                      ->orWhere('mother_lastname', 'like', "%{$q}%");
+            });
+
+        if (!$user->admin()) {
+            $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
+            $query->whereIn('deparment_id', $departmentIds);
+        }
+
         return response()->json(
-            \App\Models\Employe::where('active', '1')
-                ->where(function ($query) use ($q) {
-                    $query->where('num_empleado', 'like', "%{$q}%")
-                          ->orWhere('name', 'like', "%{$q}%")
-                          ->orWhere('father_lastname', 'like', "%{$q}%")
-                          ->orWhere('mother_lastname', 'like', "%{$q}%");
-                })
-                ->orderBy('num_empleado')
+            $query->orderBy('num_empleado')
                 ->limit(20)
                 ->get(['id','num_empleado','name','father_lastname','mother_lastname'])
                 ->map(fn($e) => [

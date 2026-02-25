@@ -40,6 +40,14 @@ class Manager extends Component
     {
         $this->employeeId = $employeeId;
         $this->employee = Employe::with(['department', 'puesto', 'horario', 'jornada'])->findOrFail($employeeId);
+
+        $user = auth()->user();
+        if (!$user->admin()) {
+            $hasAccess = $user->departments()->where('deparment_id', $this->employee->deparment_id)->exists();
+            if (!$hasAccess) {
+                abort(403, 'No tienes permiso para gestionar incidencias de este empleado.');
+            }
+        }
     }
 
     public function updatedCodigo($value)

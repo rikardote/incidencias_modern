@@ -9,31 +9,42 @@
                     Reporte General de Incidencias (RH5)
                 </h2>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Quincena</label>
-                        <select wire:model="qnaId" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro sm:text-sm">
-                            <option value="">Seleccione una Quincena</option>
-                            @foreach($qnas as $qna)
-                                <option value="{{ $qna->id }}">{{ $qna->year }} - Qna {{ str_pad($qna->qna, 2, '0', STR_PAD_LEFT) }} ({{ $qna->description }})</option>
+                <div class="flex items-end gap-3 mb-6 w-full">
+                    <div class="min-w-[100px] w-auto">
+                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">AÑO</label>
+                        <select wire:model.live="year" class="block w-full py-1.5 pl-3 pr-8 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro text-sm">
+                            <option value="">Año</option>
+                            @foreach($years as $yr)
+                                <option value="{{ $yr }}">{{ $yr }}</option>
                             @endforeach
                         </select>
-                        @error('qnaId') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        @error('year') <span class="text-red-500 text-[10px]">{{ $message }}</span> @enderror
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Departamento / Centro</label>
-                        <select wire:model="departmentId" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro sm:text-sm">
-                            <option value="">Seleccione un Centro</option>
+                    <div class="min-w-[200px] w-auto">
+                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">QUINCENA</label>
+                        <select wire:model="qnaId" class="block w-full py-1.5 pl-3 pr-8 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro text-sm">
+                            <option value="">Seleccione Quincena</option>
+                            @foreach($qnas as $qna)
+                                <option value="{{ $qna->id }}">Qna {{ str_pad($qna->qna, 2, '0', STR_PAD_LEFT) }} ({{ $qna->description }})</option>
+                            @endforeach
+                        </select>
+                        @error('qnaId') <span class="text-red-500 text-[10px]">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="flex-1 min-w-[300px]">
+                        <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">DEPARTAMENTO / CENTRO</label>
+                        <select wire:model="departmentId" class="block w-full py-1.5 pl-3 pr-8 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro text-sm">
+                            <option value="">Seleccione Centro de Trabajo</option>
                             @foreach($departments as $dept)
                                 <option value="{{ $dept->id }}">{{ $dept->code }} - {{ $dept->description }}</option>
                             @endforeach
                         </select>
-                        @error('departmentId') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        @error('departmentId') <span class="text-red-500 text-[10px]">{{ $message }}</span> @enderror
                     </div>
 
-                    <div class="flex items-end text-sm">
-                        <button wire:click="generate" class="w-full bg-[#13322B] hover:bg-[#0a1f1a] text-white px-6 py-2 rounded font-bold uppercase tracking-wider transition">
+                    <div class="w-auto shrink-0">
+                        <button wire:click="generate" class="bg-[#13322B] hover:bg-[#0a1f1a] text-white px-6 py-1.5 rounded text-sm font-bold uppercase tracking-wider transition whitespace-nowrap">
                             Consultar
                         </button>
                     </div>
@@ -66,26 +77,35 @@
                                         <th class="px-4 py-3 font-semibold text-gray-600 dark:text-gray-300 text-center text-oro">Días</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+                                <tbody class="bg-white dark:bg-gray-800">
                                     @forelse($results as $num => $data)
                                         @foreach($data['items'] as $index => $item)
-                                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50">
-                                                @if($index === 0)
-                                                    <td class="px-4 py-3 font-mono text-xs" rowspan="{{ count($data['items']) }}">{{ $num }}</td>
-                                                    <td class="px-4 py-3 font-medium" rowspan="{{ count($data['items']) }}">
-                                                        {{ $data['name'] }}
-                                                        @foreach($data['items'] as $it)
-                                                            @if($it['otorgado']) <div class="text-[10px] font-bold text-gray-500 mt-1 uppercase">{{ $it['otorgado'] }}</div> @endif
-                                                            @if($it['becas_comments']) <div class="text-[10px] font-bold text-gray-500 mt-1 uppercase">{{ $it['becas_comments'] }}</div> @endif
-                                                            @if($it['horas_otorgadas']) <div class="text-[10px] font-bold text-gray-500 mt-1 uppercase">{{ $it['horas_otorgadas'] }}</div> @endif
-                                                            @if($it['code'] == 900 && $it['autoriza_txt']) <div class="text-[10px] font-bold text-gray-500 mt-1 uppercase">{{ $it['autoriza_txt'] }}</div> @endif
-                                                        @endforeach
-                                                    </td>
-                                                @endif
-                                                <td class="px-4 py-3 text-center font-mono">{{ str_pad($item['code'], 2, '0', STR_PAD_LEFT) }}</td>
-                                                <td class="px-4 py-3 text-center">{{ \Carbon\Carbon::parse($item['fecha_inicio'])->format('d/m/Y') }}</td>
-                                                <td class="px-4 py-3 text-center">{{ \Carbon\Carbon::parse($item['fecha_final'])->format('d/m/Y') }}</td>
-                                                <td class="px-4 py-3 text-center">{{ $item['periodo'] }}</td>
+                                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/50 transition-colors {{ $index === 0 ? 'border-t-[1.5px] border-gray-400 dark:border-gray-500' : 'border-t-[0.5px] border-gray-200 dark:border-gray-700' }}">
+                                                <td class="px-4 py-3 font-mono text-xs text-center text-gray-900 dark:text-gray-100">
+                                                    {{ $index === 0 ? $num : '' }}
+                                                </td>
+                                                <td class="px-4 py-3">
+                                                    @if($index === 0)
+                                                        <div class="font-medium text-[13px] text-gray-900 dark:text-gray-100 mb-1">
+                                                            {{ $data['name'] }}
+                                                        </div>
+                                                    @endif
+                                                    
+                                                    @if($item['otorgado']) <div class="text-[10px] font-normal text-gray-500 dark:text-gray-400 uppercase mt-0.5">{{ $item['otorgado'] }}</div> @endif
+                                                    @if($item['becas_comments']) <div class="text-[10px] font-normal text-gray-500 dark:text-gray-400 uppercase mt-0.5">{{ $item['becas_comments'] }}</div> @endif
+                                                    @if($item['horas_otorgadas']) <div class="text-[10px] font-normal text-gray-500 dark:text-gray-400 uppercase mt-0.5">{{ $item['horas_otorgadas'] }}</div> @endif
+                                                    @if($item['code'] == 900 && $item['autoriza_txt']) <div class="text-[10px] font-normal text-gray-500 dark:text-gray-400 uppercase mt-0.5">{{ $item['autoriza_txt'] }}</div> @endif
+                                                </td>
+                                                <td class="px-4 py-3 text-center text-gray-900 dark:text-gray-200">
+                                                    @if($item['code'] == 901) OT
+                                                    @elseif($item['code'] == 905) PS
+                                                    @elseif($item['code'] == 900) TXT
+                                                    @else {{ str_pad($item['code'], 2, '0', STR_PAD_LEFT) }}
+                                                    @endif
+                                                </td>
+                                                <td class="px-4 py-3 text-center text-gray-900 dark:text-gray-200">{{ \Carbon\Carbon::parse($item['fecha_inicio'])->format('d/m/Y') }}</td>
+                                                <td class="px-4 py-3 text-center text-gray-900 dark:text-gray-200">{{ \Carbon\Carbon::parse($item['fecha_final'])->format('d/m/Y') }}</td>
+                                                <td class="px-4 py-3 text-center text-gray-900 dark:text-gray-200">{{ $item['periodo'] ?: '-' }}</td>
                                                 <td class="px-4 py-3 text-center font-bold text-oro">{{ $item['total'] }}</td>
                                             </tr>
                                         @endforeach
