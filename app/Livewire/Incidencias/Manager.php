@@ -100,6 +100,10 @@ class Manager extends Component
 
     public function store(IncidenciasService $service)
     {
+        if (\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin()) {
+            $this->dispatch('toast', icon: 'error', title: 'Sistema en mantenimiento: Captura deshabilitada.');
+            return;
+        }
         $this->validate([
             'codigo' => 'required|exists:codigos_de_incidencias,id',
             'fechas_seleccionadas' => 'required|string',
@@ -166,6 +170,10 @@ class Manager extends Component
 
     public function delete($token, IncidenciasService $service)
     {
+        if (\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin()) {
+            $this->dispatch('toast', icon: 'error', title: 'Sistema en mantenimiento: Eliminación deshabilitada.');
+            return;
+        }
         $incidencias = Incidencia::with('qna')->where('token', $token)->get();
         
         foreach ($incidencias as $inc) {

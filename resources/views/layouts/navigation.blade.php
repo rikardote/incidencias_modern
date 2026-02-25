@@ -7,21 +7,15 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-2">
-                        <x-application-logo class="block h-9 w-auto fill-current text-white drop-shadow-sm" />
-                        <span class="text-white font-bold text-lg tracking-tight">Incidencias</span>
+                        <x-application-logo class="block h-11 w-auto drop-shadow-sm" />
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
+
                     <x-nav-link :href="route('employees.index')" :active="request()->routeIs('employees.index')">
                         {{ __('Empleados') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('qnas.index')" :active="request()->routeIs('qnas.index')">
-                        {{ __('Quincenas') }}
                     </x-nav-link>
                     <x-nav-link :href="route('reports.general')" :active="request()->routeIs('reports.general')">
                         {{ __('Reportes') }}
@@ -34,6 +28,17 @@
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-200 bg-[#13322B] dark:bg-gray-950 hover:text-white hover:bg-[#0a1f1a] dark:hover:bg-gray-800 focus:outline-none transition ease-in-out duration-150">
+                            <div x-data="{ isMaintenance: {{ \Illuminate\Support\Facades\Cache::get('capture_maintenance', false) ? 'true' : 'false' }} }" 
+                                 @maintenance-updated.window="isMaintenance = $event.detail.mode"
+                                 x-show="isMaintenance" 
+                                 x-cloak
+                                 class="flex items-center text-red-400 mr-3 px-2 py-0.5 rounded-full bg-red-900/30 border border-red-500/30" 
+                                 title="Modo Mantenimiento Activo">
+                                <svg class="h-4 w-4 mr-1 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                <span class="text-xs font-bold uppercase tracking-wider">Mantenimiento</span>
+                            </div>
                             <div>{{ Auth::user()->name }}</div>
 
                             <div class="ms-1">
@@ -83,9 +88,6 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('employees.index')" :active="request()->routeIs('employees.index')">
                 {{ __('Empleados') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('qnas.index')" :active="request()->routeIs('qnas.index')">
-                {{ __('Quincenas') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('reports.general')" :active="request()->routeIs('reports.general')">
                 {{ __('Reportes') }}

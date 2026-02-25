@@ -3,9 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::redirect('/', '/login');
 
 Route::get('/dashboard', function () {
     return view('dashboard');
@@ -19,6 +17,9 @@ Route::middleware('auth')->group(function () {
     // Reportes
     Route::get('/reportes/general', \App\Livewire\Reports\GeneralReport::class)->name('reports.general');
     Route::get('/reportes/rh5-pdf/{qnaId}/{departmentId}', [\App\Http\Controllers\ReportController::class, 'rh5Pdf'])->name('reports.rh5.pdf');
+
+    // Usuarios (solo admins, logic in component)
+    Route::get('/usuarios', \App\Livewire\Users\Index::class)->name('users.index');
 
     // Búsqueda de empleados para el switcher de incidencias
     Route::get('/api/employees/search', function (\Illuminate\Http\Request $request) {

@@ -75,7 +75,19 @@
                                 </div>
                             </div>
 
-                            <form wire:submit.prevent="store">
+                            @if(\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin())
+                                <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 text-center my-4">
+                                    <svg class="w-12 h-12 text-red-500 mx-auto mb-3 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
+                                    <h3 class="text-sm font-bold text-red-800 dark:text-red-400">Captura Suspendida Temporalmente</h3>
+                                    <p class="text-xs text-red-600 dark:text-red-300 mt-2">
+                                        El sistema se encuentra en modo de mantenimiento administrativo.<br>
+                                        Por el momento no se pueden capturar nuevas incidencias. Intente más tarde.
+                                    </p>
+                                </div>
+                            @else
+                                <form wire:submit.prevent="store">
 
                                 {{-- Código --}}
                                 <div class="mb-3">
@@ -243,7 +255,8 @@
                                     Guardar Incidencia
                                 </button>
 
-                            </form>
+                                </form>
+                            @endif
                         </div>
                     </div>
                 </div>
@@ -350,7 +363,8 @@
                                             @endif
                                         </td>
                                         <td class="px-3 py-2 text-right text-xs">
-                                            @if($incidencia->qna && $incidencia->qna->active == '1')
+                                            @php $isMaintenance = \Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin(); @endphp
+                                            @if($incidencia->qna && $incidencia->qna->active == '1' && !$isMaintenance)
                                                 <button
                                                     x-on:click="window.Swal.fire({
                                                         title: '¿Eliminar incidencia?',
@@ -369,6 +383,8 @@
                                                     class="text-red-500 hover:text-red-400 font-medium">
                                                     Eliminar
                                                 </button>
+                                            @elseif($isMaintenance && $incidencia->qna && $incidencia->qna->active == '1')
+                                                <span class="text-red-400 dark:text-red-500 italic" title="Eliminación bloqueada por mantenimiento">Mantenimiento</span>
                                             @else
                                                 <span class="text-gray-300 dark:text-gray-600 italic">Cerrada</span>
                                             @endif

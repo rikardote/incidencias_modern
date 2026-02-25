@@ -53,4 +53,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Department::class, 'deparment_user', 'user_id', 'deparment_id');
     }
+
+    public function admin(): bool
+    {
+        return $this->type === 'admin';
+    }
 }
