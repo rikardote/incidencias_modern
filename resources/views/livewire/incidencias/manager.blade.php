@@ -314,7 +314,7 @@
                                     @forelse($incidencias as $incidencia)
                                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition" wire:key="inc-{{ $incidencia->id }}">
                                         <td class="px-3 py-2 text-center text-xs font-mono text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                                            {{ str_pad($incidencia->qna->qna ?? '', 2, '0', STR_PAD_LEFT) }} - {{ $incidencia->qna->year ?? '' }}
+                                            {{ str_pad($incidencia->qna->qna ?? '', 2, '0', STR_PAD_LEFT) }}-{{ $incidencia->qna->year ?? '' }}
                                         </td>
                                         <td class="px-3 py-2 text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
                                             {{ $incidencia->codigo->code ?? 'N/A' }}
@@ -331,7 +331,7 @@
                                         <td class="px-3 py-2 text-center text-xs text-gray-600 dark:text-gray-400">
                                             @if($incidencia->periodo)
                                                 <span class="inline-block bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-500 text-xs font-semibold px-2 py-0.5 rounded">
-                                                    {{ $incidencia->periodo->periodo }} - {{ $incidencia->periodo->year }}
+                                                    {{ $incidencia->periodo->periodo }}-{{ $incidencia->periodo->year }}
                                                 </span>
                                             @else
                                                 <span class="text-gray-300 dark:text-gray-600">—</span>

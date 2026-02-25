@@ -16,6 +16,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/employees/{employeeId}/incidencias', \App\Livewire\Incidencias\Manager::class)->name('employees.incidencias');
     Route::get('/qnas', [\App\Http\Controllers\QnaController::class, 'index'])->name('qnas.index');
 
+    // Reportes
+    Route::get('/reportes/general', \App\Livewire\Reports\GeneralReport::class)->name('reports.general');
+    Route::get('/reportes/rh5-pdf/{qnaId}/{departmentId}', [\App\Http\Controllers\ReportController::class, 'rh5Pdf'])->name('reports.rh5.pdf');
+
     // Búsqueda de empleados para el switcher de incidencias
     Route::get('/api/employees/search', function (\Illuminate\Http\Request $request) {
         $q = trim($request->get('q', ''));

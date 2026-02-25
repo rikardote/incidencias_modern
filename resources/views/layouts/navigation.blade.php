@@ -23,6 +23,9 @@
                     <x-nav-link :href="route('qnas.index')" :active="request()->routeIs('qnas.index')">
                         {{ __('Quincenas') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('reports.general')" :active="request()->routeIs('reports.general')">
+                        {{ __('Reportes') }}
+                    </x-nav-link>
                 </div>
             </div>
 
@@ -83,6 +86,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('qnas.index')" :active="request()->routeIs('qnas.index')">
                 {{ __('Quincenas') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('reports.general')" :active="request()->routeIs('reports.general')">
+                {{ __('Reportes') }}
             </x-responsive-nav-link>
         </div>
 
