@@ -3,11 +3,15 @@
     <head>
         <meta charset="utf-8">
         <script>
-            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
+            function setDarkModePreference() {
+                if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
             }
+            setDarkModePreference();
+            document.addEventListener('livewire:navigated', setDarkModePreference);
         </script>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -20,42 +24,23 @@
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
         <!-- Scripts -->
-        <!-- Scripts (Manual link to bypass stale hot-reload file) -->
-        <link rel="stylesheet" href="{{ asset('dist/assets/app-CymDgtdw.css') }}">
-        <script src="{{ asset('dist/assets/app-C9narHaO.js') }}" defer></script>
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @livewireStyles
 
-        <!-- Institutional Colors Shim -->
-        <style>
-            :root {
-                --guinda: #9b2247;
-                --guinda-dark: #611232;
-                --oro: #a57f2c;
-                --oro-light: #e6d194;
-                --verde: #1e5b4f;
-            }
-            .bg-guinda { background-color: var(--guinda) !important; }
-            .bg-guinda-dark { background-color: var(--guinda-dark) !important; }
-            .text-guinda { color: var(--guinda) !important; }
-            .border-guinda { border-color: var(--guinda) !important; }
-            .border-oro { border-color: var(--oro) !important; }
-            .text-oro { color: var(--oro) !important; }
-            .bg-oro { background-color: var(--oro) !important; }
-            .focus\:border-oro:focus { border-color: var(--oro) !important; }
-            .focus\:ring-oro:focus { --tw-ring-color: var(--oro) !important; }
-        </style>
     </head>
-    <body class="font-sans text-gray-900 antialiased">
-        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0 bg-gray-50 bg-[url('https://www.gob.mx/cms/uploads/image/file/485038/pleca_gobmx.png')] bg-bottom bg-repeat-x">
+    <body class="font-sans antialiased bg-[#f4f6f9] dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+        <div class="min-h-screen flex flex-col sm:justify-center items-center pt-6 sm:pt-0">
             <div class="mb-8">
                 <a href="/">
                     <x-application-logo class="w-auto h-20" />
                 </a>
             </div>
 
-            <div class="w-full sm:max-w-md mt-6 px-10 py-12 bg-white shadow-2xl overflow-hidden sm:rounded-xl border-t-8 border-oro">
-                <div class="mb-8 text-center">
-                    <h1 class="text-2xl font-black text-guinda tracking-tighter uppercase">Sistema de Incidencias</h1>
-                    <p class="text-xs font-bold text-oro uppercase tracking-widest mt-1">Identidad Institucional 2024-2030</p>
+            <div class="w-full sm:max-w-md mt-6 px-10 py-10 bg-white dark:bg-gray-800 shadow rounded border border-gray-200 dark:border-gray-700 overflow-hidden relative">
+                <div class="absolute top-0 left-0 w-full h-1 bg-[#13322B] dark:bg-[#1e5b4f]"></div>
+                <div class="mb-8 text-center mt-2">
+                    <h1 class="text-2xl font-bold text-[#333333] dark:text-gray-100 uppercase tracking-wide">Sistema de Incidencias</h1>
+                    <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mt-1">Gobierno de México</p>
                 </div>
                 {{ $slot }}
             </div>
@@ -64,5 +49,6 @@
                 Gobierno de México &copy; {{ date('Y') }}
             </div>
         </div>
+        @livewireScripts
     </body>
 </html>

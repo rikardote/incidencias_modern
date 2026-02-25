@@ -1,6 +1,6 @@
 <section>
     <header>
-        <h2 class="text-lg font-black text-guinda uppercase tracking-tighter dark:text-oro">
+        <h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">
             {{ __('Apariencia del Sistema') }}
         </h2>
 
@@ -29,8 +29,8 @@
             <button 
                 type="button" 
                 @click.prevent="toggle()"
-                class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-oro focus:ring-offset-2"
-                :class="darkMode ? 'bg-guinda' : 'bg-gray-200'"
+                class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#13322B] focus:ring-offset-2"
+                :class="darkMode ? 'bg-[#13322B]' : 'bg-gray-200'"
             >
                 <span class="sr-only">Toggle Dark Mode</span>
                 <span 

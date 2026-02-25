@@ -4,3 +4,116 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* -----------------------
+   Dark Mode: TomSelect
+   ----------------------- */
+html.dark .ts-control {
+    background-color: #111827 !important;
+    background-image: none !important;
+    border-color: #4B5563 !important;
+    color: #F3F4F6 !important;
+}
+
+html.dark .ts-control input,
+html.dark .ts-control .item {
+    color: #F3F4F6 !important;
+}
+
+html.dark .ts-dropdown {
+    background-color: #1F2937 !important;
+    border-color: #374151 !important;
+    color: #F3F4F6 !important;
+}
+
+html.dark .ts-dropdown .option,
+html.dark .ts-dropdown .option.active {
+    background-color: #1F2937 !important;
+    color: #F3F4F6 !important;
+}
+
+html.dark .ts-dropdown .option.active,
+html.dark .ts-dropdown .option:hover,
+html.dark .ts-dropdown .active:hover {
+    background-color: #9B2247 !important;
+    color: white !important;
+}
+
+/* -----------------------
+   Dark Mode: Flatpickr
+   ----------------------- */
+html.dark .flatpickr-calendar {
+    background: #1F2937;
+    border-color: #374151;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+}
+
+html.dark .flatpickr-month,
+html.dark .flatpickr-weekwrapper span.flatpickr-weekday,
+html.dark .flatpickr-weekday,
+html.dark .flatpickr-current-month .numInputWrapper span.arrowUp:after,
+html.dark .flatpickr-current-month .numInputWrapper span.arrowDown:after {
+    color: #F3F4F6;
+    fill: #F3F4F6;
+}
+
+html.dark .flatpickr-day {
+    color: #F3F4F6;
+}
+
+html.dark .flatpickr-day.inRange,
+html.dark .flatpickr-day.prevMonthDay.inRange,
+html.dark .flatpickr-day.nextMonthDay.inRange,
+html.dark .flatpickr-day.today.inRange,
+html.dark .flatpickr-day.prevMonthDay.today.inRange,
+html.dark .flatpickr-day.nextMonthDay.today.inRange,
+html.dark .flatpickr-day:hover,
+html.dark .flatpickr-day.prevMonthDay:hover,
+html.dark .flatpickr-day.nextMonthDay:hover,
+html.dark .flatpickr-day:focus,
+html.dark .flatpickr-day.prevMonthDay:focus,
+html.dark .flatpickr-day.nextMonthDay:focus {
+    background: #374151;
+    border-color: #374151;
+}
+
+html.dark .flatpickr-day.today {
+    border-color: #e6d194;
+}
+
+html.dark .flatpickr-day.selected,
+html.dark .flatpickr-day.startRange,
+html.dark .flatpickr-day.endRange,
+html.dark .flatpickr-day.selected.inRange,
+html.dark .flatpickr-day.startRange.inRange,
+html.dark .flatpickr-day.endRange.inRange,
+html.dark .flatpickr-day.selected:focus,
+html.dark .flatpickr-day.startRange:focus,
+html.dark .flatpickr-day.endRange:focus,
+html.dark .flatpickr-day.selected:hover,
+html.dark .flatpickr-day.startRange:hover,
+html.dark .flatpickr-day.endRange:hover,
+html.dark .flatpickr-day.selected.prevMonthDay,
+html.dark .flatpickr-day.startRange.prevMonthDay,
+html.dark .flatpickr-day.endRange.prevMonthDay,
+html.dark .flatpickr-day.selected.nextMonthDay,
+html.dark .flatpickr-day.startRange.nextMonthDay,
+html.dark .flatpickr-day.endRange.nextMonthDay {
+    background: #9B2247;
+    border-color: #9B2247;
+    color: #fff;
+}
+
+/* -----------------------
+   Dark Mode: Autofill Fix
+   ----------------------- */
+html.dark input:-webkit-autofill,
+html.dark input:-webkit-autofill:hover,
+html.dark input:-webkit-autofill:focus,
+html.dark input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #111827 inset !important;
+    /* Forces background to gray-900 */
+    -webkit-text-fill-color: #F3F4F6 !important;
+    /* Forces text to gray-100 */
+    transition: background-color 5000s ease-in-out 0s;
+}

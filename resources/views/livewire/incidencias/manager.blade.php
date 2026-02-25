@@ -11,8 +11,9 @@
 
 
                     {{-- Formulario de captura --}}
-                    <div class="bg-white dark:bg-gray-800 shadow rounded border border-gray-200 dark:border-gray-700 sticky top-4 overflow-hidden">
-                        <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800">
+                    <div class="bg-white dark:bg-gray-800 shadow rounded border border-gray-200 dark:border-gray-700 sticky top-4 overflow-hidden relative">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-[#13322B] dark:bg-[#e6d194]"></div>
+                        <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
                             <h3 class="text-sm font-bold text-[#13322B] dark:text-gray-200 uppercase tracking-wide flex items-center gap-2">
                                 Capturar Incidencia
                             </h3>
@@ -57,6 +58,7 @@
                                         x-on:input="search()"
                                         x-on:focus="if(query.length >= 2) open = true"
                                         placeholder="Nombre o No. de Empleado..."
+                                        spellcheck="false"
                                         class="block w-full text-xs border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:border-oro focus:ring-1 focus:ring-oro outline-none transition-all shadow-inner bg-white dark:bg-gray-950 dark:text-gray-300"
                                     >
                                     <span x-show="loading" class="absolute right-3 top-2 text-oro text-[10px] animate-pulse">...</span>
@@ -77,7 +79,7 @@
 
                                 {{-- Código --}}
                                 <div class="mb-3">
-                                    <label class="block text-xs font-medium text-gray-700 mb-1">Código de Incidencia</label>
+                                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Código de Incidencia</label>
                                     <div wire:ignore>
                                         <select x-data="{
                                             tom: null,
@@ -92,7 +94,7 @@
                                                     @this.set('codigo', value);
                                                 });
                                             }
-                                        }" class="block w-full rounded-md border-gray-300 shadow-sm text-sm">
+                                        }" class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm text-sm">
                                             <option value="">-- Buscar código --</option>
                                             @foreach($codigos as $c)
                                                 <option value="{{ $c->id }}">{{ $c->code }} - {{ $c->description }}</option>
@@ -119,12 +121,12 @@
                                         });
                                     }
                                 }">
-                                    <label class="block text-xs font-medium text-gray-700 mb-1">Fechas a Aplicar</label>
+                                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fechas a Aplicar</label>
                                     <div wire:ignore>
                                         <input x-ref="fechaInput" type="text" placeholder="Seleccione la(s) fecha(s)" readonly
-                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-oro focus:ring-oro text-sm bg-gray-50 cursor-pointer">
+                                            class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-oro focus:ring-oro text-sm bg-gray-50 dark:bg-gray-900 dark:text-gray-100 cursor-pointer">
                                     </div>
-                                    <p class="mt-1 text-xs text-gray-400">
+                                    <p class="mt-1 text-xs text-gray-400 dark:text-gray-500">
                                         {{ $dateMode === 'multiple' ? 'Múltiples días sueltos.' : 'Seleccione inicio y fin del rango.' }}
                                     </p>
                                     @error('fechas_seleccionadas') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
@@ -135,25 +137,25 @@
 
                                 {{-- Campos de TXT (código 900) --}}
                                 @if($isTxt)
-                                <div class="bg-verde-50/30 p-4 rounded-xl mb-3 border border-verde/20">
-                                    <h4 class="text-xs font-black text-verde-dark mb-3 uppercase tracking-wider flex items-center gap-2">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-verde"></span>
+                                <div class="bg-verde-50/30 dark:bg-[#13322b]/20 p-4 rounded-xl mb-3 border border-verde/20 dark:border-[#13322B]">
+                                    <h4 class="text-xs font-black text-verde-dark dark:text-[#e6d194] mb-3 uppercase tracking-wider flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-verde dark:bg-[#e6d194]"></span>
                                         Detalle T.X.T (Tiempo por Tiempo)
                                     </h4>
 
                                     <div class="mb-2">
-                                        <label class="block text-xs font-medium text-gray-700 mb-1">Sustituto (quién lo cubrió)</label>
+                                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Sustituto (quién lo cubrió)</label>
                                         <input type="text" wire:model="cobertura_txt"
-                                            placeholder="Nombre del sustituto"
-                                            class="block w-full rounded-md border-gray-300 shadow-sm py-1.5 text-sm">
+                                            placeholder="Nombre del sustituto" spellcheck="false"
+                                            class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 dark:text-gray-100 shadow-sm py-1.5 text-sm">
                                         @error('cobertura_txt') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                     </div>
 
                                     <div>
-                                        <label class="block text-xs font-medium text-gray-700 mb-1">Autorizó el cambio de guardia</label>
+                                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Autorizó el cambio de guardia</label>
                                         <input type="text" wire:model="autoriza_txt"
-                                            placeholder="Nombre de quien autorizó"
-                                            class="block w-full rounded-md border-gray-300 shadow-sm py-1.5 text-sm">
+                                            placeholder="Nombre de quien autorizó" spellcheck="false"
+                                            class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 dark:text-gray-100 shadow-sm py-1.5 text-sm">
                                         @error('autoriza_txt') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                     </div>
                                 </div>
@@ -161,8 +163,8 @@
 
                                 {{-- Campos de Incapacidad --}}
                                 @if($isIncapacidad)
-                                <div class="bg-guinda-50 p-3 rounded-md mb-3 border border-guinda-100">
-                                    <h4 class="text-xs font-semibold text-guinda-800 mb-2">Detalles Incapacidad</h4>
+                                <div class="bg-guinda-50 dark:bg-gray-800 p-3 rounded-md mb-3 border border-guinda-100 dark:border-gray-700">
+                                    <h4 class="text-xs font-semibold text-guinda-800 dark:text-gray-300 mb-2">Detalles Incapacidad</h4>
 
                                     <div class="mb-2" x-data="{
                                         init() {
@@ -174,27 +176,27 @@
                                             });
                                         }
                                     }">
-                                        <label class="block text-xs font-medium text-gray-700 mb-1">Fecha Expedida</label>
+                                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha Expedida</label>
                                         <div wire:ignore>
                                             <input x-ref="expedidaInput" type="text" placeholder="Seleccionar" readonly
-                                                class="block w-full rounded-md border-gray-300 shadow-sm py-1.5 text-sm bg-gray-50 cursor-pointer">
+                                                class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm py-1.5 text-sm bg-gray-50 dark:bg-gray-900 dark:text-gray-100 cursor-pointer">
                                         </div>
                                     </div>
 
                                     <div class="mb-2">
-                                        <label class="block text-xs font-medium text-gray-700 mb-1">No. Licencia Médica</label>
-                                        <input type="text" wire:model="num_licencia"
-                                            class="block w-full rounded-md border-gray-300 shadow-sm py-1.5 text-sm">
+                                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">No. Licencia Médica</label>
+                                        <input type="text" wire:model="num_licencia" spellcheck="false"
+                                            class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 dark:text-gray-100 shadow-sm py-1.5 text-sm">
                                     </div>
 
                                     <div class="mb-2">
-                                        <label class="block text-xs font-medium text-gray-700 mb-1">Diagnóstico</label>
-                                        <input type="text" wire:model="diagnostico"
-                                            class="block w-full rounded-md border-gray-300 shadow-sm py-1.5 text-sm">
+                                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Diagnóstico</label>
+                                        <input type="text" wire:model="diagnostico" spellcheck="false"
+                                            class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 dark:text-gray-100 shadow-sm py-1.5 text-sm">
                                     </div>
 
                                     <div>
-                                        <label class="block text-xs font-medium text-gray-700 mb-1">Médico Expedidor</label>
+                                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Médico Expedidor</label>
                                         <div wire:ignore>
                                             <select x-data="{
                                                 tom: null,
@@ -207,7 +209,7 @@
                                                         @this.set('medico_id', value);
                                                     });
                                                 }
-                                            }" class="block w-full rounded-md border-gray-300 shadow-sm py-1.5 text-sm">
+                                            }" class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm py-1.5 text-sm">
                                                 <option value="">-- Buscar médico --</option>
                                                 @foreach($medicos as $medico)
                                                     <option value="{{ $medico->id }}">{{ $medico->num_empleado }} - {{ $medico->fullname }}</option>
@@ -221,10 +223,10 @@
 
                                 {{-- Campos de Vacaciones --}}
                                 @if($isVacacional)
-                                <div class="bg-yellow-50 p-3 rounded-md mb-3 border border-yellow-100">
-                                    <h4 class="text-xs font-semibold text-yellow-800 mb-2">Detalle Vacaciones</h4>
-                                    <label class="block text-xs font-medium text-gray-700 mb-1">Periodo a Disfrutar</label>
-                                    <select wire:model="periodo_id" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-oro focus:ring-oro text-sm">
+                                <div class="bg-yellow-50 dark:bg-gray-800 p-3 rounded-md mb-3 border border-yellow-100 dark:border-gray-700">
+                                    <h4 class="text-xs font-semibold text-yellow-800 dark:text-gray-300 mb-2">Detalle Vacaciones</h4>
+                                    <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Periodo a Disfrutar</label>
+                                    <select wire:model="periodo_id" class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro text-sm">
                                         <option value="">-- Elija el Periodo --</option>
                                         @foreach($periodos as $p)
                                             <option value="{{ $p->id }}">{{ $p->periodo }} - {{ $p->year }}</option>
@@ -296,49 +298,49 @@
                         <div class="overflow-x-auto">
                             <table class="w-full text-left border-collapse">
                                 <thead>
-                                    <tr class="bg-gray-50 dark:bg-gray-800/50 border-b-2 border-oro">
-                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider text-center">Qna</th>
-                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Código</th>
-                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider text-center">Inicio</th>
-                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider text-center">Fin</th>
-                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider text-center">Días</th>
-                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider text-center">Período Vac.</th>
-                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Capturó</th>
-                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider text-center">Fecha Captura</th>
-                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider text-right">Acciones</th>
+                                    <tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center whitespace-nowrap">Qna</th>
+                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Código</th>
+                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center whitespace-nowrap">Inicio</th>
+                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center whitespace-nowrap">Fin</th>
+                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center whitespace-nowrap">Días</th>
+                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center whitespace-nowrap">Período Vac.</th>
+                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider whitespace-nowrap">Capturó</th>
+                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center whitespace-nowrap">Fecha Captura</th>
+                                        <th class="px-3 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-right whitespace-nowrap">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-gray-100">
+                                <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                                     @forelse($incidencias as $incidencia)
-                                    <tr class="hover:bg-gray-50 transition" wire:key="inc-{{ $incidencia->id }}">
-                                        <td class="px-3 py-2 text-center text-xs font-mono text-gray-600 whitespace-nowrap">
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition" wire:key="inc-{{ $incidencia->id }}">
+                                        <td class="px-3 py-2 text-center text-xs font-mono text-gray-600 dark:text-gray-400 whitespace-nowrap">
                                             {{ str_pad($incidencia->qna->qna ?? '', 2, '0', STR_PAD_LEFT) }} - {{ $incidencia->qna->year ?? '' }}
                                         </td>
-                                        <td class="px-3 py-2 text-sm font-medium text-gray-900 whitespace-nowrap">
+                                        <td class="px-3 py-2 text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
                                             {{ $incidencia->codigo->code ?? 'N/A' }}
                                         </td>
-                                        <td class="px-3 py-2 text-center text-xs text-gray-700 whitespace-nowrap">
+                                        <td class="px-3 py-2 text-center text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">
                                             {{ \Carbon\Carbon::parse($incidencia->fecha_inicio)->format('d/m/Y') }}
                                         </td>
-                                        <td class="px-3 py-2 text-center text-xs text-gray-700 whitespace-nowrap">
+                                        <td class="px-3 py-2 text-center text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">
                                             {{ \Carbon\Carbon::parse($incidencia->fecha_final)->format('d/m/Y') }}
                                         </td>
-                                        <td class="px-3 py-2 text-center text-xs font-semibold text-gray-700">
+                                        <td class="px-3 py-2 text-center text-xs font-semibold text-gray-700 dark:text-gray-300">
                                             {{ $incidencia->total_dias }}
                                         </td>
-                                        <td class="px-3 py-2 text-center text-xs text-gray-600">
+                                        <td class="px-3 py-2 text-center text-xs text-gray-600 dark:text-gray-400">
                                             @if($incidencia->periodo)
-                                                <span class="inline-block bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-0.5 rounded">
+                                                <span class="inline-block bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-500 text-xs font-semibold px-2 py-0.5 rounded">
                                                     {{ $incidencia->periodo->periodo }} - {{ $incidencia->periodo->year }}
                                                 </span>
                                             @else
-                                                <span class="text-gray-300">—</span>
+                                                <span class="text-gray-300 dark:text-gray-600">—</span>
                                             @endif
                                         </td>
-                                        <td class="px-3 py-2 text-xs text-gray-500 max-w-[120px] truncate" title="{{ $incidencia->capturado_por }}">
+                                        <td class="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 max-w-[120px] truncate" title="{{ $incidencia->capturado_por }}">
                                             {{ $incidencia->capturado_por ?? '—' }}
                                         </td>
-                                        <td class="px-3 py-2 text-center text-xs text-gray-400 whitespace-nowrap">
+                                        <td class="px-3 py-2 text-center text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap">
                                             @if($incidencia->fecha_capturado)
                                                 {{ \Carbon\Carbon::parse($incidencia->fecha_capturado)->format('d/m/Y') }}
                                             @elseif($incidencia->created_at)
@@ -364,11 +366,11 @@
                                                             $wire.delete('{{ $incidencia->token }}');
                                                         }
                                                     })"
-                                                    class="text-red-500 hover:text-red-700 font-medium">
+                                                    class="text-red-500 hover:text-red-400 font-medium">
                                                     Eliminar
                                                 </button>
                                             @else
-                                                <span class="text-gray-300 italic">Cerrada</span>
+                                                <span class="text-gray-300 dark:text-gray-600 italic">Cerrada</span>
                                             @endif
                                         </td>
                                     </tr>

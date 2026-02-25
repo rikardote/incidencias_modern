@@ -3,11 +3,15 @@
     <head>
         <meta charset="utf-8">
         <script>
-            if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-            } else {
-                document.documentElement.classList.remove('dark');
+            function setDarkModePreference() {
+                if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
             }
+            setDarkModePreference();
+            document.addEventListener('livewire:navigated', setDarkModePreference);
         </script>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -20,9 +24,8 @@
         <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
         <!-- Scripts -->
-        <!-- Scripts (Manual link to bypass stale hot-reload file) -->
-        <link rel="stylesheet" href="{{ asset('dist/assets/app-CymDgtdw.css') }}">
-        <script src="{{ asset('dist/assets/app-C9narHaO.js') }}" defer></script>
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @livewireStyles
 
         <!-- Institutional Colors Shim -->
         <style>
@@ -77,5 +80,6 @@
                 });
             });
         </script>
+        @livewireScripts
     </body>
 </html>
