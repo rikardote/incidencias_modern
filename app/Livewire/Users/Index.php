@@ -261,7 +261,7 @@ class Index extends Component
         })
             ->orderBy('active', 'desc')
             ->orderBy('name', 'asc')
-            ->paginate(10);
+            ->paginate(15);
 
         return view('livewire.users.index', [
             'users' => $users,

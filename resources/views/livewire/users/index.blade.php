@@ -33,90 +33,105 @@
                 </div>
 
                 <div class="p-6">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div wire:loading.class="opacity-50" wire:target="search"
+                        class="transition-opacity duration-200 flex flex-col gap-3">
                         @forelse($users as $user)
                         <div wire:key="user-{{ $user->id }}"
-                            class="group relative bg-white dark:bg-gray-900/40 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 hover:border-oro/30 dark:hover:border-oro/20 hover:shadow-xl hover:shadow-gray-200/40 dark:hover:shadow-black/20 transition-all duration-300">
+                            class="group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md hover:border-[#13322B]/30 dark:hover:border-[#e6d194]/20 transition-all duration-200 overflow-hidden">
 
-                            {{-- Badge de Estado --}}
-                            <div class="absolute top-4 right-4">
-                                <button wire:click="toggleActive({{ $user->id }})"
-                                    class="group/status focus:outline-none {{ auth()->id() === $user->id ? 'cursor-not-allowed' : '' }}"
-                                    {{ auth()->id() === $user->id ? 'disabled' : '' }}>
-                                    <div
-                                        class="flex items-center gap-1.5 px-2 py-1 rounded-full {{ $user->active ? 'bg-green-50 dark:bg-green-900/20 text-green-600' : 'bg-red-50 dark:bg-red-900/20 text-red-600' }} transition-all group-hover/status:scale-105">
-                                        <div
-                                            class="w-1.5 h-1.5 rounded-full {{ $user->active ? 'bg-green-500 animate-pulse' : 'bg-red-500' }}">
-                                        </div>
-                                        <span class="text-[10px] font-black uppercase tracking-widest">{{ $user->active
-                                            ? 'Activo' : 'Inactivo' }}</span>
-                                    </div>
-                                </button>
-                            </div>
-
-                            <div class="flex items-start gap-4 mb-6">
+                            <div class="flex items-center gap-4 px-4 py-3">
+                                {{-- Avatar --}}
                                 <div
-                                    class="shrink-0 w-12 h-12 rounded-2xl bg-gradient-to-br from-[#13322B] to-[#1e463d] flex items-center justify-center text-oro font-black shadow-lg shadow-[#13322B]/20">
-                                    {{ strtoupper(mb_substr($user->name, 0, 1)) }}
+                                    class="shrink-0 w-10 h-10 rounded-full bg-[#13322B]/10 dark:bg-[#13322B]/40 flex items-center justify-center">
+                                    <span class="text-sm font-black text-[#13322B] dark:text-[#e6d194] leading-none">
+                                        @php
+                                        $parts = explode(' ', trim($user->name));
+                                        $initials = strtoupper(mb_substr($parts[0] ?? '', 0, 1));
+                                        if (count($parts) > 1) {
+                                        $initials .= strtoupper(mb_substr($parts[1], 0, 1));
+                                        }
+                                        @endphp
+                                        {{ $initials }}
+                                    </span>
                                 </div>
-                                <div class="min-w-0 pr-16">
-                                    <div class="flex items-center gap-1.5 mb-1">
-                                        <h4
-                                            class="text-sm font-bold text-gray-900 dark:text-gray-100 truncate uppercase tracking-tight">
+
+                                {{-- Info --}}
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span
+                                            class="font-mono text-xs font-bold text-[#9b2247] dark:text-[#e6d194] shrink-0">
+                                            #{{ $user->username }}
+                                        </span>
+                                        <span class="text-gray-200 dark:text-gray-600 text-xs text-bold">|</span>
+                                        <span
+                                            class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase truncate">
                                             {{ $user->name }}
-                                        </h4>
+                                        </span>
                                         @if(auth()->id() === $user->id)
                                         <span
-                                            class="shrink-0 px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase">Tú</span>
+                                            class="shrink-0 px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase ml-1">Tú</span>
                                         @endif
                                     </div>
-                                    <div class="flex items-center gap-2">
-                                        <span
-                                            class="text-[11px] font-mono font-bold text-[#9b2247] dark:text-oro/80">#{{
-                                            $user->username }}</span>
-                                        <span class="w-1 h-1 rounded-full bg-gray-300 dark:bg-gray-700"></span>
-                                        <span
-                                            class="text-[10px] font-black uppercase tracking-[0.1em] {{ $user->type === 'admin' ? 'text-purple-600 dark:text-purple-400' : 'text-gray-400 dark:text-gray-500' }}">
-                                            {{ $user->type === 'admin' ? 'Administrador' : 'Usuario' }}
+                                    <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                                        <span class="text-[11px] text-gray-500 dark:text-gray-400">
+                                            {{ $user->type === 'admin' ? 'Administrador del Sistema' : 'Usuario de
+                                            Captura' }}
                                         </span>
+                                        <span class="text-gray-200 dark:text-gray-600 text-xs">·</span>
+                                        <button wire:click="toggleActive({{ $user->id }})"
+                                            class="flex items-center gap-1 focus:outline-none {{ auth()->id() === $user->id ? 'cursor-not-allowed opacity-50' : 'hover:scale-105 transition-transform' }}"
+                                            {{ auth()->id() === $user->id ? 'disabled' : '' }}>
+                                            <div
+                                                class="w-1 h-1 rounded-full {{ $user->active ? 'bg-green-500 animate-pulse' : 'bg-red-500' }}">
+                                            </div>
+                                            <span
+                                                class="text-[10px] font-black uppercase tracking-widest {{ $user->active ? 'text-green-600' : 'text-red-600' }}">
+                                                {{ $user->active ? 'Activo' : 'Inactivo' }}
+                                            </span>
+                                        </button>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="grid grid-cols-3 gap-2 border-t border-gray-50 dark:border-gray-800 pt-4">
-                                <button wire:click="grantException({{ $user->id }})"
-                                    class="flex flex-col items-center gap-1.5 p-2 rounded-xl {{ $user->canCaptureInClosedQna() ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600' : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-oro' }} transition-all"
-                                    title="Pase Captura">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                                    </svg>
-                                    <span class="text-[8px] font-black uppercase tracking-tighter">Pase</span>
-                                </button>
+                                {{-- Acciones --}}
+                                <div class="shrink-0 flex items-center gap-1 text-[#9b2247]">
+                                    {{-- Pase --}}
+                                    <button wire:click="grantException({{ $user->id }})"
+                                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg {{ $user->canCaptureInClosedQna() ? 'bg-[#9b2247]/10 text-[#9b2247]' : 'text-gray-400 hover:bg-[#9b2247]/5 hover:text-[#9b2247]' }} transition-colors">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                                        </svg>
+                                        <span class="text-[8px] font-black uppercase tracking-tighter">Pase</span>
+                                    </button>
 
-                                <button wire:click="changePassword({{ $user->id }})"
-                                    class="flex flex-col items-center gap-1.5 p-2 rounded-xl text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-blue-500 transition-all font-semibold"
-                                    title="Seguridad">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                    </svg>
-                                    <span class="text-[8px] font-black uppercase tracking-tighter">Seguridad</span>
-                                </button>
+                                    <div class="w-px h-6 bg-gray-100 dark:bg-gray-700 mx-1"></div>
 
-                                <button wire:click="edit({{ $user->id }})"
-                                    class="flex flex-col items-center gap-1.5 p-2 rounded-xl text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-[#9b2247] dark:hover:text-[#e6d194] transition-all"
-                                    title="Editar">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                    </svg>
-                                    <span class="text-[8px] font-black uppercase tracking-tighter">Perfil</span>
-                                </button>
+                                    {{-- Seguridad --}}
+                                    <button wire:click="changePassword({{ $user->id }})"
+                                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
+                                        <span class="text-[8px] font-black uppercase tracking-tighter">Seguridad</span>
+                                    </button>
+
+                                    <div class="w-px h-6 bg-gray-100 dark:bg-gray-700 mx-1"></div>
+
+                                    {{-- Editar --}}
+                                    <button wire:click="edit({{ $user->id }})"
+                                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                        </svg>
+                                        <span class="text-[8px] font-black uppercase tracking-tighter">Editar</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         @empty
-                        <div class="col-span-full py-16 text-center">
+                        <div class="py-16 text-center">
                             <div
                                 class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-800 text-gray-400 mb-4">
                                 <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
