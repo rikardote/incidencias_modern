@@ -59,11 +59,23 @@ class User extends Authenticatable
         return $this->hasMany(CaptureException::class);
     }
 
-    public function canCaptureInClosedQna(): bool
+    public function canCaptureInClosedQna($qnaId = null): bool
+    {
+        $query = $this->captureExceptions()
+            ->where('expires_at', '>', now());
+
+        if ($qnaId) {
+            $query->where('qna_id', $qnaId);
+        }
+
+        return $query->exists();
+    }
+
+    public function activeCaptureException()
     {
         return $this->captureExceptions()
             ->where('expires_at', '>', now())
-            ->exists();
+            ->first();
     }
 
     public function admin(): bool

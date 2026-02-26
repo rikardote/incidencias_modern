@@ -32,6 +32,7 @@ class Index extends Component
     // Exception data
     public $exceptionUserId;
     public $exceptionUserName;
+    public $exceptionQnaId;
     public $exceptionDuration = 60; // default 60 minutes
     public $exceptionReason = 'Corrección de captura urgente';
 
@@ -162,12 +163,15 @@ class Index extends Component
     public function saveException()
     {
         $this->validate([
+            'exceptionQnaId' => 'required|exists:qnas,id',
             'exceptionDuration' => 'required|numeric|min:1|max:1440',
             'exceptionReason' => 'required|string|max:255',
         ]);
 
+        $qna = \App\Models\Qna::find($this->exceptionQnaId);
+
         \App\Models\CaptureException::updateOrCreate(
-            ['user_id' => $this->exceptionUserId],
+            ['user_id' => $this->exceptionUserId, 'qna_id' => (int) $this->exceptionQnaId],
             [
                 'expires_at' => now()->addMinutes((int) $this->exceptionDuration),
                 'reason' => $this->exceptionReason,
@@ -177,7 +181,7 @@ class Index extends Component
         $this->showExceptionModal = false;
         
         $this->dispatch('notify', [
-            'message' => 'Pase de captura otorgado por ' . $this->exceptionDuration . ' minutos',
+            'message' => 'Pase otorgado para QNA ' . $qna->qna . '/' . $qna->year . ' por ' . $this->exceptionDuration . ' min',
             'type' => 'success'
         ]);
     }

@@ -246,6 +246,17 @@
                     </p>
 
                     <div class="mb-4">
+                        <label for="exceptionQnaId" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Quincena a desbloquear</label>
+                        <select wire:model="exceptionQnaId" id="exceptionQnaId" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro sm:text-sm">
+                            <option value="">-- Seleccionar QNA --</option>
+                            @foreach(\App\Models\Qna::where('active', '0')->orderBy('year', 'desc')->orderBy('qna', 'desc')->limit(12)->get() as $q)
+                                <option value="{{ $q->id }}">QNA {{ $q->qna }}/{{ $q->year }} - {{ $q->description }}</option>
+                            @endforeach
+                        </select>
+                        @error('exceptionQnaId') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="mb-4">
                         <label for="exceptionDuration" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Duración del pase</label>
                         <select wire:model="exceptionDuration" id="exceptionDuration" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro sm:text-sm">
                             <option value="15">15 Minutos</option>

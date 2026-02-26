@@ -76,24 +76,23 @@ function qna_year($fecha){
         $qnaNum -= 1;
     }
 
-    $query = Qna::where('qna', $qnaNum)->where('year', $year);
+    // Primero intentamos con quincenas activas (caso normal)
+    $qna = Qna::where('qna', $qnaNum)->where('year', $year)->where('active', '1')->first();
     
-    // Si hay un usuario autenticado, verificamos si tiene permiso especial.
-    // Si no tiene permiso especial y no es admin con poder absoluto (opcional),
-    // restringimos a quincenas activas.
-    $user = auth()->user();
-    if ($user) {
-        if (!$user->canCaptureInClosedQna()) {
-            $query->where('active', '1');
-        }
-    } else {
-        // Fallback para procesos fuera de sesión
-        $query->where('active', '1');
+    if ($qna) {
+        return $qna->id;
     }
 
-    $qna = $query->first();
+    // Si no hay QNA activa, verificamos si el usuario tiene un pase para ESA quincena específica
+    $user = auth()->user();
+    if ($user) {
+        $qnaCerrada = Qna::where('qna', $qnaNum)->where('year', $year)->first();
+        if ($qnaCerrada && $user->canCaptureInClosedQna($qnaCerrada->id)) {
+            return $qnaCerrada->id;
+        }
+    }
 
-    return $qna ? $qna->id : false;
+    return false;
 }
 function getFechaInicioPorQna($qna_id){
     $qna = Qna::where('id', '=', $qna_id)->first();

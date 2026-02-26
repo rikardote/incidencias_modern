@@ -185,7 +185,7 @@ class Manager extends Component
         $incidencias = Incidencia::with('qna')->where('token', $token)->get();
         
         foreach ($incidencias as $inc) {
-            if ($inc->qna && $inc->qna->active != '1' && !auth()->user()->admin() && !auth()->user()->canCaptureInClosedQna()) {
+            if ($inc->qna && $inc->qna->active != '1' && !auth()->user()->admin() && !auth()->user()->canCaptureInClosedQna($inc->qna->id)) {
                 $this->dispatch('toast', icon: 'error', title: 'No se puede eliminar porque una de las partes de esta captura pertenece a una Quincena que ya ha sido cerrada.');
                 return;
             }
