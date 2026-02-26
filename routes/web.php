@@ -22,6 +22,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/reportes/kardex', \App\Livewire\Reports\KardexReport::class)->name('reports.kardex');
     Route::get('/reportes/kardex-pdf/{num_empleado}/{fecha_inicio}/{fecha_final}', [\App\Http\Controllers\ReportController::class, 'kardexPdf'])->name('reports.kardex.pdf');
 
+    // Biométrico
+    Route::get('/biometrico', [\App\Http\Controllers\BiometricoController::class, 'index'])->name('biometrico.index');
+    Route::get('/biometrico/exportar', [\App\Http\Controllers\BiometricoController::class, 'exportar'])->name('biometrico.exportar');
+
     // Usuarios (solo admins, logic in component)
     Route::get('/usuarios', \App\Livewire\Users\Index::class)->name('users.index');
 

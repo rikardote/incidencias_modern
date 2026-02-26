@@ -23,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
         Vite::useBuildDirectory('dist');
 
         // Compartir la QNA activa con absolutamente todas las vistas
+        $activeQna = null;
         try {
             // 1. Buscamos la QNA activa más antigua que TENGA fecha de cierre (la que urge cerrar)
             // 2. Si ninguna tiene fecha, buscamos la QNA activa más antigua (la subsecuente a la última cerrada)
@@ -35,10 +36,10 @@ class AppServiceProvider extends ServiceProvider
                 ->orderBy('year', 'asc')
                 ->orderBy('qna', 'asc')
                 ->first();
-
-            \Illuminate\Support\Facades\View::share('activeQna', $activeQna);
         } catch (\Exception $e) {
             // Silencio en caso de que la tabla no exista aún (migraciones)
         }
+
+        \Illuminate\Support\Facades\View::share('activeQna', $activeQna);
     }
 }

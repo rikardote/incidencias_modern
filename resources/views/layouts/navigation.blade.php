@@ -20,6 +20,8 @@
                         {{ __('Empleados') }}
                     </x-nav-link>
 
+
+
                     <!-- Dropdown Reportes -->
                     <div class="hidden sm:flex sm:items-center sm:ms-6">
                         <x-dropdown align="left" width="max">
@@ -75,6 +77,18 @@
                                             </path>
                                         </svg>
                                         {{ __('Kárdex de Empleado') }}
+                                    </div>
+                                </x-dropdown-link>
+                                <x-dropdown-link :href="route('biometrico.index')"
+                                    class="dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:bg-gray-700 py-3 uppercase text-xs font-bold tracking-wider hover:text-oro transition-colors"
+                                    wire:navigate>
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-oro" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A10.003 10.003 0 0012 3m0 18a10.003 10.003 0 01-10-10C2 5.002 3.368 2.89 5.612 1.706m9.546 1.954A10.014 10.014 0 0115 10c0 1.588-.368 3.091-1.028 4.428m-2.43 2.722L10.18 18m0 0a9.992 9.992 0 01-2.927-4.572M10.18 18a9.998 9.998 0 003.82-2.848m-5.462-8.49a3 3 0 10-2.434 2.196M5 19a9 9 0 0014 0" />
+                                        </svg>
+                                        {{ __('Asistencia Biométrica') }}
                                     </div>
                                 </x-dropdown-link>
                             </x-slot>
@@ -215,6 +229,10 @@
             <x-responsive-nav-link :href="route('reports.kardex')" :active="request()->routeIs('reports.kardex')"
                 wire:navigate>
                 <span class="pl-4">{{ __('Kárdex de Empleado') }}</span>
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('biometrico.index')" :active="request()->routeIs('biometrico.index')"
+                wire:navigate>
+                <span class="pl-4">{{ __('Asistencia Biométrica') }}</span>
             </x-responsive-nav-link>
         </div>
 

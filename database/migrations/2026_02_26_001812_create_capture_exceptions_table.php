@@ -10,11 +10,14 @@ return new class extends Migration
     {
         Schema::create("capture_exceptions", function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger("user_id");
+            $table->unsignedBigInteger("user_id");
             $table->dateTime("expires_at");
             $table->string("reason")->nullable();
+            $table->unsignedBigInteger("qna_id")->nullable();
             $table->timestamps();
+
             $table->foreign("user_id")->references("id")->on("users")->cascadeOnDelete();
+            $table->foreign("qna_id")->references("id")->on("qnas")->cascadeOnDelete();
         });
     }
 

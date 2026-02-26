@@ -52,15 +52,15 @@ class ReportController extends Controller
             'margin_bottom' => 12.7,
             'margin_header' => 8,
             'margin_footer' => 8,
-            'tempDir' => storage_path('app/tmp')
+            'tempDir' => storage_path('app/mpdf')
         ]);
 
         // Auto-calculate margins to prevent header/footer overlap
         $mpdf->setAutoTopMargin = 'stretch';
         $mpdf->setAutoBottomMargin = 'stretch';
 
-        if (!file_exists(storage_path('app/tmp'))) {
-            mkdir(storage_path('app/tmp'), 0775, true);
+        if (!file_exists(storage_path('app/mpdf'))) {
+            mkdir(storage_path('app/mpdf'), 0777, true);
         }
 
         $css = '
@@ -229,7 +229,7 @@ class ReportController extends Controller
             'mode' => 'utf-8',
             'orientation' => 'L',
             'format' => 'Letter',
-            'tempDir' => storage_path('app/temp'),
+            'tempDir' => storage_path('app/mpdf'),
             'margin_left' => 12.7,
             'margin_right' => 12.7,
             'margin_top' => 14,
@@ -369,7 +369,7 @@ class ReportController extends Controller
             'mode' => 'utf-8',
             'format' => 'Letter',
             'orientation' => 'P',
-            'tempDir' => storage_path('app/temp'),
+            'tempDir' => storage_path('app/mpdf'),
             'margin_left' => 12.7,
             'margin_right' => 12.7,
             'margin_top' => 14,
