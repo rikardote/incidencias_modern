@@ -9,6 +9,9 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use App\Models\CodigoDeIncidencia;
+use App\Models\Incidencia;
+use App\Services\Incidencias\IncidenciasService;
 
 class Index extends Component
 {
@@ -20,6 +23,16 @@ class Index extends Component
     
     public $fecha_inicio;
     public $fecha_fin;
+    
+    // Propiedades para Modal de Captura
+    public $isModalOpen = false;
+    public $selectedEmployeeId;
+    public $selectedEmployeeName;
+    public $selectedDate;
+    public $incidencia_id;
+    public $fecha_inicio_inc;
+    public $fecha_fin_inc;
+    public $esRango = false;
 
     public function mount()
     {
@@ -68,11 +81,14 @@ class Index extends Component
             });
         }
 
+        $individualCodes = ['01', '02', '03', '04', '07', '08', '09', '10', '14', '15', '18', '19', '905'];
+
         return view('livewire.biometrico.index', [
             'centros' => $centros,
             'quincenas' => $quincenas,
             'años' => $años,
             'empleados' => $empleados,
+            'codigos' => CodigoDeIncidencia::whereIn('code', $individualCodes)->orderBy('code')->get(),
             'incidenciasSinColor' => ['7','17','40','41','42','46','49','51','53','54','55','60','61','62','63','77','94','901']
         ]);
     }
@@ -124,5 +140,49 @@ class Index extends Component
             'año' => $this->año_seleccionado,
             'quincena' => $this->quincena_seleccionada
         ]);
+    }
+
+    public function openCaptureModal($employeeId, $nombre, $fecha)
+    {
+        $this->selectedEmployeeId = $employeeId;
+        $this->selectedEmployeeName = $nombre;
+        $this->selectedDate = $fecha;
+        $this->fecha_inicio_inc = $fecha;
+        $this->fecha_fin_inc = $fecha;
+        $this->incidencia_id = '';
+        $this->esRango = false;
+        $this->isModalOpen = true;
+    }
+
+    public function closeModal()
+    {
+        $this->isModalOpen = false;
+        $this->reset(['selectedEmployeeId', 'selectedEmployeeName', 'selectedDate', 'incidencia_id', 'fecha_inicio_inc', 'fecha_fin_inc', 'esRango']);
+    }
+
+    public function saveIncidencia(IncidenciasService $service)
+    {
+        $this->validate([
+            'incidencia_id' => 'required|exists:codigos_de_incidencias,id',
+            'fecha_inicio_inc' => 'required|date',
+            'fecha_fin_inc' => 'required|date|after_or_equal:fecha_inicio_inc',
+        ]);
+
+        try {
+            $data = [
+                'empleado_id' => $this->selectedEmployeeId,
+                'codigo' => $this->incidencia_id,
+                'datepicker_inicial' => $this->fecha_inicio_inc,
+                'datepicker_final' => $this->fecha_fin_inc,
+                'token' => sha1(time() . '_' . $this->selectedEmployeeId),
+            ];
+
+            $service->crearIncidencias($data);
+
+            $this->dispatch('toast', icon: 'success', title: 'Incidencia capturada correctamente');
+            $this->closeModal();
+        } catch (\Exception $e) {
+            $this->dispatch('toast', icon: 'error', title: 'Error: ' . $e->getMessage());
+        }
     }
 }

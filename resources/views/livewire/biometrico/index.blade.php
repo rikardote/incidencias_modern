@@ -47,11 +47,13 @@
                                 {{ $num_empleado }}
                             </div>
                             <div>
-                                <h3 class="font-bold text-gray-800 text-sm leading-tight">
-                                    {{ strtoupper($registrosEmpleado->first()->apellido_paterno) }} {{ strtoupper($registrosEmpleado->first()->apellido_materno) }}
-                                    <br>
-                                    <span class="font-medium text-gray-600 uppercase">{{ $registrosEmpleado->first()->nombre }}</span>
-                                </h3>
+                                <a href="{{ route('employees.incidencias', ['employeeId' => $registrosEmpleado->first()->employee_id]) }}" target="_blank" class="block hover:text-indigo-600 transition-colors">
+                                    <h3 class="font-bold text-gray-800 text-sm leading-tight">
+                                        {{ strtoupper($registrosEmpleado->first()->apellido_paterno) }} {{ strtoupper($registrosEmpleado->first()->apellido_materno) }}
+                                        <br>
+                                        <span class="font-medium text-gray-600 uppercase">{{ $registrosEmpleado->first()->nombre }}</span>
+                                    </h3>
+                                </a>
                             </div>
                         </div>
                         <div class="text-right">
@@ -69,7 +71,10 @@
                                     <th class="px-3 py-2 text-left text-[10px] font-bold text-gray-500 uppercase">Fecha</th>
                                     <th class="px-3 py-2 text-left text-[10px] font-bold text-gray-500 uppercase">Entrada</th>
                                     <th class="px-3 py-2 text-left text-[10px] font-bold text-gray-500 uppercase">Salida</th>
-                                    <th class="px-3 py-2 text-center text-[10px] font-bold text-gray-500 uppercase">Inc</th>
+                                    <th class="px-3 py-2 text-center text-[10px] font-bold text-gray-500 uppercase">
+                                        Inc
+                                        <i class="fas fa-info-circle ml-1 cursor-help" title="Click en la fila para capturar incidencia"></i>
+                                    </th>
                                 </tr>
                             </thead>
                             <body class="bg-white divide-y divide-gray-100">
@@ -124,7 +129,10 @@
                                         if ($isWeekend && empty($rowClass)) $rowClass = 'bg-slate-50/70 opacity-80';
                                     @endphp
 
-                                    <tr class="{{ $rowClass }} hover:bg-slate-50 transition-colors cursor-pointer group">
+                                    <tr 
+                                        wire:click="openCaptureModal({{ $registro->employee_id }}, '{{ $registro->nombre }} {{ $registro->apellido_paterno }}', '{{ $registro->fecha }}')"
+                                        class="{{ $rowClass }} hover:bg-slate-100 transition-colors cursor-pointer group"
+                                    >
                                         <td class="px-3 py-1.5 font-medium text-gray-500 whitespace-nowrap">
                                             {{ \Carbon\Carbon::parse($registro->fecha)->format('d/m/Y') }}
                                         </td>
@@ -182,6 +190,62 @@
         <div class="bg-indigo-50 border border-indigo-100 p-8 text-center rounded-xl text-indigo-700">
             <i class="fas fa-arrow-up mb-4 opacity-50 block text-2xl"></i>
             <p class="font-medium">Seleccione un centro de trabajo para ver los registros biométricos.</p>
+        </div>
+    @endif
+
+    <!-- Modal de Captura de Incidencias -->
+    @if($isModalOpen)
+        <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" wire:click="closeModal"></div>
+
+                <span class="hidden sm:inline-block sm:align-middle sm:min-h-screen" aria-hidden="true">&#8203;</span>
+
+                <div class="inline-block align-bottom bg-white rounded-xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-gray-200">
+                    <div class="bg-indigo-600 px-6 py-4 flex justify-between items-center text-white">
+                        <h3 class="text-lg font-bold">Capturar Incidencia</h3>
+                        <button wire:click="closeModal" class="text-white hover:text-gray-200 transition-colors">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-6">
+                        <div class="space-y-4 mb-6">
+                            <div class="p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+                                <p class="text-[10px] text-indigo-700 font-bold uppercase tracking-wider mb-1">Empleado</p>
+                                <p class="text-sm font-bold text-gray-800">{{ $selectedEmployeeName }}</p>
+                            </div>
+
+                            <div class="p-3 bg-slate-50 rounded-lg border border-gray-100">
+                                <p class="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1">Fecha a Reportar</p>
+                                <p class="text-sm font-bold text-gray-800">{{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}</p>
+                                <input type="hidden" wire:model="fecha_inicio_inc">
+                                <input type="hidden" wire:model="fecha_fin_inc">
+                            </div>
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-xs font-bold text-gray-600 uppercase mb-2">Tipo de Incidencia / Justificación</label>
+                            <select wire:model="incidencia_id" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm">
+                                <option value="">Seleccione incidencia...</option>
+                                @foreach($codigos as $cod)
+                                    <option value="{{ $cod->id }}">{{ $cod->code }} - {{ $cod->description }}</option>
+                                @endforeach
+                            </select>
+                            @error('incidencia_id') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div class="flex justify-end gap-3">
+                            <button wire:click="closeModal" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                                Cancelar
+                            </button>
+                            <button wire:click="saveIncidencia" class="px-4 py-2 text-sm font-bold text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 transition-colors flex items-center shadow-lg shadow-indigo-200">
+                                <i class="fas fa-save mr-2"></i> Guardar Incidencia
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     @endif
 </div>

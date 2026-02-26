@@ -77,7 +77,7 @@ class Checada extends Model
             // Consulta final
             $resultados = $connection->select("
                 SELECT
-                    e.num_empleado, e.nombre, e.apellido_paterno, e.apellido_materno,
+                    e.num_empleado, e.employee_id, e.nombre, e.apellido_paterno, e.apellido_materno,
                     e.deparment_id, e.horario, e.horario_entrada, e.horario_salida, e.es_jornada_vespertina,
                     f.fecha,
                     MIN(c.fecha) as primera_checada,
