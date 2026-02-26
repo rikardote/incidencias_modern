@@ -33,6 +33,7 @@ class Index extends Component
     public $fecha_inicio_inc;
     public $fecha_fin_inc;
     public $esRango = false;
+    public $selectedEmployeeNumEmpleado;
 
     public function mount()
     {
@@ -142,9 +143,10 @@ class Index extends Component
         ]);
     }
 
-    public function openCaptureModal($employeeId, $nombre, $fecha)
+    public function openCaptureModal($employeeId,$num_empleado, $nombre, $fecha)
     {
         $this->selectedEmployeeId = $employeeId;
+        $this->selectedEmployeeNumEmpleado = $num_empleado;
         $this->selectedEmployeeName = $nombre;
         $this->selectedDate = $fecha;
         $this->fecha_inicio_inc = $fecha;

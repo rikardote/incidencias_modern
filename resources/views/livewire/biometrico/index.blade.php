@@ -130,12 +130,13 @@
                                     @endphp
 
                                     <tr 
-                                        wire:click="openCaptureModal({{ $registro->employee_id }}, '{{ $registro->nombre }} {{ $registro->apellido_paterno }}', '{{ $registro->fecha }}')"
+                                        wire:click="openCaptureModal({{ $registro->employee_id }}, {{ $num_empleado }}, '{{ $registro->apellido_paterno }} {{ $registro->apellido_materno }} {{ $registro->nombre }}', '{{ $registro->fecha }}')"
                                         class="{{ $rowClass }} hover:bg-slate-100 transition-colors cursor-pointer group"
                                     >
                                         <td class="px-3 py-1.5 font-medium text-gray-500 whitespace-nowrap">
                                             {{ \Carbon\Carbon::parse($registro->fecha)->format('d/m/Y') }}
                                         </td>
+        
                                         <td class="px-3 py-1.5 whitespace-nowrap">
                                             @if($esJornadaVespertina && $esLaPrimeraChecadaDelDia && $registro->hora_entrada)
                                                 <div class="flex items-center">
@@ -212,7 +213,7 @@
                     <div class="p-6">
                         <div class="space-y-4 mb-6">
                             <div class="p-3 bg-indigo-50 rounded-lg border border-indigo-100">
-                                <p class="text-[10px] text-indigo-700 font-bold uppercase tracking-wider mb-1">Empleado</p>
+                                <p class="text-[10px] text-indigo-700 font-bold uppercase tracking-wider mb-1">{{ $selectedEmployeeNumEmpleado }}</p>
                                 <p class="text-sm font-bold text-gray-800">{{ $selectedEmployeeName }}</p>
                             </div>
 
