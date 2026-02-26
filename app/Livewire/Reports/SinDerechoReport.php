@@ -51,6 +51,7 @@ class SinDerechoReport extends Component
     public function generate()
     {
         $this->validate();
+        usleep(800000); // Artificial delay to show the spinner
 
         $dt = Carbon::create($this->year, $this->month, 1, 12, 0, 0);
         $fecha_inicio = $dt->copy()->startOfMonth()->format('Y-m-d');
@@ -58,9 +59,9 @@ class SinDerechoReport extends Component
 
         // Note: Code is string or numeric, handled by the relationship. 
         // We need to fetch the IDs from the database based on codes.
-        
-        $lic = ['40','41','46','47','53','54','55'];
-        $inc = ['01','02','03','04','08','09','10','18','19','25','30','31','78','86','100'];
+
+        $lic = ['40', '41', '46', '47', '53', '54', '55'];
+        $inc = ['01', '02', '03', '04', '08', '09', '10', '18', '19', '25', '30', '31', '78', '86', '100'];
 
         // Get the actual IDs for these codes
         $licIds = DB::table('codigos_de_incidencias')->whereIn('code', $lic)->pluck('id')->toArray();
@@ -69,7 +70,7 @@ class SinDerechoReport extends Component
         // 1. Incidencias without right
         // Legacy: where employees.condicion_id = 1 (meaning "Base")
         // We will query to Group by Employee to get their data
-        
+
         $incidencias = [];
 
         if (!empty($incIds)) {
@@ -78,7 +79,7 @@ class SinDerechoReport extends Component
                 ->join('employees', 'employees.id', '=', 'incidencias.employee_id')
                 ->whereNull('incidencias.deleted_at')
                 ->where('employees.deparment_id', $this->departmentId)
-                ->where('employees.condicion_id', 1) 
+                ->where('employees.condicion_id', 1)
                 ->whereIn('incidencias.codigodeincidencia_id', $incIds)
                 ->whereBetween('incidencias.fecha_inicio', [$fecha_inicio, $fecha_final])
                 ->groupBy('employees.id', 'employees.num_empleado')
@@ -95,7 +96,7 @@ class SinDerechoReport extends Component
                 ->join('employees', 'employees.id', '=', 'incidencias.employee_id')
                 ->whereNull('incidencias.deleted_at')
                 ->where('employees.deparment_id', $this->departmentId)
-                ->where('employees.condicion_id', 1) 
+                ->where('employees.condicion_id', 1)
                 ->whereIn('incidencias.codigodeincidencia_id', $licIds)
                 ->whereBetween('incidencias.fecha_inicio', [$fecha_inicio, $fecha_final])
                 ->groupBy('employees.id', 'employees.num_empleado')
@@ -109,7 +110,7 @@ class SinDerechoReport extends Component
 
         // Now we get full employee models sorted by num_empleado
         $employeeIds = array_values($incidencias);
-        
+
         $this->results = Employe::with(['puesto', 'horario', 'jornada'])
             ->whereIn('id', $employeeIds)
             ->orderBy('num_empleado')
@@ -122,8 +123,8 @@ class SinDerechoReport extends Component
         $fecha_inicio = $dt->copy()->startOfMonth()->format('Y-m-d');
         $fecha_final = $dt->copy()->endOfMonth()->format('Y-m-d');
 
-        $lic = ['40','41','46','47','53','54','55'];
-        $inc = ['01','02','03','04','08','09','10','18','19','25','30','31','78','86','100'];
+        $lic = ['40', '41', '46', '47', '53', '54', '55'];
+        $inc = ['01', '02', '03', '04', '08', '09', '10', '18', '19', '25', '30', '31', '78', '86', '100'];
 
         $employee = Employe::findOrFail($employeeId);
         $this->selectedEmployeeName = $employee->num_empleado . ' - ' . $employee->name . ' ' . $employee->father_lastname . ' ' . $employee->mother_lastname;
@@ -132,28 +133,32 @@ class SinDerechoReport extends Component
         // 1. the INC ones
         $incidenciasInc = Incidencia::with(['codigo', 'periodo'])
             ->where('employee_id', $employeeId)
-            ->whereIn('codigodeincidencia_id', function($q) use ($inc) {
-                $q->select('id')->from('codigos_de_incidencias')->whereIn('code', $inc);
-            })
+            ->whereIn('codigodeincidencia_id', function ($q) use ($inc) {
+            $q->select('id')->from('codigos_de_incidencias')->whereIn('code', $inc);
+        })
             ->whereBetween('fecha_inicio', [$fecha_inicio, $fecha_final])
             ->get();
 
         // 2. the LIC ones
         $incidenciasLic = Incidencia::with(['codigo', 'periodo'])
             ->where('employee_id', $employeeId)
-            ->whereIn('codigodeincidencia_id', function($q) use ($lic) {
-                $q->select('id')->from('codigos_de_incidencias')->whereIn('code', $lic);
-            })
+            ->whereIn('codigodeincidencia_id', function ($q) use ($lic) {
+            $q->select('id')->from('codigos_de_incidencias')->whereIn('code', $lic);
+        })
             ->whereBetween('fecha_inicio', [$fecha_inicio, $fecha_final])
             ->get();
 
         $totalLicDias = $incidenciasLic->sum('total_dias');
 
         $collected = collect();
-        foreach($incidenciasInc as $i) { $collected->push($i); }
+        foreach ($incidenciasInc as $i) {
+            $collected->push($i);
+        }
         // Only show licencias if the sum > 3
         if ($totalLicDias > 3) {
-            foreach($incidenciasLic as $i) { $collected->push($i); }
+            foreach ($incidenciasLic as $i) {
+                $collected->push($i);
+            }
         }
 
         $this->selectedEmployeeIncidencias = $collected->sortBy('fecha_inicio')->values()->all();
@@ -172,7 +177,8 @@ class SinDerechoReport extends Component
         $user = auth()->user();
         if ($user->admin()) {
             $departments = Department::orderBy('code')->get();
-        } else {
+        }
+        else {
             $departments = $user->departments()->orderBy('code')->get();
         }
 

@@ -28,8 +28,9 @@ class KardexReport extends Component
         $this->employee = Employe::with(['department', 'puesto', 'horario', 'jornada'])->find($employeeId);
         if ($this->employee) {
             $this->num_empleado = $this->employee->num_empleado;
-            // No generamos nada automáticamente, dejamos que el usuario elija
-        } else {
+        // No generamos nada automáticamente, dejamos que el usuario elija
+        }
+        else {
             $this->num_empleado = '';
         }
     }
@@ -59,6 +60,7 @@ class KardexReport extends Component
 
     public function generate()
     {
+        usleep(800000); // Artificial delay to show the spinner
         if (!$this->employee) {
             $this->addError('num_empleado', 'Empleado no encontrado. Verifique el número de empleado.');
             return;
@@ -74,16 +76,16 @@ class KardexReport extends Component
         })->map(function ($group) {
             $first = $group->first();
             return (object)[
-                'codigo' => $first->codigo,
-                'fecha_inicio' => $group->min('fecha_inicio'),
-                'fecha_final' => $group->max('fecha_final'),
-                'total_dias' => $group->sum('total_dias'),
-                'periodo' => $first->periodo,
-                'otorgado' => $first->otorgado,
-                'horas_otorgadas' => $first->horas_otorgadas,
-                'diagnostico' => $first->diagnostico,
-                'num_licencia' => $first->num_licencia,
-                'cobertura_txt' => $first->cobertura_txt,
+            'codigo' => $first->codigo,
+            'fecha_inicio' => $group->min('fecha_inicio'),
+            'fecha_final' => $group->max('fecha_final'),
+            'total_dias' => $group->sum('total_dias'),
+            'periodo' => $first->periodo,
+            'otorgado' => $first->otorgado,
+            'horas_otorgadas' => $first->horas_otorgadas,
+            'diagnostico' => $first->diagnostico,
+            'num_licencia' => $first->num_licencia,
+            'cobertura_txt' => $first->cobertura_txt,
             ];
         })->sortBy(function ($item) {
             return $item->codigo->code . $item->fecha_inicio;
