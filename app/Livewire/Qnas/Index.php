@@ -9,13 +9,14 @@ use Livewire\Attributes\Computed;
 class Index extends Component
 {
     public $isModalOpen = 0;
-    public $qna_id, $qna, $year, $description, $active_status = '1';
+    public $qna_id, $qna, $year, $description, $active_status = '1', $cierre;
 
     protected $rules = [
         'qna' => 'required|numeric|min:1|max:24',
         'year' => 'required|numeric|min:2000|max:2100',
         'description' => 'nullable|string|max:255',
         'active_status' => 'required|in:0,1',
+        'cierre' => 'nullable|date',
     ];
 
     public function toggleActive($id)
@@ -52,6 +53,7 @@ class Index extends Component
         $this->year = '';
         $this->description = '';
         $this->active_status = '1';
+        $this->cierre = '';
     }
 
     public function store()
@@ -63,6 +65,7 @@ class Index extends Component
             'year' => $this->year,
             'description' => $this->description,
             'active' => $this->active_status,
+            'cierre' => $this->cierre ?: null,
         ]);
 
         session()->flash('message', 
@@ -80,6 +83,7 @@ class Index extends Component
         $this->year = $qnaModel->year;
         $this->description = $qnaModel->description;
         $this->active_status = (string)$qnaModel->active;
+        $this->cierre = $qnaModel->cierre;
     
         $this->openModal();
     }

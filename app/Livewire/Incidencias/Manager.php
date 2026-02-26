@@ -185,7 +185,7 @@ class Manager extends Component
         $incidencias = Incidencia::with('qna')->where('token', $token)->get();
         
         foreach ($incidencias as $inc) {
-            if ($inc->qna && $inc->qna->active != '1') {
+            if ($inc->qna && $inc->qna->active != '1' && !auth()->user()->admin() && !auth()->user()->canCaptureInClosedQna()) {
                 $this->dispatch('toast', icon: 'error', title: 'No se puede eliminar porque una de las partes de esta captura pertenece a una Quincena que ya ha sido cerrada.');
                 return;
             }
@@ -201,11 +201,15 @@ class Manager extends Component
 
     public function render()
     {
-        $incidencias = Incidencia::with(['qna', 'codigo', 'periodo'])
-            ->where('employee_id', $this->employeeId)
-            ->whereHas('qna', fn($q) => $q->where('active', '1'))
-            ->orderBy('fecha_inicio', 'desc')
-            ->get();
+        $incidenciasQuery = Incidencia::with(['qna', 'codigo', 'periodo'])
+            ->where('employee_id', $this->employeeId);
+
+        // Si no tiene pase especial, solo vemos incidencias de quincenas activas
+        if (!auth()->user()->canCaptureInClosedQna()) {
+            $incidenciasQuery->whereHas('qna', fn($q) => $q->where('active', '1'));
+        }
+
+        $incidencias = $incidenciasQuery->orderBy('fecha_inicio', 'desc')->get();
             
         $codigos = CodigoDeIncidencia::orderBy('code')->get();
         $periodos = Periodo::all();

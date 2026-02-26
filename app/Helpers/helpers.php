@@ -66,25 +66,34 @@ function fecha_dmy_hora_los_angeles($date){
     }
 }
 function qna_year($fecha){
-    $date     = Carbon::parse($fecha);
-    $month =  $date->month;
-    $day =  $date->day;
-    $year = $date->year;
+    $date  = Carbon::parse($fecha);
+    $month = $date->month;
+    $day   = $date->day;
+    $year  = $date->year;
 
-    $qna = $month * 2;
+    $qnaNum = $month * 2;
     if ($day < 16) {
-        $qna-=1;
+        $qnaNum -= 1;
     }
 
-    $qna = Qna::where('qna', '=', $qna)->where('year', '=', $year)->where('active', '1')->first();
-    if(isset($qna)) {
-        return $qna->id;
-    }
-    else {
-        return false;
+    $query = Qna::where('qna', $qnaNum)->where('year', $year);
+    
+    // Si hay un usuario autenticado, verificamos si tiene permiso especial.
+    // Si no tiene permiso especial y no es admin con poder absoluto (opcional),
+    // restringimos a quincenas activas.
+    $user = auth()->user();
+    if ($user) {
+        if (!$user->canCaptureInClosedQna()) {
+            $query->where('active', '1');
+        }
+    } else {
+        // Fallback para procesos fuera de sesión
+        $query->where('active', '1');
     }
 
+    $qna = $query->first();
 
+    return $qna ? $qna->id : false;
 }
 function getFechaInicioPorQna($qna_id){
     $qna = Qna::where('id', '=', $qna_id)->first();

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Qna extends Model
 {
     protected $table = "qnas";
-    protected $fillable = ["qna", "year", "description", "active"];
+    protected $fillable = ["qna", "year", "description", "active", "cierre"];
 
     public function getQnaAttribute($value)
     {

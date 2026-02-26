@@ -1,6 +1,6 @@
 <div>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
+        <h2 class="font-bold text-xl text-gray-800 dark:text-gray-200 leading-tight tracking-wide">
             {{ __('Gestión de Usuarios') }}
         </h2>
     </x-slot>
@@ -62,6 +62,13 @@
                                     </button>
                                 </td>
                                 <td class="px-4 py-4 text-right text-sm">
+                                    <button wire:click="grantException({{ $user->id }})" class="text-oro hover:underline font-bold uppercase tracking-wide text-xs mr-3 {{ $user->canCaptureInClosedQna() ? 'animate-pulse' : '' }}" title="Otorgar Pase de Captura Extemporánea">
+                                        @if($user->canCaptureInClosedQna())
+                                            ★ Pase Activo
+                                        @else
+                                            Pase
+                                        @endif
+                                    </button>
                                     <button wire:click="changePassword({{ $user->id }})" class="text-blue-600 dark:text-blue-400 hover:underline font-bold uppercase tracking-wide text-xs mr-3" title="Cambiar Contraseña">
                                         Contraseña
                                     </button>
@@ -216,6 +223,55 @@
                         Actualizar
                     </button>
                     <button wire:click="$set('showPasswordModal', false)" type="button" class="inline-flex justify-center rounded border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 shadow-sm">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+
+    <!-- Modal for Capture Exception (Grace Pass) -->
+    @if($showExceptionModal)
+    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 transition-opacity p-4">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl transform transition-all w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <form wire:submit.prevent="saveException">
+                <div class="px-6 py-5">
+                    <h3 class="text-lg font-bold text-[#a57f2c] dark:text-[#e6d194] uppercase tracking-wide mb-4">
+                        Otorgar Pase de Captura
+                    </h3>
+                    
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        Usuario: <span class="font-bold text-gray-900 dark:text-gray-100">{{ $exceptionUserName }}</span>
+                    </p>
+
+                    <div class="mb-4">
+                        <label for="exceptionDuration" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Duración del pase</label>
+                        <select wire:model="exceptionDuration" id="exceptionDuration" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro sm:text-sm">
+                            <option value="15">15 Minutos</option>
+                            <option value="30">30 Minutos</option>
+                            <option value="60">1 Hora</option>
+                            <option value="120">2 Horas</option>
+                            <option value="240">4 Horas</option>
+                            <option value="480">8 Horas</option>
+                            <option value="1440">24 Horas</option>
+                        </select>
+                        @error('exceptionDuration') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+                    
+                    <div class="mb-2">
+                        <label for="exceptionReason" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Motivo</label>
+                        <input type="text" wire:model="exceptionReason" id="exceptionReason" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro sm:text-sm" placeholder="Ej. Olvidó capturar incidencias de enfermería">
+                        @error('exceptionReason') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 rounded-b-lg border-t border-gray-200 dark:border-gray-700 space-y-2">
+                    <button type="submit" class="w-full justify-center rounded px-6 py-2.5 bg-[#a57f2c] text-xs font-bold text-white uppercase tracking-wider hover:bg-[#8e6b23] shadow-sm inline-flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Habilitar Captura
+                    </button>
+                    <button wire:click="$set('showExceptionModal', false)" type="button" class="w-full justify-center rounded border border-gray-300 dark:border-gray-600 px-4 py-2 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 shadow-sm inline-flex">
                         Cancelar
                     </button>
                 </div>

@@ -18,6 +18,21 @@
                                 Capturar Incidencia
                             </h3>
                         </div>
+
+                        @if(auth()->user()->canCaptureInClosedQna())
+                        <div class="bg-oro/10 border-b border-oro/20 px-5 py-2 flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="flex h-2 w-2 relative">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-oro opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-oro"></span>
+                                </span>
+                                <span class="text-[10px] font-bold text-oro uppercase tracking-widest">Pase de Captura Activo</span>
+                            </div>
+                            <span class="text-[10px] font-medium text-oro/80 italic">
+                                Expira: {{ auth()->user()->captureExceptions()->where('expires_at', '>', now())->first()->expires_at->format('H:i') }}
+                            </span>
+                        </div>
+                        @endif
                         <div class="p-4">
                             {{-- Buscador de empleado integrado --}}
                             <div class="mb-6 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700" wire:ignore
@@ -59,9 +74,20 @@
                                         x-on:focus="if(query.length >= 2) open = true"
                                         placeholder="Nombre o No. de Empleado..."
                                         spellcheck="false"
-                                        class="block w-full text-xs border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:border-oro focus:ring-1 focus:ring-oro outline-none transition-all shadow-inner bg-white dark:bg-gray-950 dark:text-gray-300"
+                                        class="block w-full text-xs border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 pr-8 focus:border-oro focus:ring-1 focus:ring-oro outline-none transition-all shadow-inner bg-white dark:bg-gray-950 dark:text-gray-300"
                                     >
-                                    <span x-show="loading" class="absolute right-3 top-2 text-oro text-[10px] animate-pulse">...</span>
+                                    <div class="absolute inset-y-0 right-0 flex items-center pr-2">
+                                        <span x-show="loading" class="text-oro text-[10px] animate-pulse mr-1">...</span>
+                                        <button 
+                                            x-show="query.length > 0" 
+                                            x-on:click="query = ''; results = []; open = false;" 
+                                            type="button"
+                                            class="text-gray-300 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 focus:outline-none transition-colors mt-0.5">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                     <div x-show="open" x-transition
                                          class="absolute z-50 left-0 top-full mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-2xl max-h-56 overflow-y-auto">
                                         <template x-for="emp in results" :key="emp.id">

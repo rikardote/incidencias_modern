@@ -23,6 +23,7 @@
                     <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center">Año</th>
                     <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center">QNA</th>
                     <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Descripción</th>
+                    <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center">Cierre</th>
                     <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-center">Estado</th>
                     <th class="px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider text-right">Acciones</th>
                 </tr>
@@ -34,6 +35,9 @@
                     <td class="px-4 py-4 text-center font-mono text-sm text-gray-600 dark:text-gray-400">{{ str_pad($qna->qna, 2, '0', STR_PAD_LEFT) }}</td>
                     <td class="px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
                         {{ $qna->description ?: 'N/A' }}
+                    </td>
+                    <td class="px-4 py-4 text-center text-sm font-bold text-[#9b2247] dark:text-[#e6d194]">
+                        {{ $qna->cierre ? \Carbon\Carbon::parse($qna->cierre)->format('d/m/Y') : 'N/D' }}
                     </td>
                     <td class="px-4 py-4 text-center">
                         <button wire:click="toggleActive({{ $qna->id }})" class="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-oro rounded-full">
@@ -89,13 +93,40 @@
                                 <input type="text" wire:model="description" id="description" spellcheck="false" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro sm:text-sm">
                                 @error('description') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                             </div>
-                            <div class="mb-5">
+                            <div class="mb-4">
                                 <label for="active_status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Estado</label>
                                 <select wire:model="active_status" id="active_status" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro sm:text-sm">
                                     <option value="1">Abierta (Activa)</option>
                                     <option value="0">Cerrada (Inactiva)</option>
                                 </select>
                                 @error('active_status') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+                            <div class="mb-5">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha de Cierre</label>
+                                <div class="relative flex items-center" wire:ignore x-data="{ 
+                                    flatpickrInstance: null,
+                                    init() { 
+                                        this.flatpickrInstance = window.flatpickr(this.$refs.input, { 
+                                            dateFormat: 'd/m/Y', 
+                                            defaultDate: '{{ $cierre ? \Carbon\Carbon::parse($cierre)->format('d/m/Y') : '' }}', 
+                                            onChange: (selectedDates, dateStr, instance) => { 
+                                                if(selectedDates.length > 0) { 
+                                                    $wire.set('cierre', instance.formatDate(selectedDates[0], 'Y-m-d')) 
+                                                } else {
+                                                    $wire.set('cierre', null)
+                                                }
+                                            } 
+                                        }); 
+                                    } 
+                                }">
+                                    <input type="text" x-ref="input" class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro sm:text-sm cursor-pointer pr-10" placeholder="Selecciona Fecha (Opcional)">
+                                    <button type="button" x-on:click="flatpickrInstance.clear(); $wire.set('cierre', null)" class="absolute right-2 text-gray-400 hover:text-red-500 transition-colors">
+                                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                                @error('cierre') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                             </div>
                             <div class="pt-4 sm:flex sm:flex-row-reverse border-t border-gray-200 dark:border-gray-700">
                                 <button type="submit" class="w-full inline-flex justify-center rounded px-6 py-2 bg-[#13322B] text-xs font-bold text-white uppercase tracking-wider hover:bg-[#0a1f1a] focus:outline-none sm:ml-3 sm:w-auto">

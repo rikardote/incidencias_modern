@@ -17,6 +17,10 @@ Route::middleware('auth')->group(function () {
     // Reportes
     Route::get('/reportes/general', \App\Livewire\Reports\GeneralReport::class)->name('reports.general');
     Route::get('/reportes/rh5-pdf/{qnaId}/{departmentId}', [\App\Http\Controllers\ReportController::class, 'rh5Pdf'])->name('reports.rh5.pdf');
+    Route::get('/reportes/sinderecho', \App\Livewire\Reports\SinDerechoReport::class)->name('reports.sinderecho');
+    Route::get('/reportes/sinderecho-pdf/{year}/{month}/{departmentId}', [\App\Http\Controllers\ReportController::class, 'sinDerechoPdf'])->name('reports.sinderecho.pdf');
+    Route::get('/reportes/kardex', \App\Livewire\Reports\KardexReport::class)->name('reports.kardex');
+    Route::get('/reportes/kardex-pdf/{num_empleado}/{fecha_inicio}/{fecha_final}', [\App\Http\Controllers\ReportController::class, 'kardexPdf'])->name('reports.kardex.pdf');
 
     // Usuarios (solo admins, logic in component)
     Route::get('/usuarios', \App\Livewire\Users\Index::class)->name('users.index');

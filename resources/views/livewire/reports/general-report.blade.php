@@ -1,13 +1,13 @@
-<div class="py-12">
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-            <div class="p-6 text-gray-900 dark:text-gray-100">
-                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-                    <svg class="w-6 h-6 text-oro" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    Reporte General de Incidencias (RH5)
-                </h2>
+    <x-slot name="header">
+        <h2 class="font-bold text-xl text-gray-800 dark:text-gray-200 leading-tight tracking-wide">
+            {{ __('Reporte General de Incidencias (RH5)') }}
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white dark:bg-gray-800 shadow rounded border border-gray-200 dark:border-gray-700">
+                <div class="p-6 text-gray-900 dark:text-gray-100">
 
                 <div class="flex items-end gap-3 mb-6 w-full">
                     <div class="min-w-[100px] w-auto">

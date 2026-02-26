@@ -17,6 +17,7 @@ class Index extends Component
     // Modal state
     public $showModal = false;
     public $showPasswordModal = false;
+    public $showExceptionModal = false;
     
     // Form data
     public $userId;
@@ -27,6 +28,12 @@ class Index extends Component
     public $type = 'user';
     public $active = true;
     public $selectedDepartments = [];
+
+    // Exception data
+    public $exceptionUserId;
+    public $exceptionUserName;
+    public $exceptionDuration = 60; // default 60 minutes
+    public $exceptionReason = 'Corrección de captura urgente';
 
     // Password change
     public $newPassword;
@@ -140,6 +147,37 @@ class Index extends Component
         
         $this->dispatch('notify', [
             'message' => 'Contraseña actualizada exitosamente',
+            'type' => 'success'
+        ]);
+    }
+
+    public function grantException($id)
+    {
+        $user = User::findOrFail($id);
+        $this->exceptionUserId = $id;
+        $this->exceptionUserName = $user->name;
+        $this->showExceptionModal = true;
+    }
+
+    public function saveException()
+    {
+        $this->validate([
+            'exceptionDuration' => 'required|numeric|min:1|max:1440',
+            'exceptionReason' => 'required|string|max:255',
+        ]);
+
+        \App\Models\CaptureException::updateOrCreate(
+            ['user_id' => $this->exceptionUserId],
+            [
+                'expires_at' => now()->addMinutes((int) $this->exceptionDuration),
+                'reason' => $this->exceptionReason,
+            ]
+        );
+
+        $this->showExceptionModal = false;
+        
+        $this->dispatch('notify', [
+            'message' => 'Pase de captura otorgado por ' . $this->exceptionDuration . ' minutos',
             'type' => 'success'
         ]);
     }

@@ -54,6 +54,18 @@ class User extends Authenticatable
         return $this->belongsToMany(Department::class, 'deparment_user', 'user_id', 'deparment_id');
     }
 
+    public function captureExceptions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(CaptureException::class);
+    }
+
+    public function canCaptureInClosedQna(): bool
+    {
+        return $this->captureExceptions()
+            ->where('expires_at', '>', now())
+            ->exists();
+    }
+
     public function admin(): bool
     {
         return $this->type === 'admin';
