@@ -60,6 +60,8 @@ class Index extends Component
     {
         $this->validate();
 
+        $isEdit = !empty($this->qna_id);
+
         Qna::updateOrCreate(['id' => $this->qna_id], [
             'qna' => $this->qna,
             'year' => $this->year,
@@ -68,8 +70,10 @@ class Index extends Component
             'cierre' => $this->cierre ?: null,
         ]);
 
-        session()->flash('message', 
-            $this->qna_id ? 'Quincena actualizada correctamente.' : 'Quincena creada correctamente.');
+        $this->dispatch('toast', [
+            'icon' => 'success', 
+            'title' => $isEdit ? 'Quincena actualizada correctamente.' : 'Quincena creada correctamente.'
+        ]);
   
         $this->closeModal();
         $this->resetInputFields();
@@ -91,18 +95,36 @@ class Index extends Component
     public function delete($id)
     {
         $qna = Qna::find($id);
-        if ($qna && $qna->active == '1') {
-            $qna->delete();
-            session()->flash('message', 'Quincena eliminada correctamente.');
-        } else {
-            session()->flash('error', 'No se puede eliminar una Quincena que ya ha sido cerrada.');
+        
+        if (!$qna) return;
+
+        if ($qna->active != '1') {
+            $this->dispatch('toast', [
+                'icon' => 'error',
+                'title' => 'No se puede eliminar una Quincena que ya ha sido cerrada.'
+            ]);
+            return;
         }
+
+        if ($qna->incidencias()->exists()) {
+            $this->dispatch('toast', [
+                'icon' => 'error',
+                'title' => 'No se puede eliminar esta Quincena porque ya tiene incidencias.'
+            ]);
+            return;
+        }
+
+        $qna->delete();
+        $this->dispatch('toast', [
+            'icon' => 'success',
+            'title' => 'Quincena eliminada correctamente.'
+        ]);
     }
 
     #[Computed]
     public function qnas()
     {
-        return Qna::orderBy('year', 'desc')->orderBy('qna', 'desc')->get();
+        return Qna::orderBy('year', 'desc')->orderBy('qna', 'desc')->take(15)->get();
     }
 
     public function render()

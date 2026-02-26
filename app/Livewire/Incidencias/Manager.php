@@ -201,15 +201,33 @@ class Manager extends Component
 
     public function render()
     {
-        $incidenciasQuery = Incidencia::with(['qna', 'codigo', 'periodo'])
-            ->where('employee_id', $this->employeeId);
+        // Construir la lista de QNA IDs permitidas para mostrar:
+        // 1. Siempre: las QNAs activas
+        $allowedQnaIds = Qna::where('active', '1')->pluck('id');
 
-        // Si no tiene pase especial, solo vemos incidencias de quincenas activas
-        if (!auth()->user()->canCaptureInClosedQna()) {
-            $incidenciasQuery->whereHas('qna', fn($q) => $q->where('active', '1'));
+        // 2. Si el usuario tiene un pase temporal activo, agregar la QNA desbloqueada
+        $exception = auth()->user()->activeCaptureException();
+        if ($exception) {
+            if ($exception->qna_id) {
+                // Pase nuevo: tiene qna_id explícito
+                $allowedQnaIds = $allowedQnaIds->push($exception->qna_id)->unique();
+            } else {
+                // Pase legacy (qna_id NULL): inferir la QNA más recientemente cerrada
+                $lastClosed = Qna::where('active', '0')
+                    ->orderBy('year', 'desc')
+                    ->orderBy('qna', 'desc')
+                    ->first();
+                if ($lastClosed) {
+                    $allowedQnaIds = $allowedQnaIds->push($lastClosed->id)->unique();
+                }
+            }
         }
 
-        $incidencias = $incidenciasQuery->orderBy('fecha_inicio', 'desc')->get();
+        $incidencias = Incidencia::with(['qna', 'codigo', 'periodo'])
+            ->where('employee_id', $this->employeeId)
+            ->whereIn('qna_id', $allowedQnaIds)
+            ->orderBy('fecha_inicio', 'desc')
+            ->get();
             
         $codigos = CodigoDeIncidencia::orderBy('code')->get();
         $periodos = Periodo::all();
@@ -224,9 +242,9 @@ class Manager extends Component
 
         return view('livewire.incidencias.manager', [
             'incidencias' => $incidencias,
-            'codigos' => $codigos,
-            'periodos' => $periodos,
-            'medicos' => $medicos,
+            'codigos'     => $codigos,
+            'periodos'    => $periodos,
+            'medicos'     => $medicos,
         ])->layout('layouts.app');
     }
 }

@@ -13,4 +13,9 @@ class Qna extends Model
     {
         return str_pad($value, 2, "0", STR_PAD_LEFT);
     }
+
+    public function incidencias()
+    {
+        return $this->hasMany(Incidencia::class);
+    }
 }

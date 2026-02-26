@@ -51,7 +51,7 @@ class User extends Authenticatable
 
     public function departments(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->belongsToMany(Department::class, 'deparment_user', 'user_id', 'deparment_id');
+        return $this->belongsToMany(Department::class , 'deparment_user', 'user_id', 'deparment_id');
     }
 
     public function captureExceptions(): \Illuminate\Database\Eloquent\Relations\HasMany
@@ -65,13 +65,18 @@ class User extends Authenticatable
             ->where('expires_at', '>', now());
 
         if ($qnaId) {
-            $query->where('qna_id', $qnaId);
+            // Acepta el qna_id explícito O registros legacy con qna_id NULL
+            // (los legacy se crearon sin qna_id pero aplican a la última QNA cerrada)
+            $query->where(function ($q) use ($qnaId) {
+                $q->where('qna_id', $qnaId)
+                    ->orWhereNull('qna_id');
+            });
         }
 
         return $query->exists();
     }
 
-    public function activeCaptureException()
+    public function activeCaptureException(): ?CaptureException
     {
         return $this->captureExceptions()
             ->where('expires_at', '>', now())

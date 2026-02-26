@@ -8,6 +8,8 @@ services:
     working_dir: /var/www
     volumes:
       - .:/var/www
+    ports:
+      - "5173:5173"
     networks:
       - modern-net
 
