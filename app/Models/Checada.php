@@ -90,14 +90,20 @@ class Checada extends Model
                         NULL
                     ) as retardo,
                     (
-                        SELECT ci.code
+                        SELECT GROUP_CONCAT(ci.code ORDER BY i.id)
                         FROM sistemas.incidencias i
                         INNER JOIN sistemas.codigos_de_incidencias ci ON ci.id = i.codigodeincidencia_id
                         WHERE i.employee_id = e.employee_id
                         AND f.fecha BETWEEN DATE(i.fecha_inicio) AND DATE(i.fecha_final)
                         AND i.deleted_at IS NULL
-                        LIMIT 1
-                    ) as incidencia
+                    ) as incidencias,
+                    (
+                        SELECT GROUP_CONCAT(i.token ORDER BY i.id)
+                        FROM sistemas.incidencias i
+                        WHERE i.employee_id = e.employee_id
+                        AND f.fecha BETWEEN DATE(i.fecha_inicio) AND DATE(i.fecha_final)
+                        AND i.deleted_at IS NULL
+                    ) as incidencias_tokens
                 FROM dias_periodo_temp f
                 CROSS JOIN empleados_temp e
                 LEFT JOIN checadas c ON e.num_empleado = c.num_empleado

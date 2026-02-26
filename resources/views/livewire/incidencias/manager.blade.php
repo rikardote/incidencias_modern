@@ -555,4 +555,14 @@
 
         </div>
     </div>
+    <script>
+        document.addEventListener('livewire:init', () => {
+            // Escuchar cambios en otras pestañas para refrescar el historial
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'biometrico_refresh') {
+                    Livewire.dispatch('refreshIncidencias');
+                }
+            });
+        });
+    </script>
 </div>

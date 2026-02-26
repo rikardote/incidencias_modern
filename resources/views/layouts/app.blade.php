@@ -108,6 +108,11 @@
                         title: data.title || '',
                         timer: data.icon === 'error' ? 5000 : 3000
                     });
+
+                    // Si es un éxito, notificamos a otras pestañas para refrescar biométricos
+                    if (data.icon === 'success') {
+                        localStorage.setItem('biometrico_refresh', Date.now());
+                    }
                 }
             });
         });

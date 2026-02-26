@@ -11,8 +11,15 @@ use App\Services\Incidencias\IncidenciasService;
 use App\Constants\Incidencias as IncConstants;
 use Livewire\Component;
 
+use Livewire\Attributes\On;
+
 class Manager extends Component
 {
+    #[On('refreshIncidencias')]
+    public function refresh()
+    {
+        // El componente se refrescará automáticamente
+    }
     public $employeeId;
     public $employee;
     

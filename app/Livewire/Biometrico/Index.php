@@ -13,9 +13,17 @@ use App\Models\CodigoDeIncidencia;
 use App\Models\Incidencia;
 use App\Services\Incidencias\IncidenciasService;
 
+use Livewire\Attributes\On;
+
 class Index extends Component
 {
     use WithPagination;
+
+    #[On('refreshBiometrico')]
+    public function refresh()
+    {
+        // El componente se refrescará automáticamente al llamar a este método vía evento
+    }
 
     public $centro_seleccionado;
     public $año_seleccionado;
@@ -185,6 +193,42 @@ class Index extends Component
             $this->closeModal();
         } catch (\Exception $e) {
             $this->dispatch('toast', icon: 'error', title: 'Error: ' . $e->getMessage());
+        }
+    }
+
+    public function captureSinIncidencias($employeeId, IncidenciasService $service)
+    {
+        try {
+            $codigo77 = CodigoDeIncidencia::where('code', '77')->first();
+            
+            if (!$codigo77) {
+                throw new \Exception("El código de incidencia 77 no se encuentra en el sistema.");
+            }
+
+            $data = [
+                'empleado_id' => $employeeId,
+                'codigo' => $codigo77->id,
+                'datepicker_inicial' => $this->fecha_inicio,
+                'datepicker_final' => $this->fecha_fin,
+                'token' => sha1(time() . '_' . $employeeId),
+            ];
+
+            $service->crearIncidencias($data);
+
+            $this->dispatch('toast', icon: 'success', title: 'Incidencia 77 capturada para toda la quincena');
+        } catch (\Exception $e) {
+            $this->dispatch('toast', icon: 'error', title: 'Error: ' . $e->getMessage());
+        }
+    }
+
+    public function deleteIncidencia($token, IncidenciasService $service)
+    {
+        try {
+            $service->eliminarPorToken($token);
+            $this->dispatch('toast', icon: 'success', title: 'Incidencia eliminada correctamente');
+            // Al ser un método de Livewire, el componente se refrescará solo
+        } catch (\Exception $e) {
+            $this->dispatch('toast', icon: 'error', title: 'Error al eliminar: ' . $e->getMessage());
         }
     }
 }

@@ -56,11 +56,34 @@
                                 </a>
                             </div>
                         </div>
-                        <div class="text-right">
+                        <div class="text-right flex flex-col items-end space-y-1">
                             <span class="block text-[10px] text-gray-500 font-bold uppercase tracking-wider">Horario</span>
-                            <span class="text-xs font-semibold bg-white px-2 py-1 rounded border border-gray-200 text-gray-700">
+                            <span class="text-[10px] font-semibold bg-white px-2 py-0.5 rounded border border-gray-200 text-gray-700">
                                 {{ $registrosEmpleado->first()->horario_entrada ? substr($registrosEmpleado->first()->horario_entrada, 0, 5) . ' - ' . substr($registrosEmpleado->first()->horario_salida, 0, 5) : $registrosEmpleado->first()->horario }}
                             </span>
+                            @if(!$registrosEmpleado->contains(fn($r) => !empty($r->incidencias)))
+                            <button 
+                                x-data
+                                @click.stop="Swal.fire({
+                                    title: '¿Marcar sin incidencias?',
+                                    text: 'Se capturará el código 77 para toda la quincena (del {{ \Carbon\Carbon::parse($this->fecha_inicio)->format('d/m') }} al {{ \Carbon\Carbon::parse($this->fecha_fin)->format('d/m') }}).',
+                                    icon: 'info',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#1e5b4f',
+                                    cancelButtonColor: '#6b7280',
+                                    confirmButtonText: 'Sí, capturar 77',
+                                    cancelButtonText: 'Cancelar'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        $wire.captureSinIncidencias({{ $registrosEmpleado->first()->employee_id }});
+                                    }
+                                })"
+                                class="flex items-center space-x-1 px-2 py-1 bg-verde hover:bg-verde/90 text-white text-[9px] font-bold rounded shadow-sm transition-all uppercase tracking-tight"
+                            >
+                                <i class="fas fa-check-circle"></i>
+                                <span>Sin Incidencias</span>
+                            </button>
+                            @endif
                         </div>
                     </div>
 
@@ -122,8 +145,19 @@
                                         $jornadaTerminada = !\Carbon\Carbon::parse($registro->fecha)->isToday() || (\Carbon\Carbon::parse($registro->fecha)->isToday() && now()->format('H:i:s') > $registrosEmpleado->first()->horario_salida);
                                         
                                         $rowClass = '';
-                                        if ($registro->retardo && $registro->incidencia != '7') $rowClass = 'bg-red-50/50';
-                                        if ($registro->incidencia && !in_array($registro->incidencia, $incidenciasSinColor)) $rowClass = 'bg-amber-50/50';
+                                        if ($registro->retardo && strpos($registro->incidencias ?? '', '7') === false) $rowClass = 'bg-red-50/50';
+                                        
+                                        $hasColoredInc = false;
+                                        if ($registro->incidencias) {
+                                            $incList = explode(',', $registro->incidencias);
+                                            foreach($incList as $inc) {
+                                                if (!in_array($inc, $incidenciasSinColor)) {
+                                                    $hasColoredInc = true;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        if ($hasColoredInc) $rowClass = 'bg-amber-50/50';
                                         
                                         $isWeekend = \Carbon\Carbon::parse($registro->fecha)->isWeekend();
                                         if ($isWeekend && empty($rowClass)) $rowClass = 'bg-slate-50/70 opacity-80';
@@ -140,10 +174,10 @@
                                         <td class="px-3 py-1.5 whitespace-nowrap">
                                             @if($esJornadaVespertina && $esLaPrimeraChecadaDelDia && $registro->hora_entrada)
                                                 <div class="flex items-center">
-                                                    <span class="{{ $registro->retardo && $registro->incidencia != '7' ? 'text-rose-600 font-bold' : 'text-gray-700' }}">
+                                                    <span class="{{ $registro->retardo && strpos($registro->incidencias ?? '', '7') === false ? 'text-rose-600 font-bold' : 'text-gray-700' }}">
                                                         {{ substr($registro->hora_entrada, 0, 5) }}
                                                     </span>
-                                                    @if($registro->retardo && $registro->incidencia != '7')
+                                                    @if($registro->retardo && strpos($registro->incidencias ?? '', '7') === false)
                                                         <span class="ml-1 bg-rose-500 text-white text-[8px] px-1 rounded">R</span>
                                                     @endif
                                                 </div>
@@ -151,10 +185,10 @@
                                                 <span class="text-rose-500 font-bold" title="Omisión de entrada">──:──</span>
                                             @elseif($registro->hora_entrada)
                                                 <div class="flex items-center">
-                                                    <span class="{{ $registro->retardo && $registro->incidencia != '7' ? 'text-rose-600 font-bold' : 'text-gray-700' }}">
+                                                    <span class="{{ $registro->retardo && strpos($registro->incidencias ?? '', '7') === false ? 'text-rose-600 font-bold' : 'text-gray-700' }}">
                                                         {{ substr($registro->hora_entrada, 0, 5) }}
                                                     </span>
-                                                    @if($registro->retardo && $registro->incidencia != '7')
+                                                    @if($registro->retardo && strpos($registro->incidencias ?? '', '7') === false)
                                                         <span class="ml-1 bg-rose-500 text-white text-[8px] px-1 rounded">R</span>
                                                     @endif
                                                 </div>
@@ -168,10 +202,37 @@
                                             @endif
                                         </td>
                                         <td class="px-3 py-1.5 text-center">
-                                            @if($registro->incidencia)
-                                                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold {{ in_array($registro->incidencia, $incidenciasSinColor) ? 'bg-gray-100 text-gray-500' : 'bg-amber-100 text-amber-700' }}">
-                                                    {{ $registro->incidencia }}
-                                                </span>
+                                            @if($registro->incidencias)
+                                                <div class="flex flex-wrap justify-center gap-1">
+                                                    @php
+                                                        $incs = explode(',', $registro->incidencias);
+                                                        $tokens = explode(',', $registro->incidencias_tokens);
+                                                    @endphp
+                                                    @foreach($incs as $idx => $inc)
+                                                        @php $token = $tokens[$idx] ?? ''; @endphp
+                                                        <button 
+                                                            x-data 
+                                                            @click.stop="Swal.fire({
+                                                                title: '¿Confirmar eliminación?',
+                                                                text: 'Esta acción borrará el registro de la incidencia código {{ $inc }}',
+                                                                icon: 'warning',
+                                                                showCancelButton: true,
+                                                                confirmButtonColor: '#9b2247',
+                                                                cancelButtonColor: '#6b7280',
+                                                                confirmButtonText: 'Sí, eliminar',
+                                                                cancelButtonText: 'Cancelar'
+                                                            }).then((result) => {
+                                                                if (result.isConfirmed) {
+                                                                    $wire.deleteIncidencia('{{ $token }}');
+                                                                }
+                                                            })"
+                                                            class="px-1.5 py-0.5 rounded text-[10px] font-bold {{ in_array($inc, $incidenciasSinColor) ? 'bg-gray-100 text-gray-500 hover:bg-gray-200' : 'bg-amber-100 text-amber-700 hover:bg-amber-200' }} transition-colors"
+                                                            title="Código {{ $inc }}. Click para eliminar"
+                                                        >
+                                                            {{ $inc }}
+                                                        </button>
+                                                    @endforeach
+                                                </div>
                                             @endif
                                         </td>
                                     </tr>
@@ -249,4 +310,15 @@
             </div>
         </div>
     @endif
+
+    <script>
+        document.addEventListener('livewire:init', () => {
+            // Escuchar cambios en otras pestañas/ventanas para refrescar el biométrico
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'biometrico_refresh') {
+                    Livewire.dispatch('refreshBiometrico');
+                }
+            });
+        });
+    </script>
 </div>
