@@ -100,9 +100,14 @@
         document.addEventListener('alpine:init', () => {
             Alpine.store('island', {
                 activeStyle: localStorage.getItem('island_style') || 'classic',
+                showFaces: localStorage.getItem('island_show_faces') !== 'false',
                 setStyle(style) {
                     this.activeStyle = style;
                     localStorage.setItem('island_style', style);
+                },
+                setFaces(show) {
+                    this.showFaces = show;
+                    localStorage.setItem('island_show_faces', show);
                 }
             });
         });
@@ -113,7 +118,7 @@
                 const data = Array.isArray(event) ? event[0] : event;
                 setTimeout(() => {
                     window.dispatchEvent(new CustomEvent('island-notif', {
-                        detail: { 
+                        detail: {
                             message: data.title || (data.icon === 'error' ? 'Error' : 'Aviso'),
                             type: data.icon || 'info'
                         }

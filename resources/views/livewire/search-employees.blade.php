@@ -15,18 +15,26 @@
                 </div>
             </div>
         </div>
-        <div class="flex items-center gap-3">
-            <p class="text-xs text-gray-400 dark:text-gray-500">
-                {{ $employees->total() }} empleado(s) encontrado(s)
-            </p>
-            <button wire:click="create"
-                class="bg-[#13322B] hover:bg-[#13322B]/90 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
-                </svg>
-                Nuevo Empleado
-            </button>
-        </div>
+        @if(!empty($search) || $listAll)
+        <p class="text-xs text-gray-400 dark:text-gray-500">
+            {{ $employees->total() }} empleado(s) encontrado(s)
+        </p>
+        @endif
+        <button wire:click="toggleListAll"
+            class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold uppercase transition-all {{ $listAll ? 'bg-oro text-[#13322B]' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+            </svg>
+            {{ $listAll ? 'Ocultar Lista' : 'Mostrar Todos' }}
+        </button>
+        <button wire:click="create"
+            class="bg-[#13322B] hover:bg-[#13322B]/90 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+            </svg>
+            Nuevo Empleado
+        </button>
     </div>
 
     {{-- Lista de empleados (Cards) --}}
@@ -85,14 +93,14 @@
                     <div class="w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
 
                     {{-- Biométrico --}}
-                    <button type="button" onclick="alert('Módulo Biométrico próximamente')"
-                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-gray-500 hover:text-[#13322B] dark:hover:text-[#e6d194] hover:bg-[#13322B]/5 transition-colors">
+                    <a href="{{ route('employees.biometrico', $employee->id) }}" wire:navigate
+                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-gray-400 hover:text-[#13322B] dark:hover:text-[#e6d194] hover:bg-[#13322B]/5 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
                         </svg>
-                        <span class="text-[8px] font-black uppercase tracking-tighter text-gray-400">Biométrico</span>
-                    </button>
+                        <span class="text-[8px] font-black uppercase tracking-tighter">Biométrico</span>
+                    </a>
 
                     <div class="w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
 
@@ -109,8 +117,36 @@
             </div>
         </div>
         @empty
-        <div class="text-center py-16">
-            <p class="text-sm text-gray-400 italic">No se encontraron empleados.</p>
+        <div
+            class="text-center py-20 bg-gray-50/50 dark:bg-gray-900/20 rounded-2xl border-2 border-dashed border-gray-100 dark:border-gray-800">
+            @if(empty($search) && !$listAll)
+            <div class="flex flex-col items-center gap-3">
+                <div
+                    class="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl shadow-sm flex items-center justify-center text-oro">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-tight">Buscador de
+                    Personal
+                </h3>
+                <p class="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
+                    Ingresa un número de empleado o nombre para comenzar, o utiliza la opción <span
+                        class="text-oro font-bold">"Mostrar Todos"</span>.
+                </p>
+            </div>
+            @else
+            <div class="flex flex-col items-center gap-2">
+                <svg class="w-12 h-12 text-gray-200 dark:text-gray-700" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p class="text-sm text-gray-400 italic">No se encontraron empleados que coincidan con "{{ $search }}".
+                </p>
+            </div>
+            @endif
         </div>
         @endforelse
     </div>

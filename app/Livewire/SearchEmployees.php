@@ -11,6 +11,7 @@ class SearchEmployees extends Component
     use WithPagination;
 
     public $search = '';
+    public $listAll = false;
 
     // Propiedades para el formulario
     public $showEmployeeModal = false;
@@ -119,17 +120,39 @@ class SearchEmployees extends Component
     public function updatingSearch()
     {
         $this->resetPage();
+        $this->listAll = false;
+    }
+
+    public function toggleListAll()
+    {
+        $this->listAll = !$this->listAll;
+        if ($this->listAll) {
+            $this->search = '';
+        }
     }
 
     public function render()
     {
+        $user = auth()->user();
+
+        // Si no hay búsqueda y no se ha pedido listar todo, devolvemos una vista vacía
+        if (empty($this->search) && !$this->listAll) {
+            return view('livewire.search-employees', [
+                'employees' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20),
+                'departments' => \App\Models\Department::orderBy('code')->get(),
+                'puestos' => \App\Models\Puesto::orderBy('puesto')->get(),
+                'horarios' => \App\Models\Horario::orderBy('horario')->get(),
+                'jornadas' => \App\Models\Jornada::orderBy('jornada')->get(),
+                'condiciones' => \App\Models\Condicion::orderBy('condicion')->get(),
+            ]);
+        }
+
         $query = Employe::with(['department', 'puesto'])
             ->active()
             ->whereDoesntHave('department', function ($q) {
             $q->where('code', '99999');
         });
 
-        $user = auth()->user();
         if (!$user->admin()) {
             $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
             $query->whereIn('deparment_id', $departmentIds);
