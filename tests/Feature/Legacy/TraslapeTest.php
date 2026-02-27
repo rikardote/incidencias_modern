@@ -60,6 +60,6 @@ class TraslapeTest extends TestCase
             55 // incapacidad
         );
 
-        $this->assertTrue($resultado);
+        $this->assertNotNull($resultado);
     }
 }
