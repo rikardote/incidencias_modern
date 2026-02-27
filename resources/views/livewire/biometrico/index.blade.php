@@ -57,7 +57,7 @@
                             </div>
                         </div>
                         <div class="text-right flex flex-col items-end space-y-1">
-                            <span class="block text-[10px] text-gray-500 font-bold uppercase tracking-wider">Horario</span>
+
                             <span class="text-[10px] font-semibold bg-white px-2 py-0.5 rounded border border-gray-200 text-gray-700">
                                 {{ $registrosEmpleado->first()->horario_entrada ? substr($registrosEmpleado->first()->horario_entrada, 0, 5) . ' - ' . substr($registrosEmpleado->first()->horario_salida, 0, 5) : $registrosEmpleado->first()->horario }}
                             </span>

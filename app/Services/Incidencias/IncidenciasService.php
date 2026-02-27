@@ -36,8 +36,9 @@ class IncidenciasService
         $inicio = $this->helpers->fechaYmd($data['datepicker_inicial']);
         $fin = $this->helpers->fechaYmd($data['datepicker_final']);
 
-        if ($duplicadosRule->yaCapturado($empleado->id, $inicio, $fin, $incidenciaCodigo->code)) {
-            throw new \DomainException('Ya existe una incidencia registrada que genera conflicto o traslape con este código en las fechas seleccionadas.');
+        if ($conflict = $duplicadosRule->yaCapturado($empleado->id, $inicio, $fin, $incidenciaCodigo->code)) {
+            $esMismoCodigo = ($conflict->code == $incidenciaCodigo->code);
+            throw new \DomainException($esMismoCodigo ? 'Incidencia Duplicada' : 'Incidencia Traslape');
         }
 
         // Usamos request() global como respaldo si $data viene incompleto

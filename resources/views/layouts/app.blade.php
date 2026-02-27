@@ -97,22 +97,48 @@
     </div>
 
     <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('island', {
+                activeStyle: localStorage.getItem('island_style') || 'classic',
+                setStyle(style) {
+                    this.activeStyle = style;
+                    localStorage.setItem('island_style', style);
+                }
+            });
+        });
+
         document.addEventListener('livewire:initialized', () => {
+            // Bridge para Notificaciones
             Livewire.on('toast', (event) => {
-                // Livewire 3 wraps event data in an array or object
                 const data = Array.isArray(event) ? event[0] : event;
+                setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('island-notif', {
+                        detail: { 
+                            message: data.title || (data.icon === 'error' ? 'Error' : 'Aviso'),
+                            type: data.icon || 'info'
+                        }
+                    }));
+                }, 50);
 
-                if (window.Toast) {
-                    window.Toast.fire({
-                        icon: data.icon || 'info',
-                        title: data.title || '',
-                        timer: data.icon === 'error' ? 5000 : 3000
-                    });
+                if (data.icon === 'success') {
+                    localStorage.setItem('biometrico_refresh', Date.now());
+                }
+            });
 
-                    // Si es un éxito, notificamos a otras pestañas para refrescar biométricos
-                    if (data.icon === 'success') {
-                        localStorage.setItem('biometrico_refresh', Date.now());
-                    }
+            // Bridge para Sincronización de Estilo (Dynamic Island)
+            Livewire.on('island-style-updated', (event) => {
+                const data = Array.isArray(event) ? event[0] : event;
+                const style = data.style;
+                // Actualizar store global de Alpine
+                if (window.Alpine) {
+                    Alpine.store('island').setStyle(style);
+                }
+            });
+
+            // Escuchar cambios en otras pestañas
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'island_style' && window.Alpine) {
+                    Alpine.store('island').setStyle(event.newValue);
                 }
             });
         });

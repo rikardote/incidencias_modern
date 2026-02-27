@@ -44,6 +44,7 @@ class GeneralReport extends Component
 
     public function generate()
     {
+        usleep(1500000); // Delay intencional para ver la animación de la Isla
         $this->validate([
             'qnaId' => 'required|exists:qnas,id',
             'departmentId' => 'required|exists:deparments,id',
@@ -81,6 +82,14 @@ class GeneralReport extends Component
         }
 
         ksort($this->results);
+
+        // Notificar a la Isla Dinámica que hemos terminado
+        $this->dispatch('island-progress-update', progress: 100);
+        
+        $this->dispatch('island-notif', 
+            message: 'Reporte Listo', 
+            type: 'success'
+        );
     }
 
     public function render()

@@ -174,7 +174,7 @@ class Manager extends Component
                 $service->crearIncidencias($data);
             }
 
-            $this->dispatch('toast', icon: 'success', title: 'Incidencia(s) capturada(s) exitosamente.');
+            $this->dispatch('toast', icon: 'success', title: 'Incidencia Capturada');
             $this->fechas_seleccionadas = ''; // Solo limpiamos las fechas, el resto queda para captura rápida
         } catch (\DomainException $e) {
             $this->dispatch('toast', icon: 'error', title: $e->getMessage());
@@ -200,7 +200,7 @@ class Manager extends Component
 
         try {
             $service->eliminarPorToken($token);
-            $this->dispatch('toast', icon: 'success', title: 'Incidencia(s) eliminada(s) exitosamente.');
+            $this->dispatch('toast', icon: 'success', title: 'Incidencia Eliminada');
         } catch (\Exception $e) {
             $this->dispatch('toast', icon: 'error', title: 'Error al eliminar: ' . $e->getMessage());
         }

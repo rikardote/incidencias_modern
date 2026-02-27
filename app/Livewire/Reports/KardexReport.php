@@ -60,7 +60,7 @@ class KardexReport extends Component
 
     public function generate()
     {
-        usleep(800000); // Artificial delay to show the spinner
+        usleep(1500000); // Delay intencional para ver la animación de la Isla
         if (!$this->employee) {
             $this->addError('num_empleado', 'Empleado no encontrado. Verifique el número de empleado.');
             return;
@@ -92,6 +92,14 @@ class KardexReport extends Component
         })->values();
 
         $this->results = collect($grouped);
+
+        // Notificar a la Isla Dinámica que hemos terminado
+        $this->dispatch('island-progress-update', progress: 100);
+        
+        $this->dispatch('island-notif', 
+            message: 'Reporte Listo', 
+            type: 'success'
+        );
     }
 
     public function render()

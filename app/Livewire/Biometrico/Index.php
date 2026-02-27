@@ -189,7 +189,7 @@ class Index extends Component
 
             $service->crearIncidencias($data);
 
-            $this->dispatch('toast', icon: 'success', title: 'Incidencia capturada correctamente');
+            $this->dispatch('toast', icon: 'success', title: 'Incidencia Capturada');
             $this->closeModal();
         } catch (\Exception $e) {
             $this->dispatch('toast', icon: 'error', title: 'Error: ' . $e->getMessage());
@@ -215,7 +215,7 @@ class Index extends Component
 
             $service->crearIncidencias($data);
 
-            $this->dispatch('toast', icon: 'success', title: 'Incidencia 77 capturada para toda la quincena');
+            $this->dispatch('toast', icon: 'success', title: 'Incidencia Capturada');
         } catch (\Exception $e) {
             $this->dispatch('toast', icon: 'error', title: 'Error: ' . $e->getMessage());
         }
@@ -225,7 +225,7 @@ class Index extends Component
     {
         try {
             $service->eliminarPorToken($token);
-            $this->dispatch('toast', icon: 'success', title: 'Incidencia eliminada correctamente');
+            $this->dispatch('toast', icon: 'success', title: 'Incidencia Eliminada');
             // Al ser un método de Livewire, el componente se refrescará solo
         } catch (\Exception $e) {
             $this->dispatch('toast', icon: 'error', title: 'Error al eliminar: ' . $e->getMessage());

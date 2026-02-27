@@ -8,13 +8,29 @@ use Livewire\Component;
 class MaintenanceToggle extends Component
 {
     public $isMaintenanceMode = false;
+    public $islandStyle = 'classic';
 
-    public function mount()
+    public function mount(\App\Services\System\IslandWidgetService $service)
     {
         if (!auth()->user()->admin()) {
             abort(403);
         }
         $this->isMaintenanceMode = Cache::get('capture_maintenance', false);
+        $this->islandStyle = $service->getCurrentStyle();
+    }
+
+    public function updatedIslandStyle($value, \App\Services\System\IslandWidgetService $service)
+    {
+        $this->islandStyle = $service->setStyle($value);
+        
+        // Sincronizar con la navegación enviando el estilo
+        $this->dispatch('island-style-updated', style: $this->islandStyle);
+        
+        // Disparar una notificación de prueba usando el bridge de toast que ya funciona
+        $this->dispatch('toast', [
+            'icon' => 'success',
+            'title' => 'Cambiado a ' . ucfirst($this->islandStyle)
+        ]);
     }
 
     public function toggle()
@@ -29,9 +45,9 @@ class MaintenanceToggle extends Component
             Cache::forget('capture_maintenance');
         }
 
-        $this->dispatch('notify', [
-            'message' => $this->isMaintenanceMode ? 'Modo de mantenimiento activado (Capturas bloqueadas)' : 'Modo de mantenimiento desactivado (Capturas liberadas)',
-            'type' => $this->isMaintenanceMode ? 'error' : 'success'
+        $this->dispatch('toast', [
+            'icon' => $this->isMaintenanceMode ? 'error' : 'success',
+            'title' => $this->isMaintenanceMode ? 'Mantenimiento Activado' : 'Mantenimiento Desactivado'
         ]);
         
         $this->dispatch('maintenance-updated', mode: $this->isMaintenanceMode);

@@ -28,13 +28,13 @@ class DuplicadosRule
              * SI EL NUEVO ES COMPATIBLE:
              * Buscamos si hay alguna incidencia cuyo CÓDIGO NO esté en la lista.
              */
-            return $query->whereNotIn('codigos_de_incidencias.code', $codigos_compatibles)->exists();
+            return $query->whereNotIn('codigos_de_incidencias.code', $codigos_compatibles)->first(['codigos_de_incidencias.code']);
         } else {
             /**
              * SI EL NUEVO NO ES COMPATIBLE:
              * Cualquier traslape bloquea el registro.
              */
-            return $query->exists();
+            return $query->first(['codigos_de_incidencias.code']);
         }
     }
 }

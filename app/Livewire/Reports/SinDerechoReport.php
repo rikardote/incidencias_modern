@@ -51,7 +51,7 @@ class SinDerechoReport extends Component
     public function generate()
     {
         $this->validate();
-        usleep(800000); // Artificial delay to show the spinner
+        usleep(1500000); // Delay intencional para ver la animación de la Isla
 
         $dt = Carbon::create($this->year, $this->month, 1, 12, 0, 0);
         $fecha_inicio = $dt->copy()->startOfMonth()->format('Y-m-d');
@@ -115,6 +115,14 @@ class SinDerechoReport extends Component
             ->whereIn('id', $employeeIds)
             ->orderBy('num_empleado')
             ->get();
+
+        // Notificar a la Isla Dinámica que hemos terminado
+        $this->dispatch('island-progress-update', progress: 100);
+        
+        $this->dispatch('island-notif', 
+            message: 'Reporte Listo', 
+            type: 'success'
+        );
     }
 
     public function showDetails($employeeId)
