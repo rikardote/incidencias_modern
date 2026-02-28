@@ -57,31 +57,32 @@
 
                     {{-- Info --}}
                     <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2 flex-wrap">
-                        <span class="font-mono text-xs font-bold text-[#9b2247] dark:text-[#e6d194] shrink-0">
-                            {{ $employee->num_empleado }}
-                        </span>
-                        <span class="text-gray-200 dark:text-gray-600 text-xs">|</span>
-                        <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase">
-                            {{ $employee->fullname }}
-                        </span>
-                    </div>
-                    <div class="flex items-center gap-2 mt-0.5 flex-wrap">
-                        <span class="text-[11px] text-gray-500 dark:text-gray-400">
-                            {{ $employee->department->description ?? 'Sin depto.' }}
-                        </span>
-                        @if($employee->puesto)
-                        <span class="text-gray-200 dark:text-gray-600 text-xs">·</span>
-                        <span class="text-[11px] text-[#13322B]/60 dark:text-[#e6d194]/60">
-                            {{ $employee->puesto->puesto }}
-                        </span>
-                        @endif
-                    </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-mono text-xs font-bold text-[#9b2247] dark:text-[#e6d194] shrink-0">
+                                {{ $employee->num_empleado }}
+                            </span>
+                            <span class="text-gray-200 dark:text-gray-600 text-xs">|</span>
+                            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase">
+                                {{ $employee->fullname }}
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                            <span class="text-[11px] text-gray-500 dark:text-gray-400">
+                                {{ $employee->department->description ?? 'Sin depto.' }}
+                            </span>
+                            @if($employee->puesto)
+                            <span class="text-gray-200 dark:text-gray-600 text-xs">·</span>
+                            <span class="text-[11px] text-[#13322B]/60 dark:text-[#e6d194]/60">
+                                {{ $employee->puesto->puesto }}
+                            </span>
+                            @endif
+                        </div>
                     </div>
                 </div>
 
                 {{-- Acciones --}}
-                <div class="shrink-0 flex flex-wrap items-center justify-around sm:justify-end gap-1 w-full xl:w-auto border-t xl:border-t-0 border-gray-100 dark:border-gray-700 pt-3 xl:pt-0">
+                <div
+                    class="shrink-0 flex flex-wrap items-center justify-around sm:justify-end gap-1 w-full xl:w-auto border-t xl:border-t-0 border-gray-100 dark:border-gray-700 pt-3 xl:pt-0">
                     {{-- Incidencias --}}
                     <a href="{{ route('employees.incidencias', $employee->id) }}" wire:navigate
                         class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-[#9b2247] dark:text-[#e6d194] hover:bg-[#9b2247]/10 transition-colors">
@@ -126,6 +127,18 @@
                                 d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                         </svg>
                         <span class="text-[8px] font-black uppercase tracking-tighter">Kardex</span>
+                    </a>
+
+                    <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
+
+                    {{-- Estadística --}}
+                    <a href="{{ route('employees.estadisticas', $employee->id) }}" wire:navigate
+                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        </svg>
+                        <span class="text-[8px] font-black uppercase tracking-tighter">Estadística</span>
                     </a>
 
                     <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700"></div>

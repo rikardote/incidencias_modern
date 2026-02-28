@@ -14,6 +14,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/employees/{employeeId}/incidencias', \App\Livewire\Incidencias\Manager::class)->name('employees.incidencias');
     Route::get('/employees/{employeeId}/vacaciones', \App\Livewire\Reports\VacacionesReport::class)->name('employees.vacaciones');
     Route::get('/employees/{employeeId}/kardex', \App\Livewire\Reports\KardexReport::class)->name('employees.kardex');
+    Route::get('/employees/{employeeId}/estadisticas', \App\Livewire\Reports\EmployeeStatistics::class)->name('employees.estadisticas');
     Route::get('/qnas', [\App\Http\Controllers\QnaController::class , 'index'])->name('qnas.index');
 
     // Reportes
@@ -21,9 +22,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/reportes/rh5-pdf/{qnaId}/{departmentId}', [\App\Http\Controllers\ReportController::class , 'rh5Pdf'])->name('reports.rh5.pdf');
     Route::get('/reportes/sinderecho', \App\Livewire\Reports\SinDerechoReport::class)->name('reports.sinderecho');
     Route::get('/reportes/sinderecho-pdf/{year}/{month}/{departmentId}', [\App\Http\Controllers\ReportController::class , 'sinDerechoPdf'])->name('reports.sinderecho.pdf');
+    Route::get('/reportes/estadisticas', \App\Livewire\Reports\EstadisticasReport::class)->name('reports.estadisticas');
     Route::get('/reportes/exceso-incapacidades', \App\Livewire\Reports\ExcesoIncapacidadesReport::class)->name('reports.exceso-incapacidades');
     Route::get('/reportes/kardex', \App\Livewire\Reports\KardexReport::class)->name('reports.kardex');
     Route::get('/reportes/kardex-pdf/{num_empleado}/{fecha_inicio}/{fecha_final}', [\App\Http\Controllers\ReportController::class , 'kardexPdf'])->name('reports.kardex.pdf');
+    Route::get('/reportes/ausentismo', \App\Livewire\Reports\AusentismoReport::class)->name('reports.ausentismo');
 
     // Biométrico
     Route::get('/biometrico', [\App\Http\Controllers\BiometricoController::class , 'index'])->name('biometrico.index');

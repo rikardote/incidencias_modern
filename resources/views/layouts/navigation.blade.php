@@ -111,6 +111,19 @@
                                         {{ __('Sin Derecho a Nota Buena') }}
                                     </div>
                                 </x-dropdown-link>
+                                <x-dropdown-link :href="route('reports.estadisticas')"
+                                    class="dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:bg-gray-700 border-b border-gray-100 dark:border-gray-700 py-3 uppercase text-xs font-bold tracking-wider hover:text-oro transition-colors"
+                                    wire:navigate>
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-oro" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                                            </path>
+                                        </svg>
+                                        {{ __('Estadística de Conceptos') }}
+                                    </div>
+                                </x-dropdown-link>
                                 <x-dropdown-link :href="route('reports.exceso-incapacidades')"
                                     class="dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:bg-gray-700 border-b border-gray-100 dark:border-gray-700 py-3 uppercase text-xs font-bold tracking-wider hover:text-oro transition-colors"
                                     wire:navigate>
@@ -121,6 +134,19 @@
                                                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                         </svg>
                                         {{ __('Exceso de Incapacidades') }}
+                                    </div>
+                                </x-dropdown-link>
+                                <x-dropdown-link :href="route('reports.ausentismo')"
+                                    class="dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:bg-gray-700 border-b border-gray-100 dark:border-gray-700 py-3 uppercase text-xs font-bold tracking-wider hover:text-oro transition-colors"
+                                    wire:navigate>
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-oro" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2m16-10V4m0 0L13 8m4-4l4 4m-11 4h6">
+                                            </path>
+                                        </svg>
+                                        {{ __('Ausentismo') }}
                                     </div>
                                 </x-dropdown-link>
                                 <x-dropdown-link :href="route('biometrico.index')"
@@ -595,6 +621,10 @@
             <x-responsive-nav-link :href="route('reports.exceso-incapacidades')"
                 :active="request()->routeIs('reports.exceso-incapacidades')" wire:navigate>
                 <span class="pl-4">{{ __('Exceso de Incapacidades') }}</span>
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('reports.ausentismo')"
+                :active="request()->routeIs('reports.ausentismo')" wire:navigate>
+                <span class="pl-4">{{ __('Ausentismo') }}</span>
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('biometrico.index')" :active="request()->routeIs('biometrico.index')"
                 wire:navigate>
