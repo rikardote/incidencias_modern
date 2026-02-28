@@ -24,7 +24,7 @@
                     </div>
 
                     <button wire:click="create"
-                        class="h-11 bg-[#13322B] hover:bg-[#1a4038] text-white px-8 rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-[#13322B]/20 hover:shadow-[#13322B]/40 active:scale-95 flex items-center gap-2">
+                        class="w-full md:w-auto h-11 bg-[#13322B] hover:bg-[#1a4038] text-white px-8 rounded-xl text-xs font-black uppercase tracking-[0.2em] transition-all shadow-lg shadow-[#13322B]/20 hover:shadow-[#13322B]/40 active:scale-95 flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
                         </svg>
@@ -39,9 +39,10 @@
                         <div wire:key="user-{{ $user->id }}"
                             class="group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md hover:border-[#13322B]/30 dark:hover:border-[#e6d194]/20 transition-all duration-200 overflow-hidden">
 
-                            <div class="flex items-center gap-4 px-4 py-3">
-                                {{-- Avatar --}}
-                                <div
+                            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 px-4 py-3">
+                                <div class="flex items-center gap-4 min-w-0 w-full xl:w-auto">
+                                    {{-- Avatar --}}
+                                    <div
                                     class="shrink-0 w-10 h-10 rounded-full bg-[#13322B]/10 dark:bg-[#13322B]/40 flex items-center justify-center">
                                     <span class="text-sm font-black text-[#13322B] dark:text-[#e6d194] leading-none">
                                         @php
@@ -91,9 +92,10 @@
                                         </button>
                                     </div>
                                 </div>
+                            </div>
 
                                 {{-- Acciones --}}
-                                <div class="shrink-0 flex items-center gap-1 text-[#9b2247]">
+                                <div class="shrink-0 flex flex-wrap items-center justify-around sm:justify-end gap-1 w-full xl:w-auto border-t xl:border-t-0 border-gray-100 dark:border-gray-700 pt-3 xl:pt-0 text-[#9b2247]">
                                     {{-- Pase --}}
                                     <button wire:click="grantException({{ $user->id }})"
                                         class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg {{ $user->canCaptureInClosedQna() ? 'bg-[#9b2247]/10 text-[#9b2247]' : 'text-gray-400 hover:bg-[#9b2247]/5 hover:text-[#9b2247]' }} transition-colors">
@@ -104,7 +106,7 @@
                                         <span class="text-[8px] font-black uppercase tracking-tighter">Pase</span>
                                     </button>
 
-                                    <div class="w-px h-6 bg-gray-100 dark:bg-gray-700 mx-1"></div>
+                                    <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700 mx-1"></div>
 
                                     {{-- Seguridad --}}
                                     <button wire:click="changePassword({{ $user->id }})"
@@ -116,7 +118,7 @@
                                         <span class="text-[8px] font-black uppercase tracking-tighter">Seguridad</span>
                                     </button>
 
-                                    <div class="w-px h-6 bg-gray-100 dark:bg-gray-700 mx-1"></div>
+                                    <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700 mx-1"></div>
 
                                     {{-- Editar --}}
                                     <button wire:click="edit({{ $user->id }})"

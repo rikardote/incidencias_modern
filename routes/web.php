@@ -12,6 +12,8 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/employees', [\App\Http\Controllers\EmployeeController::class , 'index'])->name('employees.index');
     Route::get('/employees/{employeeId}/incidencias', \App\Livewire\Incidencias\Manager::class)->name('employees.incidencias');
+    Route::get('/employees/{employeeId}/vacaciones', \App\Livewire\Reports\VacacionesReport::class)->name('employees.vacaciones');
+    Route::get('/employees/{employeeId}/kardex', \App\Livewire\Reports\KardexReport::class)->name('employees.kardex');
     Route::get('/qnas', [\App\Http\Controllers\QnaController::class , 'index'])->name('qnas.index');
 
     // Reportes

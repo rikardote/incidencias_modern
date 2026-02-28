@@ -237,7 +237,10 @@ class Manager extends Component
             ->get();
             
         $codigos = CodigoDeIncidencia::orderBy('code')->get();
-        $periodos = Periodo::all();
+        $periodos = Periodo::where('year', '>=', date('Y') - 5)
+            ->orderBy('year', 'desc')
+            ->orderBy('periodo', 'desc')
+            ->get();
 
         $medicos = [];
         if ($this->isIncapacidad) {

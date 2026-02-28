@@ -18,6 +18,10 @@ class VacacionesRule implements IncidenciaRuleInterface
         if (empty($data['periodo_id'])) {
             throw new \DomainException('Debe seleccionar un periodo vacacional');
         }
+
+        if (empty($empleado->jornada_id)) {
+            throw new \DomainException('Debe asignar jornada laboral al trabajador');
+        }
         $incidencia->periodo_id = $data['periodo_id'];
 
         $total_dias_solicitados = $incidencia->total_dias;

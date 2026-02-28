@@ -44,18 +44,19 @@
         <div wire:key="emp-{{ $employee->id }}"
             class="group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md hover:border-[#13322B]/30 dark:hover:border-[#e6d194]/20 transition-all duration-200 overflow-hidden">
 
-            <div class="flex items-center gap-4 px-4 py-3">
-                {{-- Avatar --}}
-                <div
-                    class="shrink-0 w-10 h-10 rounded-full bg-[#13322B]/10 dark:bg-[#13322B]/40 flex items-center justify-center">
-                    <span class="text-sm font-black text-[#13322B] dark:text-[#e6d194] leading-none">
-                        {{ strtoupper(mb_substr($employee->name, 0, 1)) }}{{
-                        strtoupper(mb_substr($employee->father_lastname, 0, 1)) }}
-                    </span>
-                </div>
+            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 px-4 py-3">
+                <div class="flex items-center gap-4 min-w-0 w-full xl:w-auto">
+                    {{-- Avatar --}}
+                    <div
+                        class="shrink-0 w-10 h-10 rounded-full bg-[#13322B]/10 dark:bg-[#13322B]/40 flex items-center justify-center">
+                        <span class="text-sm font-black text-[#13322B] dark:text-[#e6d194] leading-none">
+                            {{ strtoupper(mb_substr($employee->name, 0, 1)) }}{{
+                            strtoupper(mb_substr($employee->father_lastname, 0, 1)) }}
+                        </span>
+                    </div>
 
-                {{-- Info --}}
-                <div class="flex-1 min-w-0">
+                    {{-- Info --}}
+                    <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="font-mono text-xs font-bold text-[#9b2247] dark:text-[#e6d194] shrink-0">
                             {{ $employee->num_empleado }}
@@ -76,10 +77,11 @@
                         </span>
                         @endif
                     </div>
+                    </div>
                 </div>
 
                 {{-- Acciones --}}
-                <div class="shrink-0 flex items-center gap-1">
+                <div class="shrink-0 flex flex-wrap items-center justify-around sm:justify-end gap-1 w-full xl:w-auto border-t xl:border-t-0 border-gray-100 dark:border-gray-700 pt-3 xl:pt-0">
                     {{-- Incidencias --}}
                     <a href="{{ route('employees.incidencias', $employee->id) }}" wire:navigate
                         class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-[#9b2247] dark:text-[#e6d194] hover:bg-[#9b2247]/10 transition-colors">
@@ -90,7 +92,7 @@
                         <span class="text-[8px] font-black uppercase tracking-tighter">Incidencias</span>
                     </a>
 
-                    <div class="w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
+                    <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
 
                     {{-- Biométrico --}}
                     <a href="{{ route('employees.biometrico', $employee->id) }}" wire:navigate
@@ -102,7 +104,31 @@
                         <span class="text-[8px] font-black uppercase tracking-tighter">Biométrico</span>
                     </a>
 
-                    <div class="w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
+                    <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
+
+                    {{-- Vacaciones --}}
+                    <a href="{{ route('employees.vacaciones', $employee->id) }}" wire:navigate
+                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-oro hover:bg-oro/10 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span class="text-[8px] font-black uppercase tracking-tighter">Vacaciones</span>
+                    </a>
+
+                    <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
+
+                    {{-- Kardex --}}
+                    <a href="{{ route('employees.kardex', $employee->id) }}" wire:navigate
+                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-[#13322B] dark:text-[#e6d194] hover:bg-[#13322B]/10 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        <span class="text-[8px] font-black uppercase tracking-tighter">Kardex</span>
+                    </a>
+
+                    <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
 
                     {{-- Información (Editar) --}}
                     <button wire:click="edit({{ $employee->id }})"

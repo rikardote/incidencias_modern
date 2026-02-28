@@ -1,4 +1,4 @@
-<div class="flex items-center gap-3 w-full h-full px-2" x-data="{ flicker: false }" x-init="setInterval(() => flicker = !flicker, 2000)">
+<div class="flex items-center gap-3 w-full h-full px-2 rounded-full overflow-hidden" x-data="{ flicker: false }" x-init="setInterval(() => flicker = !flicker, 2000)">
     {{-- Decorative Cyberpunk Frame --}}
     <div class="absolute inset-0 border-r-2 border-cyan-400/50 clip-path-cyber"></div>
     

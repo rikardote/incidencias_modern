@@ -1,12 +1,63 @@
 <nav x-data="{ open: false }"
     class="bg-[#13322B] dark:bg-gray-950 border-b border-[#0a1f1a] dark:border-gray-800 shadow-md relative sticky top-0 z-50">
+    
+    {{-- BARRA DE PROGRESO TIPO VUEJS (GLOBAL) --}}
+    <div x-data="{
+        barWidth: 0,
+        barColor: 'bg-[#e6d194]',
+        barOpacity: 0,
+        loadingTimer: null,
+        resetTimer: null,
+        isError: false,
+        start() {
+            clearTimeout(this.resetTimer);
+            clearInterval(this.loadingTimer);
+            this.barColor = 'bg-[#e6d194]';
+            this.barOpacity = 100;
+            this.barWidth = 5;
+            this.isError = false;
+            this.loadingTimer = setInterval(() => {
+                if (this.barWidth < 90) this.barWidth += Math.random() * 5;
+            }, 200);
+        },
+        finish(type = 'success') {
+            if (this.isError && type === 'success') return; // Disable fast successful responses from overriding earlier reported errors 
+            clearInterval(this.loadingTimer);
+            
+            if (type === 'error') {
+                this.isError = true;
+                this.barColor = 'bg-red-500';
+                this.barWidth = 0; // Regresa agresivamente a 0
+            } else {
+                this.barColor = 'bg-emerald-500';
+                this.barWidth = 100;
+            }
+            
+            this.resetTimer = setTimeout(() => {
+                this.barOpacity = 0;
+                setTimeout(() => { if (this.barOpacity === 0) { this.barWidth = 0; this.isError = false; } }, 400); 
+            }, type === 'error' ? 800 : 500);
+        }
+    }"
+    x-on:topbar-start.window="start()"
+    x-on:topbar-end.window="finish($event.detail)"
+    x-on:island-notif.window="if($event.detail.type === 'error') finish('error'); else finish('success');"
+    class="absolute top-0 left-0 w-full h-[3px] z-[100000] pointer-events-none overflow-hidden"
+    :class="barOpacity === 0 ? 'opacity-0' : 'opacity-100'"
+    style="transition: opacity 0.4s ease;">
+        <div class="h-full shadow-[0_0_8px_currentColor] transition-all duration-300 ease-out"
+             :style="`width: ${barWidth}%;`"
+             :class="barColor">
+        </div>
+    </div>
+
     {{-- Pleca superior (eliminada por ser redundante en dark bg) --}}
     <!-- Primary Navigation Menu -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <div class="flex">
                 <!-- Logo -->
-                <div class="shrink-0 flex items-center">
+                <div class="shrink-0 hidden sm:flex items-center">
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-2" wire:navigate>
                         <x-application-logo class="block h-11 w-auto drop-shadow-sm" />
                     </a>
@@ -66,20 +117,7 @@
                                         {{ __('Sin Derecho a Nota Buena') }}
                                     </div>
                                 </x-dropdown-link>
-                                <x-dropdown-link :href="route('reports.kardex')"
-                                    class="dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:bg-gray-700 py-3 uppercase text-xs font-bold tracking-wider hover:text-oro transition-colors"
-                                    wire:navigate>
-                                    <div class="flex items-center gap-2">
-                                        <svg class="w-4 h-4 text-oro" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2">
-                                            </path>
-                                        </svg>
-                                        {{ __('Kárdex de Empleado') }}
-                                    </div>
-                                </x-dropdown-link>
-                                <x-dropdown-link :href="route('biometrico.index')"
+                                 <x-dropdown-link :href="route('biometrico.index')"
                                     class="dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:bg-gray-700 py-3 uppercase text-xs font-bold tracking-wider hover:text-oro transition-colors"
                                     wire:navigate>
                                     <div class="flex items-center gap-2">
@@ -98,16 +136,17 @@
             </div>
 
             <!-- Active QNA Notice (Dynamic Island) -->
-            @if($activeQna)
             @php
             $isMaintenanceActive = \Illuminate\Support\Facades\Cache::get('capture_maintenance', false);
             @endphp
+            @if($activeQna)
             <div class="flex items-center px-2 sm:px-4" wire:persist="active-qna-widget">
                 <div x-data="{ 
                         isMaint: {{ $isMaintenanceActive ? 'true' : 'false' }},
                         islandMsg: null,
                         islandType: 'info',
                         islandTimer: null,
+                        screenFlash: null,
                         showPhase: 'face',
                         progress: 0,
                         get face() {
@@ -122,6 +161,16 @@
                             if (this.islandTimer) clearTimeout(this.islandTimer);
                             this.islandMsg = msg;
                             this.islandType = type || 'info';
+
+                            // 0. Trigger visual (Flash) y Haptic (Vibration) para capturar mirada periférica
+                            this.screenFlash = this.islandType;
+                            setTimeout(() => { if(this.screenFlash === this.islandType) this.screenFlash = null }, 800);
+                            
+                            if (navigator.vibrate) {
+                                if (this.islandType === 'error') navigator.vibrate([200, 100, 200]);
+                                else if (this.islandType === 'success') navigator.vibrate([100, 50, 100]);
+                                else navigator.vibrate(50);
+                            }
                             
                             // Si el mensaje nuevo NO es reporte listo, reseteamos progreso
                             if (!msg.includes('Listo')) this.progress = 0;
@@ -132,7 +181,7 @@
 
                             // 1. Determinar Fase Inicial
                             const showFaces = Alpine.store('island').showFaces;
-                            if (currentStyle === 'glass' || currentStyle === 'cyberpunk' || isReport || !showFaces) {
+                            if (currentStyle === 'glass' || currentStyle === 'cyberpunk' || currentStyle === 'minimal' || currentStyle === 'kinetic' || currentStyle === 'starwars' || currentStyle === 'avengers' || isReport || !showFaces) {
                                 this.showPhase = 'text';
                             } else {
                                 this.showPhase = 'face';
@@ -160,7 +209,10 @@
 
                             // 3. Timer de Cierre (No aplica si es reporte activo)
                             if (!isReport) {
-                                let duration = (currentStyle === 'progress' && isAction) ? 4000 : 5000;
+                                let duration = 5000;
+                                if (currentStyle === 'progress' && isAction) duration = 4000;
+                                if (currentStyle === 'avengers') duration = 2800;
+                                
                                 this.islandTimer = setTimeout(() => {
                                     this.islandMsg = null;
                                     setTimeout(() => { 
@@ -171,15 +223,16 @@
                             }
                         }
                      }" @maintenance-updated.window="isMaint = $event.detail.mode"
-                    @island-progress-update.window="progress = $event.detail.progress"
+                    x-on:island-progress-update.window="progress = $event.detail.progress"
                     x-on:island-notif.window="showIsland($event.detail.message, $event.detail.type)"
-                    class="bg-[#0a1f1a] dark:bg-gray-900 border rounded-full shadow-lg h-9 px-4 flex items-center justify-center relative min-w-max transition-all duration-500 ease-out transform"
+                    class="bg-[#0a1f1a] dark:bg-gray-900 border rounded-full shadow-lg h-9 px-4 flex items-center justify-center relative min-w-max transition-all duration-700 cubic-bezier(0.4, 0, 0.2, 1) transform"
                     :class="{ 
                         'border-oro ring-2 ring-oro/20 bg-[#0a1f1a] z-[100]': islandMsg && islandType !== 'error', 
                         'border-red-500 ring-2 ring-red-500/30 bg-[#1a0a0a] z-[100]': islandMsg && islandType === 'error',
                         'border-oro/30': !islandMsg && !isMaint,
-                        'border-red-500/40 ring-1 ring-red-500/10': isMaint && !islandMsg 
-                     }" :style="islandMsg ? 'min-width: 280px' : ''">
+                        'border-red-500/40 ring-1 ring-red-500/10': isMaint && !islandMsg,
+                        'ring-2 ring-white/10 shadow-[0_0_20px_rgba(255,255,255,0.1)]': islandMsg && $store.island.activeStyle === 'kinetic'
+                     }" :style="islandMsg ? ($store.island.activeStyle === 'kinetic' ? 'min-width: 320px' : 'min-width: 280px') : ''">
 
                     {{-- Estado 1: QNA Activa (Default) --}}
                     <div class="flex items-center gap-2 sm:gap-3 shrink-0 transition-all duration-500 ease-in-out"
@@ -228,12 +281,14 @@
                         x-transition:leave="transition transform ease-in duration-300"
                         x-transition:leave-start="opacity-100 translate-y-0"
                         x-transition:leave-end="opacity-0 translate-y-2 blur-md"
-                        class="absolute inset-0 flex items-center justify-center px-4 overflow-hidden">
+                        class="absolute inset-0 flex items-center justify-center px-4"
+                        :class="$store.island.activeStyle === 'kinetic' ? 'rounded-full' : 'overflow-hidden rounded-full'"
+                        :style="$store.island.activeStyle !== 'kinetic' ? 'clip-path: inset(0 round 999px); -webkit-clip-path: inset(0 round 999px);' : ''">
 
                         <div class="relative flex items-center justify-center w-full h-full">
 
                             {{-- Fase 1: El Rostro Reactivo --}}
-                            <div x-show="showPhase === 'face' || $store.island.activeStyle === 'minimal'"
+                            <div x-show="showPhase === 'face'"
                                 x-transition:enter="transition duration-400"
                                 x-transition:enter-start="opacity-0 scale-50"
                                 x-transition:enter-end="opacity-100 scale-100"
@@ -243,14 +298,10 @@
                                 :class="{ 'text-red-500': islandType === 'error', 'text-amber-400': islandType === 'warning' }">
                                 <span x-text="face"
                                     class="text-xl font-black tracking-widest drop-shadow-[0_0_8px_rgba(74,222,128,0.3)]"></span>
-                                <template x-if="$store.island.activeStyle === 'minimal' && islandMsg">
-                                    <span x-text="islandMsg"
-                                        class="text-[8px] font-bold uppercase tracking-[0.2em] mt-1 opacity-60"></span>
-                                </template>
                             </div>
 
                             {{-- Fase 2: Contenido Dinámico --}}
-                            <div x-show="showPhase === 'text' && $store.island.activeStyle !== 'minimal'"
+                            <div x-show="showPhase === 'text'"
                                 x-transition:enter="transition duration-500 cubic-bezier(0.34, 1.56, 0.64, 1)"
                                 x-transition:enter-start="opacity-0 translate-y-3 scale-90"
                                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
@@ -280,21 +331,58 @@
                                     <x-island.styles.matrix />
                                 </template>
 
+                                {{-- CASE: KINETIC --}}
+                                <template
+                                    x-if="$store.island.activeStyle === 'kinetic' && !((islandMsg || '').includes('Generando'))">
+                                    <x-island.styles.kinetic />
+                                </template>
+
+                                {{-- CASE: STARWARS --}}
+                                <template
+                                    x-if="$store.island.activeStyle === 'starwars' && !((islandMsg || '').includes('Generando'))">
+                                    <x-island.styles.starwars />
+                                </template>
+
+                                {{-- CASE: AVENGERS --}}
+                                <template
+                                    x-if="$store.island.activeStyle === 'avengers' && !((islandMsg || '').includes('Generando'))">
+                                    <x-island.styles.avengers />
+                                </template>
+
                                 {{-- CASE: CLASSIC (Default fallback) --}}
                                 <template
                                     x-if="($store.island.activeStyle === 'classic' || ($store.island.activeStyle === 'progress' && !((islandMsg || '').includes('Capturada') || (islandMsg || '').includes('Eliminada')))) && !((islandMsg || '').includes('Generando'))">
                                     <x-island.styles.classic />
                                 </template>
 
-                                {{-- CASE: FUTURE --}}
-                                <template
-                                    x-if="$store.island.activeStyle === 'future' && !((islandMsg || '').includes('Generando'))">
-                                    <x-island.styles.future />
+                                {{-- CASE: MINIMAL --}}
+                                <template x-if="$store.island.activeStyle === 'minimal' && !((islandMsg || '').includes('Generando'))">
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="islandType === 'error' ? 'bg-red-500' : 'bg-emerald-500'"></span>
+                                        <span x-text="islandMsg" class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-200 nothing-font"></span>
+                                    </div>
                                 </template>
                             </div>
 
                         </div>
                     </div>
+
+                    {{-- Visually Immersive Screen Flash (Attention Grabber) --}}
+                    <div x-show="screenFlash" 
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="opacity-0"
+                         x-transition:enter-end="opacity-100"
+                         x-transition:leave="transition ease-in duration-700"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0"
+                         class="fixed inset-0 pointer-events-none z-[99999]"
+                         :class="{
+                             'bg-red-500/10 shadow-[inset_0_0_120px_rgba(239,68,68,0.5)]': screenFlash === 'error',
+                             'bg-emerald-500/5 shadow-[inset_0_0_120px_rgba(16,185,129,0.4)]': screenFlash === 'success',
+                             'shadow-[inset_0_0_100px_rgba(201,162,39,0.3)]': screenFlash === 'warning' || screenFlash === 'info'
+                         }">
+                    </div>
+
                 </div>
             </div>
 
@@ -515,10 +603,6 @@
                 :active="request()->routeIs('reports.sinderecho')" wire:navigate>
                 <span class="pl-4">{{ __('Sin Derecho a Nota Buena') }}</span>
             </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('reports.kardex')" :active="request()->routeIs('reports.kardex')"
-                wire:navigate>
-                <span class="pl-4">{{ __('Kárdex de Empleado') }}</span>
-            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('biometrico.index')" :active="request()->routeIs('biometrico.index')"
                 wire:navigate>
                 <span class="pl-4">{{ __('Asistencia Biométrica') }}</span>
@@ -549,4 +633,46 @@
             </div>
         </div>
     </div>
+
+    <!-- Hooks Globales Livewire para Barra de Progreso -->
+    <script>
+        document.addEventListener('livewire:init', () => {
+            Livewire.hook('commit', ({ succeed, fail }) => {
+                window.dispatchEvent(new CustomEvent('topbar-start'));
+                
+                succeed(({ snapshot }) => {
+                    let hasError = false;
+
+                    // 1. Validar si la petición resultó en errores de validación
+                    if (snapshot && snapshot.memo && snapshot.memo.errors && Object.keys(snapshot.memo.errors).length > 0) {
+                        hasError = true;
+                    }
+
+                    // 2. Inspeccionar Nativamente si el Servidor ordenó emitir un Toast de Error (Ej. Traslapes Exception)
+                    if (snapshot && snapshot.effects && snapshot.effects.dispatches) {
+                        snapshot.effects.dispatches.forEach(d => {
+                            if (d.name === 'toast') {
+                                let params = d.params || {};
+                                if (Array.isArray(params)) params = params[0] || {};
+                                // Los parámetros interceptan si trae icono de error nativo programado en Managers
+                                if (params.icon === 'error' || params.type === 'error') {
+                                    hasError = true;
+                                }
+                            }
+                        });
+                    }
+                    
+                    if (hasError) {
+                        window.dispatchEvent(new CustomEvent('topbar-end', { detail: 'error' }));
+                    } else {
+                        window.dispatchEvent(new CustomEvent('topbar-end', { detail: 'success' }));
+                    }
+                });
+                
+                fail(() => {
+                    window.dispatchEvent(new CustomEvent('topbar-end', { detail: 'error' }));
+                });
+            });
+        });
+    </script>
 </nav>

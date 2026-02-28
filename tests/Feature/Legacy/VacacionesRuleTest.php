@@ -48,11 +48,30 @@ class VacacionesRuleTest extends TestCase
 
         $incidencia = new Incidencia();
         $incidencia->total_dias = 4;
+        $empleado = new Employe();
+        $empleado->jornada_id = 14; // Matutino por ejemplo
 
         // Si no saltara, intentaría conectarse a DB para calcular los excesos
-        $this->assertNull($rule->aplicar($incidencia, new Employe(), $data, Inc::VACACIONES[0]));
+        $this->assertNull($rule->aplicar($incidencia, $empleado, $data, Inc::VACACIONES[0]));
 
         // Verifica que se le asignó el periodo a pesar de saltarse
         $this->assertEquals(5, $incidencia->periodo_id);
+    }
+
+    public function test_lanza_excepcion_si_no_tiene_jornada_asignada()
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('favor de asignar jornada laboral al trabajador');
+
+        $rule = new VacacionesRule();
+
+        $data = [
+            'periodo_id' => 1
+        ];
+
+        $empleado = new Employe();
+        $empleado->jornada_id = null; // No tiene jornada
+
+        $rule->aplicar(new Incidencia(), $empleado, $data, Inc::VACACIONES[0]);
     }
 }

@@ -23,7 +23,7 @@ class IslandWidgetService
      */
     public function setStyle(string $style): string
     {
-        $validStyles = ['classic', 'progress', 'minimal', 'glass', 'cyberpunk', 'matrix', 'future'];
+        $validStyles = ['classic', 'progress', 'minimal', 'glass', 'cyberpunk', 'matrix', 'kinetic', 'starwars', 'avengers'];
 
         if (!in_array($style, $validStyles)) {
             $style = self::DEFAULT_STYLE;
@@ -41,11 +41,13 @@ class IslandWidgetService
         return [
             'classic' => 'Gesto ASCII + Texto. El balance perfecto.',
             'progress' => 'Barra de proceso técnica. Ideal para capturas.',
-            'minimal' => 'Solo el rostro ASCII. Rápido y limpio.',
+            'minimal' => 'Solo texto. Rápido y limpio.',
             'glass' => 'Icono + Blur. Estética refinada y moderna.',
             'cyberpunk' => 'Neón + Glitch. Estética futurista y agresiva.',
             'matrix' => 'Lluvia de código + Terminal. El origen.',
-            'future' => 'Icono + Texto. Estética futurista y moderna.'
+            'kinetic' => 'Energía Cinética. 100% Visual, sin textos.',
+            'starwars' => 'Hyperspace. Velocidad luz hasta tus notificaciones.',
+            'avengers' => 'The Snap. Desintegración cinematográfica al terminar.'
         ];
     }
 }

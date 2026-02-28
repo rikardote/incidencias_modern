@@ -1,191 +1,195 @@
-<div class="py-6 px-4 md:px-8 max-w-7xl mx-auto">
-    {{-- Header con Info del Empleado --}}
-    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-4 mb-4">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div class="flex items-center gap-4">
-                <div
-                    class="w-12 h-12 rounded-xl bg-[#13322B] flex items-center justify-center shadow-lg shadow-[#13322B]/20 shrink-0">
-                    <span class="text-lg font-black text-[#e6d194]">
-                        {{ strtoupper(mb_substr($employee->name, 0, 1)) }}{{
-                        strtoupper(mb_substr($employee->father_lastname, 0, 1)) }}
-                    </span>
+<div class="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen bg-gray-50 dark:bg-gray-950">
+    {{-- Header del Reporte --}}
+    @if($employee)
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 mb-6">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-xl bg-[#13322B] flex items-center justify-center shadow-lg shadow-[#13322B]/20 shrink-0">
+                <span class="text-lg font-black text-[#e6d194]">
+                    {{ strtoupper(mb_substr($employee->name, 0, 1)) }}{{ strtoupper(mb_substr($employee->father_lastname, 0, 1)) }}
+                </span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-tight truncate">
+                    {{ $employee->fullname }}
+                </h2>
+                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">
+                    ID: #{{ $employee->num_empleado }} | {{ $employee->department->description ?? 'Sin Depto' }}
+                </p>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    {{-- Filtros del Reporte (Estilo Imagen) --}}
+    <div class="space-y-4 mb-8">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 divide-y divide-gray-50 dark:divide-gray-700">
+            
+            {{-- Año --}}
+            <div class="flex items-center gap-4 p-4">
+                <div class="w-12 h-12 rounded-xl bg-white dark:bg-gray-900 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 shrink-0">
+                    <svg class="w-6 h-6 text-[#9b2247]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
                 </div>
-                <div>
-                    <h2 class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-tight">
-                        {{ $employee->fullname }}
-                    </h2>
-                    <div class="flex items-center gap-3 mt-1 flex-wrap">
-                        <span
-                            class="px-2.5 py-1 bg-[#9b2247]/10 text-[#9b2247] dark:text-[#e6d194] text-xs font-black rounded uppercase tracking-wider border border-[#9b2247]/20">
-                            #{{ $employee->num_empleado }}
-                        </span>
-                        <span class="text-gray-400 dark:text-gray-500 text-sm uppercase font-semibold">
-                            {{ $employee->department->description ?? 'Sin Depto' }}
-                        </span>
-                        <span class="text-gray-300 dark:text-gray-600">|</span>
-                        <span class="text-sm text-[#13322B] dark:text-[#e6d194]/60 font-semibold whitespace-nowrap">
-                            {{ $employee->puesto->puesto ?? 'Sin Puesto' }}
-                        </span>
-                        <span class="text-gray-300 dark:text-gray-600">|</span>
-                        <span
-                            class="text-sm font-black text-[#9b2247] dark:text-[#e6d194] uppercase tracking-tighter whitespace-nowrap">
-                            HORARIO: {{ $employee->horario->horario ?? 'SIN ASIGNAR' }}
-                        </span>
+                <div class="flex-1 min-w-0">
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Año Seleccionado</label>
+                    <div x-data="{ open: false }" @click.away="open = false" class="relative group">
+                        <button @click="open = !open" type="button" class="flex items-center justify-between w-full py-2 pl-3 pr-3 bg-gray-50 hover:bg-gray-100 dark:bg-gray-900/50 dark:hover:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl text-lg font-black text-gray-900 dark:text-white focus:ring-2 focus:ring-[#9b2247]/30 focus:border-[#9b2247] transition-all shadow-sm outline-none">
+                            <span class="truncate uppercase">{{ $año ?? 'Seleccione Año' }}</span>
+                            <svg class="w-5 h-5 text-gray-400 group-hover:text-[#9b2247] transition-transform duration-200" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        
+                        <div x-show="open" 
+                            x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="opacity-0 scale-95"
+                            x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-75"
+                            x-transition:leave-start="opacity-100 scale-100"
+                            x-transition:leave-end="opacity-0 scale-95"
+                            class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-xl overflow-hidden origin-top" 
+                            style="display: none;">
+                            <div class="max-h-60 overflow-y-auto p-1.5 space-y-1">
+                                @foreach($años as $a)
+                                <div @click="$wire.set('año', '{{ $a }}'); open = false"
+                                    class="px-3 py-2.5 rounded-xl cursor-pointer text-sm font-black uppercase transition-all flex items-center justify-between {{ $año == $a ? 'bg-[#9b2247] text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-[#9b2247]' }}">
+                                    <span>{{ $a }}</span>
+                                    @if($año == $a)
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    @endif
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {{-- Selectores de Periodo --}}
-            <div
-                class="flex items-center gap-3 w-full md:w-auto bg-gray-50 dark:bg-gray-900/50 p-2 rounded-xl border dark:border-gray-700">
-                <div class="flex flex-col gap-0.5">
-                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Año</label>
-                    <select wire:model.live="año"
-                        class="bg-transparent border-none text-sm font-bold text-gray-700 dark:text-gray-300 focus:ring-0 py-0 h-7">
-                        @foreach($años as $a) <option value="{{ $a }}">{{ $a }}</option> @endforeach
-                    </select>
+            {{-- Quincena / Periodo --}}
+            <div class="flex items-center gap-4 p-4">
+                <div class="w-12 h-12 rounded-xl bg-white dark:bg-gray-900 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 shrink-0">
+                    <svg class="w-6 h-6 text-[#9b2247]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
                 </div>
-                <div class="w-px h-8 bg-gray-200 dark:bg-gray-700"></div>
-                <div class="flex flex-col gap-0.5 flex-1 md:w-64">
-                    <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest px-1">Periodo /
-                        Quincena</label>
-                    <select wire:model.live="quincena"
-                        class="bg-transparent border-none text-sm font-bold text-gray-700 dark:text-gray-300 focus:ring-0 py-0 h-7 uppercase w-full">
-                        @foreach($quincenas as $q) <option value="{{ $q['value'] }}">{{ $q['label'] }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="w-px h-8 bg-gray-200 dark:bg-gray-700"></div>
-                <div>
-                    <a href="{{ route('biometrico.individual.pdf', ['employeeId' => $employee->id, 'year' => $año, 'quincena' => $quincena]) }}"
-                        target="_blank"
-                        class="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-lg shadow-sm transition-all text-xs font-bold uppercase tracking-tight">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                        Exportar PDF
-                    </a>
+                <div class="flex-1 min-w-0">
+                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Quincena / Periodo</label>
+                    @php
+                        $qLabel = 'Seleccione Quincena';
+                        foreach($quincenas as $q) {
+                            if($q['value'] == $quincena) {
+                                $qLabel = $q['label']; break;
+                            }
+                        }
+                    @endphp
+                    <div x-data="{ open: false }" @click.away="open = false" class="relative group">
+                        <button @click="open = !open" type="button" class="flex items-center justify-between w-full py-2 pl-3 pr-3 bg-gray-50 hover:bg-gray-100 dark:bg-gray-900/50 dark:hover:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl text-lg font-black text-gray-900 dark:text-white focus:ring-2 focus:ring-[#9b2247]/30 focus:border-[#9b2247] transition-all shadow-sm outline-none">
+                            <span class="truncate uppercase">{{ $qLabel }}</span>
+                            <svg class="w-5 h-5 text-gray-400 group-hover:text-[#9b2247] transition-transform duration-200" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        
+                        <div x-show="open" 
+                            x-transition:enter="transition ease-out duration-100"
+                            x-transition:enter-start="opacity-0 scale-95"
+                            x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-75"
+                            x-transition:leave-start="opacity-100 scale-100"
+                            x-transition:leave-end="opacity-0 scale-95"
+                            class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-xl overflow-hidden origin-top" 
+                            style="display: none;">
+                            <div class="max-h-60 overflow-y-auto p-1.5 space-y-1">
+                                @foreach($quincenas as $q)
+                                <div @click="$wire.set('quincena', '{{ $q['value'] }}'); open = false"
+                                    class="px-3 py-2.5 rounded-xl cursor-pointer text-sm font-black uppercase transition-all flex items-center justify-between {{ $quincena == $q['value'] ? 'bg-[#9b2247] text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-[#9b2247]' }}">
+                                    <span>{{ $q['label'] }}</span>
+                                    @if($quincena == $q['value'])
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                    @endif
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
+        {{-- Botón de Acción --}}
+        <a href="{{ route('biometrico.individual.pdf', ['employeeId' => $employee->id, 'year' => $año, 'quincena' => $quincena]) }}"
+           target="_blank"
+            class="w-full bg-[#9b2247] hover:bg-[#7a1b38] text-white py-4 rounded-2xl text-xs font-black uppercase tracking-[0.3em] transition-all shadow-xl shadow-[#9b2247]/20 flex items-center justify-center gap-2 group">
+            <svg class="w-4 h-4 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Exportar a PDF
+        </a>
     </div>
 
     {{-- Tabla de Checadas --}}
-    <div
-        class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden divide-y dark:divide-gray-700">
         <div class="overflow-x-auto">
             <table class="w-full text-left">
                 <thead>
-                    <tr class="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700">
-                        <th class="px-5 py-3 text-[11px] font-black text-gray-400 uppercase tracking-widest w-48">Día /
-                            Fecha</th>
-                        <th
-                            class="px-5 py-3 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">
-                            Entrada</th>
-                        <th
-                            class="px-5 py-3 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">
-                            Salida</th>
-                        <th class="px-5 py-3 text-[11px] font-black text-gray-400 uppercase tracking-widest">Incidencia
-                            /
-                            Observaciones</th>
+                    <tr class="bg-gray-50 dark:bg-gray-900/10 border-b border-gray-100 dark:border-gray-700">
+                        <th class="px-5 py-3 text-[11px] font-black text-gray-400 uppercase tracking-widest">Día / Fecha</th>
+                        <th class="px-5 py-3 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Registros</th>
+                        <th class="px-5 py-3 text-[11px] font-black text-gray-400 uppercase tracking-widest">Incidencias</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50 dark:divide-gray-700/50">
                     @forelse($checadas as $c)
                     @php
-                    $fecha = \Carbon\Carbon::parse($c->fecha);
-                    $esFinDeSemana = $fecha->isWeekend();
-                    $hoy = $fecha->isToday();
+                        $fecha = \Carbon\Carbon::parse($c->fecha);
+                        $esFinDeSemana = $fecha->isWeekend();
                     @endphp
-                    <tr
-                        class="{{ $esFinDeSemana ? 'bg-gray-50/30 dark:bg-gray-900/10' : '' }} {{ $hoy ? 'bg-[#13322B]/5 dark:bg-[#13322B]/10 ring-1 ring-inset ring-[#13322B]/10' : '' }} hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors">
-                        <td class="px-5 py-2.5">
-                            <span
-                                class="text-xs font-black uppercase {{ $esFinDeSemana ? 'text-gray-400' : 'text-gray-700 dark:text-gray-300' }} font-mono whitespace-nowrap">
-                                {{ mb_strtoupper(str_replace('.', '', $fecha->translatedFormat('D'))) }}. {{
-                                $fecha->format('d') }} {{ mb_strtoupper(str_replace('.', '',
-                                $fecha->translatedFormat('M'))) }}. {{ $fecha->format('Y') }}
-                            </span>
-                        </td>
-                        <td class="px-5 py-2.5 text-center">
-                            @if($c->hora_entrada)
-                            <div class="flex flex-col items-center">
-                                <span class="text-sm font-bold font-mono text-gray-800 dark:text-gray-100 italic">
-                                    {{ date('H:i', strtotime($c->primera_checada)) }}
+                    <tr class="@if($esFinDeSemana) bg-gray-50/20 dark:bg-gray-900/10 @endif hover:bg-gray-50 dark:hover:bg-gray-900/40 transition-colors">
+                        <td class="px-5 py-4">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-black uppercase text-gray-400">
+                                    {{ mb_strtoupper($fecha->translatedFormat('l')) }}
                                 </span>
-                                <span
-                                    class="text-[10px] text-green-600 dark:text-green-500 font-black uppercase tracking-tighter">Entrada</span>
-                            </div>
-                            @else
-                            <span
-                                class="text-xs text-gray-300 dark:text-gray-600 font-black uppercase tracking-tighter">--
-                                : --</span>
-                            @endif
-                        </td>
-                        <td class="px-5 py-2.5 text-center">
-                            @if($c->num_checadas > 1)
-                            <div class="flex flex-col items-center">
-                                <span class="text-sm font-bold font-mono text-gray-800 dark:text-gray-100 italic">
-                                    {{ date('H:i', strtotime($c->ultima_checada)) }}
+                                <span class="text-sm font-black text-gray-800 dark:text-gray-100 tracking-tighter">
+                                    {{ $fecha->format('d/m/Y') }}
                                 </span>
-                                <span
-                                    class="text-[10px] text-[#13322B] dark:text-[#e6d194] font-black uppercase tracking-tighter">Salida</span>
                             </div>
-                            @else
-                            <span
-                                class="text-xs text-gray-300 dark:text-gray-600 font-black uppercase tracking-tighter">--
-                                : --</span>
-                            @endif
                         </td>
-                        <td class="px-5 py-2.5">
+                        <td class="px-5 py-4">
+                            <div class="flex flex-col items-center gap-1">
+                                <div class="flex gap-2">
+                                    <span class="text-xs font-mono font-bold @if($c->hora_entrada) text-green-600 @else text-gray-300 @endif">
+                                        {{ $c->hora_entrada ? date('H:i', strtotime($c->primera_checada)) : '--:--' }}
+                                    </span>
+                                    <span class="text-[10px] text-gray-300">|</span>
+                                    <span class="text-xs font-mono font-bold @if($c->num_checadas > 1) text-[#13322B] dark:text-[#e6d194] @else text-gray-300 @endif">
+                                        {{ $c->num_checadas > 1 ? date('H:i', strtotime($c->ultima_checada)) : '--:--' }}
+                                    </span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-5 py-4">
                             @if($c->incidencias)
-                            <div class="flex flex-wrap gap-1.5">
-                                @foreach(explode(',', $c->incidencias) as $code)
-                                <span
-                                    class="px-2.5 py-1 bg-[#9b2247] text-white text-[10px] font-black rounded uppercase shadow-xs">
-                                    {{ $code }}
-                                </span>
-                                @endforeach
-                            </div>
+                                <div class="flex flex-wrap gap-1">
+                                    @foreach(explode(',', $c->incidencias) as $code)
+                                        <span class="px-2 py-0.5 bg-[#9b2247] text-white text-[9px] font-black rounded uppercase">
+                                            {{ trim($code) }}
+                                        </span>
+                                    @endforeach
+                                </div>
                             @elseif(!$c->hora_entrada && !$esFinDeSemana && $fecha->isPast())
-                            <span class="text-xs font-black text-red-500/50 uppercase italic tracking-tighter">Sin
-                                Registro</span>
+                                <span class="text-[9px] font-black text-red-400 uppercase italic">Falta</span>
                             @else
-                            <span
-                                class="text-xs text-gray-300 dark:text-gray-600 uppercase font-medium italic opacity-50">--</span>
+                                <span class="text-[9px] text-gray-300 uppercase font-black italic">--</span>
                             @endif
                         </td>
                     </tr>
                     @empty
-                    <tr>
-                        <td colspan="4" class="px-6 py-10 text-center">
-                            <div class="flex flex-col items-center gap-2">
-                                <div class="p-2 bg-gray-50 dark:bg-gray-900 rounded-full">
-                                    <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                                <p class="text-xs text-gray-400 italic">No hay registros para este periodo.</p>
-                            </div>
-                        </td>
-                    </tr>
+                    <tr><td colspan="3" class="px-6 py-10 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Sin registros</td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-    </div>
-
-    {{-- Footer Info --}}
-    <div class="mt-3 flex justify-between items-center text-[9px] text-gray-400 px-2 opacity-60">
-        <div class="flex gap-4 uppercase font-bold tracking-widest">
-            <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                Entrada</span>
-            <span class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-[#13322B]"></span>
-                Salida</span>
-        </div>
-
     </div>
 </div>
