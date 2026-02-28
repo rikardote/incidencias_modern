@@ -1,6 +1,6 @@
 <nav x-data="{ open: false }"
     class="bg-[#13322B] dark:bg-gray-950 border-b border-[#0a1f1a] dark:border-gray-800 shadow-md relative sticky top-0 z-50">
-    
+
     {{-- BARRA DE PROGRESO TIPO VUEJS (GLOBAL) --}}
     <div x-data="{
         barWidth: 0,
@@ -38,16 +38,12 @@
                 setTimeout(() => { if (this.barOpacity === 0) { this.barWidth = 0; this.isError = false; } }, 400); 
             }, type === 'error' ? 800 : 500);
         }
-    }"
-    x-on:topbar-start.window="start()"
-    x-on:topbar-end.window="finish($event.detail)"
-    x-on:island-notif.window="if($event.detail.type === 'error') finish('error'); else finish('success');"
-    class="absolute top-0 left-0 w-full h-[3px] z-[100000] pointer-events-none overflow-hidden"
-    :class="barOpacity === 0 ? 'opacity-0' : 'opacity-100'"
-    style="transition: opacity 0.4s ease;">
+    }" x-on:topbar-start.window="start()" x-on:topbar-end.window="finish($event.detail)"
+        x-on:island-notif.window="if($event.detail.type === 'error') finish('error'); else finish('success');"
+        class="absolute top-0 left-0 w-full h-[3px] z-[100000] pointer-events-none overflow-hidden"
+        :class="barOpacity === 0 ? 'opacity-0' : 'opacity-100'" style="transition: opacity 0.4s ease;">
         <div class="h-full shadow-[0_0_8px_currentColor] transition-all duration-300 ease-out"
-             :style="`width: ${barWidth}%;`"
-             :class="barColor">
+            :style="`width: ${barWidth}%;`" :class="barColor">
         </div>
     </div>
 
@@ -70,8 +66,6 @@
                         wire:navigate>
                         {{ __('Empleados') }}
                     </x-nav-link>
-
-
 
                     <!-- Dropdown Reportes -->
                     <div class="hidden sm:flex sm:items-center sm:ms-6">
@@ -117,7 +111,19 @@
                                         {{ __('Sin Derecho a Nota Buena') }}
                                     </div>
                                 </x-dropdown-link>
-                                 <x-dropdown-link :href="route('biometrico.index')"
+                                <x-dropdown-link :href="route('reports.exceso-incapacidades')"
+                                    class="dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:bg-gray-700 border-b border-gray-100 dark:border-gray-700 py-3 uppercase text-xs font-bold tracking-wider hover:text-oro transition-colors"
+                                    wire:navigate>
+                                    <div class="flex items-center gap-2">
+                                        <svg class="w-4 h-4 text-oro" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                        {{ __('Exceso de Incapacidades') }}
+                                    </div>
+                                </x-dropdown-link>
+                                <x-dropdown-link :href="route('biometrico.index')"
                                     class="dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:bg-gray-700 py-3 uppercase text-xs font-bold tracking-wider hover:text-oro transition-colors"
                                     wire:navigate>
                                     <div class="flex items-center gap-2">
@@ -146,7 +152,6 @@
                         islandMsg: null,
                         islandType: 'info',
                         islandTimer: null,
-                        screenFlash: null,
                         showPhase: 'face',
                         progress: 0,
                         get face() {
@@ -157,19 +162,18 @@
                             if (this.islandType === 'success') return '( ^ ‿ ^ )';
                             return '( - ‿ - )';
                         },
-                        showIsland(msg, type) {
+                        showIsland(rawMsg, type) {
                             if (this.islandTimer) clearTimeout(this.islandTimer);
+                            const msg = (rawMsg || '');
                             this.islandMsg = msg;
                             this.islandType = type || 'info';
 
-                            // 0. Trigger visual (Flash) y Haptic (Vibration) para capturar mirada periférica
-                            this.screenFlash = this.islandType;
-                            setTimeout(() => { if(this.screenFlash === this.islandType) this.screenFlash = null }, 800);
-                            
-                            if (navigator.vibrate) {
-                                if (this.islandType === 'error') navigator.vibrate([200, 100, 200]);
-                                else if (this.islandType === 'success') navigator.vibrate([100, 50, 100]);
-                                else navigator.vibrate(50);
+                            if (navigator.vibrate && navigator.userActivation && navigator.userActivation.hasBeenActive) {
+                                try {
+                                    if (this.islandType === 'error') navigator.vibrate([200, 100, 200]);
+                                    else if (this.islandType === 'success') navigator.vibrate([100, 50, 100]);
+                                    else navigator.vibrate(50);
+                                } catch(e) {}
                             }
                             
                             // Si el mensaje nuevo NO es reporte listo, reseteamos progreso
@@ -232,7 +236,8 @@
                         'border-oro/30': !islandMsg && !isMaint,
                         'border-red-500/40 ring-1 ring-red-500/10': isMaint && !islandMsg,
                         'ring-2 ring-white/10 shadow-[0_0_20px_rgba(255,255,255,0.1)]': islandMsg && $store.island.activeStyle === 'kinetic'
-                     }" :style="islandMsg ? ($store.island.activeStyle === 'kinetic' ? 'min-width: 320px' : 'min-width: 280px') : ''">
+                     }"
+                    :style="islandMsg ? ($store.island.activeStyle === 'kinetic' ? 'min-width: 320px' : 'min-width: 280px') : ''">
 
                     {{-- Estado 1: QNA Activa (Default) --}}
                     <div class="flex items-center gap-2 sm:gap-3 shrink-0 transition-all duration-500 ease-in-out"
@@ -288,8 +293,7 @@
                         <div class="relative flex items-center justify-center w-full h-full">
 
                             {{-- Fase 1: El Rostro Reactivo --}}
-                            <div x-show="showPhase === 'face'"
-                                x-transition:enter="transition duration-400"
+                            <div x-show="showPhase === 'face'" x-transition:enter="transition duration-400"
                                 x-transition:enter-start="opacity-0 scale-50"
                                 x-transition:enter-end="opacity-100 scale-100"
                                 x-transition:leave="transition duration-400 blur-sm"
@@ -356,33 +360,18 @@
                                 </template>
 
                                 {{-- CASE: MINIMAL --}}
-                                <template x-if="$store.island.activeStyle === 'minimal' && !((islandMsg || '').includes('Generando'))">
+                                <template
+                                    x-if="$store.island.activeStyle === 'minimal' && !((islandMsg || '').includes('Generando'))">
                                     <div class="flex items-center gap-2">
-                                        <span class="w-1.5 h-1.5 rounded-full animate-pulse" :class="islandType === 'error' ? 'bg-red-500' : 'bg-emerald-500'"></span>
-                                        <span x-text="islandMsg" class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-200 nothing-font"></span>
+                                        <span class="w-1.5 h-1.5 rounded-full animate-pulse"
+                                            :class="islandType === 'error' ? 'bg-red-500' : 'bg-emerald-500'"></span>
+                                        <span x-text="islandMsg"
+                                            class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-200 nothing-font"></span>
                                     </div>
                                 </template>
                             </div>
-
                         </div>
                     </div>
-
-                    {{-- Visually Immersive Screen Flash (Attention Grabber) --}}
-                    <div x-show="screenFlash" 
-                         x-transition:enter="transition ease-out duration-100"
-                         x-transition:enter-start="opacity-0"
-                         x-transition:enter-end="opacity-100"
-                         x-transition:leave="transition ease-in duration-700"
-                         x-transition:leave-start="opacity-100"
-                         x-transition:leave-end="opacity-0"
-                         class="fixed inset-0 pointer-events-none z-[99999]"
-                         :class="{
-                             'bg-red-500/10 shadow-[inset_0_0_120px_rgba(239,68,68,0.5)]': screenFlash === 'error',
-                             'bg-emerald-500/5 shadow-[inset_0_0_120px_rgba(16,185,129,0.4)]': screenFlash === 'success',
-                             'shadow-[inset_0_0_100px_rgba(201,162,39,0.3)]': screenFlash === 'warning' || screenFlash === 'info'
-                         }">
-                    </div>
-
                 </div>
             </div>
 
@@ -603,6 +592,10 @@
                 :active="request()->routeIs('reports.sinderecho')" wire:navigate>
                 <span class="pl-4">{{ __('Sin Derecho a Nota Buena') }}</span>
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('reports.exceso-incapacidades')"
+                :active="request()->routeIs('reports.exceso-incapacidades')" wire:navigate>
+                <span class="pl-4">{{ __('Exceso de Incapacidades') }}</span>
+            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('biometrico.index')" :active="request()->routeIs('biometrico.index')"
                 wire:navigate>
                 <span class="pl-4">{{ __('Asistencia Biométrica') }}</span>
@@ -639,7 +632,7 @@
         document.addEventListener('livewire:init', () => {
             Livewire.hook('commit', ({ succeed, fail }) => {
                 window.dispatchEvent(new CustomEvent('topbar-start'));
-                
+
                 succeed(({ snapshot }) => {
                     let hasError = false;
 
@@ -661,14 +654,14 @@
                             }
                         });
                     }
-                    
+
                     if (hasError) {
                         window.dispatchEvent(new CustomEvent('topbar-end', { detail: 'error' }));
                     } else {
                         window.dispatchEvent(new CustomEvent('topbar-end', { detail: 'success' }));
                     }
                 });
-                
+
                 fail(() => {
                     window.dispatchEvent(new CustomEvent('topbar-end', { detail: 'error' }));
                 });

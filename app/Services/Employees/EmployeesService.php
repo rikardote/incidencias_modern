@@ -49,7 +49,8 @@ class EmployeesService
         if ($num_empleado) {
             $employee = Employe::where('num_empleado', $num_empleado)->firstOrFail();
             $employee->fill($data);
-        } else {
+        }
+        else {
             $employee = new Employe($data);
         }
 
@@ -64,7 +65,8 @@ class EmployeesService
         if ($employee->lactancia) {
             $employee->lactancia_inicio = $this->helpers->fechaYmd($data['lactancia_inicio'] ?? null);
             $employee->lactancia_fin = $this->helpers->fechaYmd($data['lactancia_fin'] ?? null);
-        } else {
+        }
+        else {
             $employee->lactancia_inicio = null;
             $employee->lactancia_fin = null;
         }
@@ -83,30 +85,17 @@ class EmployeesService
 
         // Calcular períodos usando helpers
         $fechaInicio = $this->helpers->getdateActual($empleado->fecha_ingreso);
-        $fechaFinal  = $this->helpers->getdatePosterior($fechaInicio);
+        $fechaFinal = $this->helpers->getdatePosterior($fechaInicio);
 
         // Calcular antigüedad
         $fechaIngreso = new Carbon($empleado->fecha_ingreso);
         $hoy = Carbon::now();
-        $antiguedad = $fechaIngreso->diffInYears($hoy);
+        $antiguedad = (int)$fechaIngreso->diffInYears($hoy);
 
         $dias_lic = Incidencia::getIncapacidadesEmpleado($empleado->num_empleado, $fechaInicio, $fechaFinal);
 
-        // Lógica de límites según Ley o Reglamento
-        $limites = [
-            ['min' => 0,  'max' => 0,  'limite' => 15], // Menos de 1 año
-            ['min' => 1,  'max' => 4,  'limite' => 30],
-            ['min' => 5,  'max' => 9,  'limite' => 45],
-            ['min' => 10, 'max' => 99, 'limite' => 60],
-        ];
-
-        foreach ($limites as $rango) {
-            if ($antiguedad >= $rango['min'] && $antiguedad <= $rango['max']) {
-                if ($dias_lic > $rango['limite']) {
-                    return $dias_lic;
-                }
-                break;
-            }
+        if (getExcesodeIncapacidad($dias_lic, $antiguedad)) {
+            return $dias_lic;
         }
 
         return 0;
@@ -123,15 +112,16 @@ class EmployeesService
         $query = Employe::query();
 
         if ($onlyDoctors) {
-            $doctorPuestos = ['24','25','28','30','56','57','58','59','60','61','62','63','64','65','66','67','68','87','88','101','95','96','97','98'];
+            $doctorPuestos = ['24', '25', '28', '30', '56', '57', '58', '59', '60', '61', '62', '63', '64', '65', '66', '67', '68', '87', '88', '101', '95', '96', '97', '98'];
             $query->whereIn('puesto_id', $doctorPuestos);
-        } else {
+        }
+        else {
             $query->whereIn('deparment_id', $dptos);
         }
 
-        $results = $query->where('father_lastname', 'LIKE', $term.'%')->get();
+        $results = $query->where('father_lastname', 'LIKE', $term . '%')->get();
 
-        return $results->map(function($v) use ($onlyDoctors) {
+        return $results->map(function ($v) use ($onlyDoctors) {
             return [
                 'value' => $onlyDoctors ? $v->id : $v->num_empleado,
                 'label' => "{$v->father_lastname} {$v->mother_lastname} {$v->name}"

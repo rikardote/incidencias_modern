@@ -43,6 +43,31 @@ class IncapacidadRule implements IncidenciaRuleInterface
             throw new \DomainException('Debe capturar el número de licencia');
         }
 
+        // --- REVISIÓN DE EXCESOS (SOLO PARA CÓDIGO 55 O SI ES UNA INCAPACIDAD) ---
+        // Obtenemos los días totales que ya tiene y los que está capturando
+        $start = $this->helpers->fechaYmd($data['datepicker_inicial']);
+        $end = $this->helpers->fechaYmd($data['datepicker_final']);
+
+        $fechaInicioPeriodo = $this->helpers->getdateActual($empleado->fecha_ingreso);
+        $fechaFinalPeriodo = $this->helpers->getdatePosterior($fechaInicioPeriodo);
+
+        $diasPrevios = Incidencia::getIncapacidadesEmpleado($empleado->num_empleado, $fechaInicioPeriodo, $fechaFinalPeriodo);
+
+        $carbonInicio = \Carbon\Carbon::parse($start);
+        $carbonFinal = \Carbon\Carbon::parse($end);
+        $diasCaptura = $carbonInicio->diffInDays($carbonFinal) + 1;
+
+        $totalDias = $diasPrevios + $diasCaptura;
+        $antiguedad = $this->helpers->antiguedad($empleado->fecha_ingreso);
+
+        if (getExcesodeIncapacidad($totalDias, $antiguedad)) {
+            $msg = "AVISO DE EXCESO: El empleado excede el límite legal de incapacidades por antigüedad. ";
+            $msg .= "Acumulado: {$totalDias} días. (Límite para su antigüedad: " . ($antiguedad < 1 ? '15' : ($antiguedad <= 4 ? '30' : ($antiguedad <= 9 ? '45' : '60'))) . " días). ";
+            $msg .= "PROCEDA CON LOS TRÁMITES CORRESPONDIENTES.";
+
+            session()->flash('incapacidad_warning', $msg);
+        }
+
         $incidencia->medico_id = $data['medico_id'];
         $incidencia->fecha_expedida = $this->helpers->fechaYmd($data['datepicker_expedida']);
         $incidencia->diagnostico = $data['diagnostico'];

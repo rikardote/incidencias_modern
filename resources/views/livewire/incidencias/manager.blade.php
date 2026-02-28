@@ -177,31 +177,55 @@
                                         }"
                                             class="block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm text-sm">
                                             <option value="">-- Buscar código --</option>
-                                            @foreach($codigos as $c)
-                                            <option value="{{ $c->id }}">{{ $c->code }} - {{ $c->description }}</option>
-                                            @endforeach
+                                            <optgroup label="MÁS USADAS">
+                                                @foreach($topCodigos as $c)
+                                                <option value="{{ $c->id }}">{{ $c->code }} - {{ $c->description }}
+                                                </option>
+                                                @endforeach
+                                            </optgroup>
+                                            <optgroup label="OTRAS INCIDENCIAS">
+                                                @foreach($otrosCodigos as $c)
+                                                <option value="{{ $c->id }}">{{ $c->code }} - {{ $c->description }}
+                                                </option>
+                                                @endforeach
+                                            </optgroup>
                                         </select>
                                     </div>
                                     @error('codigo') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                                 </div>
 
-                                {{-- Fechas con Flatpickr --}}
-                                <div class="mb-3" wire:key="flatpickr-container-{{ $dateMode }}" x-data="{
-                                    init() {
-                                        if(this.$refs.fechaInput && this.$refs.fechaInput._flatpickr) {
-                                            this.$refs.fechaInput._flatpickr.destroy();
-                                        }
-                                        window.flatpickr(this.$refs.fechaInput, {
-                                            mode: '{{ $dateMode }}',
-                                            dateFormat: 'Y-m-d',
-                                            showMonths: '{{ $dateMode }}' === 'range' ? 2 : 1,
-                                            locale: { rangeSeparator: '||' },
-                                            onChange: function(selectedDates, dateStr) {
-                                                $wire.fechas_seleccionadas = dateStr;
+                                <!-- Flatpickr Container -->
+                                <div class="mb-3" wire:key="flatpickr-container-{{ $dateMode }}"
+                                    data-ranges="{{ json_encode($enabledDateRanges) }}" x-data="{
+                                        init() {
+                                            if(this.$refs.fechaInput && this.$refs.fechaInput._flatpickr) {
+                                                this.$refs.fechaInput._flatpickr.destroy();
                                             }
-                                        });
-                                    }
-                                }">
+                                            
+                                            // Parse the constraints safely from the data attribute
+                                            let allowedRanges = [];
+                                            try {
+                                                allowedRanges = JSON.parse(this.$el.dataset.ranges || '[]');
+                                            } catch (e) {}
+
+                                            window.flatpickr(this.$refs.fechaInput, {
+                                                mode: '{{ $dateMode }}',
+                                                dateFormat: 'Y-m-d',
+                                                showMonths: '{{ $dateMode }}' === 'range' ? 2 : 1,
+                                                locale: { rangeSeparator: '||' },
+                                                enable: allowedRanges,
+                                                onChange: function(selectedDates, dateStr) {
+                                                    $wire.fechas_seleccionadas = dateStr;
+                                                }
+                                            });
+
+                                            window.addEventListener('reset-calendar', () => {
+                                                if(this.$refs.fechaInput && this.$refs.fechaInput._flatpickr) {
+                                                    this.$refs.fechaInput._flatpickr.clear();
+                                                }
+                                            });
+                                        }
+                                     }">
                                     <label
                                         class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Fechas a
                                         Aplicar</label>
@@ -356,32 +380,50 @@
                                             this.isError = true;
                                             setTimeout(() => { this.isError = false; }, 800);
                                         }
-                                     }" 
-                                     x-on:island-notif.window="if($event.detail.type === 'error') triggerError()"
-                                     x-on:topbar-end.window="if($event.detail === 'error') triggerError()">
-                                    
+                                     }" x-on:island-notif.window="if($event.detail.type === 'error') triggerError()"
+                                    x-on:topbar-end.window="if($event.detail === 'error') triggerError()">
+
                                     <button type="submit"
                                         class="w-full text-white font-bold uppercase py-2.5 px-4 rounded text-sm transition-all duration-300 mt-4 outline-none active:scale-[0.98] will-change-transform"
                                         :class="isError 
                                             ? 'bg-red-500 hover:bg-red-600 shadow-[0_0_15px_rgba(239,68,68,0.5)] border border-red-400 animate-shake-button' 
                                             : 'bg-[#13322B] hover:bg-[#0a1f1a] focus:ring-2 focus:ring-offset-2 focus:ring-[#13322B] border border-transparent'">
                                         <span x-show="!isError">Guardar Incidencia</span>
-                                        <span x-show="isError" x-cloak class="flex items-center justify-center gap-2"><i class="fas fa-exclamation-triangle"></i> Revisar Error</span>
+                                        <span x-show="isError" x-cloak class="flex items-center justify-center gap-2"><i
+                                                class="fas fa-exclamation-triangle"></i> Revisar Error</span>
                                     </button>
                                 </div>
-                                
+
                                 <style>
                                     @keyframes shake-button {
-                                        10%, 90% { transform: translate3d(-1px, 0, 0); }
-                                        20%, 80% { transform: translate3d(2px, 0, 0); }
-                                        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-                                        40%, 60% { transform: translate3d(4px, 0, 0); }
+
+                                        10%,
+                                        90% {
+                                            transform: translate3d(-1px, 0, 0);
+                                        }
+
+                                        20%,
+                                        80% {
+                                            transform: translate3d(2px, 0, 0);
+                                        }
+
+                                        30%,
+                                        50%,
+                                        70% {
+                                            transform: translate3d(-4px, 0, 0);
+                                        }
+
+                                        40%,
+                                        60% {
+                                            transform: translate3d(4px, 0, 0);
+                                        }
                                     }
+
                                     .animate-shake-button {
-                                        animation: shake-button 0.5s cubic-bezier(.36,.07,.19,.97) both;
+                                        animation: shake-button 0.5s cubic-bezier(.36, .07, .19, .97) both;
                                     }
                                 </style>
-                            @endif
+                                @endif
                         </div>
                     </div>
                 </div>
@@ -577,43 +619,65 @@
                         {{-- VISTA MÓVIL (TARJETAS) --}}
                         <div class="xl:hidden flex flex-col gap-3 p-3 bg-gray-50/50 dark:bg-gray-900/30">
                             @forelse($incidencias as $incidencia)
-                            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-sm" wire:key="inc-mob-{{ $incidencia->id }}">
-                                <div class="flex justify-between items-start border-b border-gray-100 dark:border-gray-700 pb-2 mb-2">
+                            <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-sm"
+                                wire:key="inc-mob-{{ $incidencia->id }}">
+                                <div
+                                    class="flex justify-between items-start border-b border-gray-100 dark:border-gray-700 pb-2 mb-2">
                                     <div class="flex items-center gap-2">
-                                        <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-[#13322B] dark:text-[#e6d194] text-[10px] font-black rounded uppercase">
-                                            QNA {{ str_pad($incidencia->qna->qna ?? '', 2, '0', STR_PAD_LEFT) }}-{{ $incidencia->qna->year ?? '' }}
+                                        <span
+                                            class="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-[#13322B] dark:text-[#e6d194] text-[10px] font-black rounded uppercase">
+                                            QNA {{ str_pad($incidencia->qna->qna ?? '', 2, '0', STR_PAD_LEFT) }}-{{
+                                            $incidencia->qna->year ?? '' }}
                                         </span>
-                                        <span class="text-sm font-black text-gray-800 dark:text-gray-100 uppercase">{{ $incidencia->codigo->code ?? 'N/A' }}</span>
+                                        <span class="text-sm font-black text-gray-800 dark:text-gray-100 uppercase">{{
+                                            $incidencia->codigo->code ?? 'N/A' }}</span>
                                     </div>
-                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#9b2247] text-white text-xs font-black shadow-sm">
+                                    <span
+                                        class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#9b2247] text-white text-xs font-black shadow-sm">
                                         {{ $incidencia->total_dias }}
                                     </span>
                                 </div>
                                 <div class="grid grid-cols-2 gap-2 mt-2">
                                     <div class="flex flex-col">
-                                        <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Inicio</span>
-                                        <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300 font-mono tracking-tighter">{{ \Carbon\Carbon::parse($incidencia->fecha_inicio)->format('d/m/Y') }}</span>
+                                        <span
+                                            class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Inicio</span>
+                                        <span
+                                            class="text-[11px] font-bold text-gray-700 dark:text-gray-300 font-mono tracking-tighter">{{
+                                            \Carbon\Carbon::parse($incidencia->fecha_inicio)->format('d/m/Y') }}</span>
                                     </div>
                                     <div class="flex flex-col">
-                                        <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Fin</span>
-                                        <span class="text-[11px] font-bold text-gray-700 dark:text-gray-300 font-mono tracking-tighter">{{ \Carbon\Carbon::parse($incidencia->fecha_final)->format('d/m/Y') }}</span>
+                                        <span
+                                            class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Fin</span>
+                                        <span
+                                            class="text-[11px] font-bold text-gray-700 dark:text-gray-300 font-mono tracking-tighter">{{
+                                            \Carbon\Carbon::parse($incidencia->fecha_final)->format('d/m/Y') }}</span>
                                     </div>
                                 </div>
-                                <div class="flex justify-between items-center mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                <div
+                                    class="flex justify-between items-center mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
                                     <div class="flex flex-col">
-                                        <span class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Capturó: <span class="text-gray-600 dark:text-gray-300">{{ strtok($incidencia->capturado_por ?? '—', ' ') }}</span></span>
+                                        <span
+                                            class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Capturó:
+                                            <span class="text-gray-600 dark:text-gray-300">{{
+                                                strtok($incidencia->capturado_por ?? '—', ' ') }}</span></span>
                                         @if($incidencia->periodo)
-                                        <span class="text-[9px] font-black text-[#9b2247] dark:text-[#e6d194] uppercase tracking-widest">Per. Vac: {{ $incidencia->periodo->periodo }}-{{ $incidencia->periodo->year }}</span>
+                                        <span
+                                            class="text-[9px] font-black text-[#9b2247] dark:text-[#e6d194] uppercase tracking-widest">Per.
+                                            Vac: {{ $incidencia->periodo->periodo }}-{{ $incidencia->periodo->year
+                                            }}</span>
                                         @endif
                                     </div>
                                     <div>
                                         @php
-                                        $isMaintenance = \Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin();
+                                        $isMaintenance = \Illuminate\Support\Facades\Cache::get('capture_maintenance',
+                                        false) && !auth()->user()->admin();
                                         $qnaActiva = $incidencia->qna && $incidencia->qna->active == '1';
-                                        $tienePermiso = $qnaActiva || (!$isMaintenance && auth()->user()->canCaptureInClosedQna($incidencia->qna_id));
+                                        $tienePermiso = $qnaActiva || (!$isMaintenance &&
+                                        auth()->user()->canCaptureInClosedQna($incidencia->qna_id));
                                         @endphp
                                         @if($tienePermiso && !$isMaintenance)
-                                        <button x-on:click="window.Swal.fire({
+                                        <button
+                                            x-on:click="window.Swal.fire({
                                                 title: '¿Eliminar incidencia?',
                                                 text: 'Esta acción eliminará esta incidencia.',
                                                 icon: 'warning',
@@ -622,15 +686,19 @@
                                                 cancelButtonColor: '#6b7280',
                                                 confirmButtonText: 'Sí, eliminar',
                                                 cancelButtonText: 'Cancelar'
-                                            }).then((result) => { if (result.isConfirmed) { $wire.delete('{{ $incidencia->token }}'); } })" class="text-[10px] font-black px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg uppercase tracking-wider">Eliminar</button>
+                                            }).then((result) => { if (result.isConfirmed) { $wire.delete('{{ $incidencia->token }}'); } })"
+                                            class="text-[10px] font-black px-3 py-1.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg uppercase tracking-wider">Eliminar</button>
                                         @else
-                                        <span class="text-[10px] font-bold text-gray-400 uppercase italic">Cerrada</span>
+                                        <span
+                                            class="text-[10px] font-bold text-gray-400 uppercase italic">Cerrada</span>
                                         @endif
                                     </div>
                                 </div>
                             </div>
                             @empty
-                            <div class="py-8 text-center bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 text-[10px] font-black text-gray-400 uppercase tracking-widest">Sin capturas recientes</div>
+                            <div
+                                class="py-8 text-center bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                Sin capturas recientes</div>
                             @endforelse
                         </div>
                     </div>

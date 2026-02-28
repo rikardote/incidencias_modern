@@ -50,7 +50,7 @@ class Manager extends Component
 
         $user = auth()->user();
         if (!$user->admin()) {
-            $hasAccess = $user->departments()->where('deparment_id', $this->employee->deparment_id)->exists();
+            $hasAccess = $user->departments()->wherePivot('deparment_id', $this->employee->deparment_id)->exists();
             if (!$hasAccess) {
                 abort(403, 'No tienes permiso para gestionar incidencias de este empleado.');
             }
@@ -116,7 +116,10 @@ class Manager extends Component
     public function store(IncidenciasService $service)
     {
         if (\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin()) {
-            $this->dispatch('toast', icon: 'error', title: 'Sistema en mantenimiento: Captura deshabilitada.');
+            $this->dispatch('toast', [
+                'icon' => 'error', 
+                'title' => 'Sistema en mantenimiento: Captura deshabilitada.'
+            ]);
             return;
         }
         $this->validate([
@@ -174,35 +177,59 @@ class Manager extends Component
                 $service->crearIncidencias($data);
             }
 
-            $this->dispatch('toast', icon: 'success', title: 'Incidencia Capturada');
-            $this->fechas_seleccionadas = ''; // Solo limpiamos las fechas, el resto queda para captura rápida
+            $this->dispatch('toast', ['icon' => 'success', 'title' => 'Incidencia Capturada']);
+            $this->dispatch('reset-calendar');
+            // Si el motor de reglas generó un aviso de exceso, lo enviamos como modal de SweetAlert2
+            if (session()->has('incapacidad_warning')) {
+                $this->dispatch('swal', [
+                    'icon' => 'warning',
+                    'title' => '¡Aviso de Exceso!',
+                    'text' => session('incapacidad_warning')
+                ]);
+            }
+
+            $this->fechas_seleccionadas = ''; 
         } catch (\DomainException $e) {
-            $this->dispatch('toast', icon: 'error', title: $e->getMessage());
+            $this->dispatch('toast', ['icon' => 'error', 'title' => $e->getMessage()]);
         } catch (\Exception $e) {
-            $this->dispatch('toast', icon: 'error', title: 'Error inesperado: ' . $e->getMessage() . ' Line: ' . $e->getLine());
+            $this->dispatch('toast', [
+                'icon' => 'error', 
+                'title' => 'Error inesperado: ' . $e->getMessage()
+            ]);
         }
     }
 
     public function delete($token, IncidenciasService $service)
     {
         if (\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin()) {
-            $this->dispatch('toast', icon: 'error', title: 'Sistema en mantenimiento: Eliminación deshabilitada.');
+            $this->dispatch('toast', [
+                'icon' => 'error', 
+                'title' => 'Sistema en mantenimiento: Eliminación deshabilitada.'
+            ]);
             return;
         }
-        $incidencias = Incidencia::with('qna')->where('token', $token)->get();
+        $incidencias = Incidencia::with('qna')->where(function($q) use ($token) {
+            $q->where('token', $token);
+        })->get();
         
         foreach ($incidencias as $inc) {
             if ($inc->qna && $inc->qna->active != '1' && !auth()->user()->admin() && !auth()->user()->canCaptureInClosedQna($inc->qna->id)) {
-                $this->dispatch('toast', icon: 'error', title: 'No se puede eliminar porque una de las partes de esta captura pertenece a una Quincena que ya ha sido cerrada.');
+                $this->dispatch('toast', [
+                    'icon' => 'error', 
+                    'title' => 'No se puede eliminar porque una de las partes de esta captura pertenece a una Quincena que ya ha sido cerrada.'
+                ]);
                 return;
             }
         }
 
         try {
             $service->eliminarPorToken($token);
-            $this->dispatch('toast', icon: 'success', title: 'Incidencia Eliminada');
+            $this->dispatch('toast', ['icon' => 'success', 'title' => 'Incidencia Eliminada']);
         } catch (\Exception $e) {
-            $this->dispatch('toast', icon: 'error', title: 'Error al eliminar: ' . $e->getMessage());
+            $this->dispatch('toast', [
+                'icon' => 'error', 
+                'title' => 'Error al eliminar: ' . $e->getMessage()
+            ]);
         }
     }
 
@@ -210,7 +237,9 @@ class Manager extends Component
     {
         // Construir la lista de QNA IDs permitidas para mostrar:
         // 1. Siempre: las QNAs activas
-        $allowedQnaIds = Qna::where('active', '1')->pluck('id');
+        $allowedQnaIds = Qna::where(function($q) {
+            $q->where('active', '1');
+        })->pluck('id');
 
         // 2. Si el usuario tiene un pase temporal activo, agregar la QNA desbloqueada
         $exception = auth()->user()->activeCaptureException();
@@ -236,8 +265,24 @@ class Manager extends Component
             ->orderBy('fecha_inicio', 'desc')
             ->get();
             
-        $codigos = CodigoDeIncidencia::orderBy('code')->get();
-        $periodos = Periodo::where('year', '>=', date('Y') - 5)
+        $codigosFrecuentesIds = \Illuminate\Support\Facades\Cache::remember('codigos_frecuentes_3yrs', 86400, function() {
+            return Incidencia::select('codigodeincidencia_id')
+                ->where('fecha_inicio', '>=', now()->subYears(3)->startOfDay())
+                ->groupBy('codigodeincidencia_id')
+                ->orderByRaw('COUNT(*) DESC')
+                ->take(10)
+                ->pluck('codigodeincidencia_id')
+                ->toArray();
+        });
+
+        $todosLosCodigos = CodigoDeIncidencia::orderBy('code')->get();
+        // Extraer el top 10 y ordenarlo por el valor de su código de menor a mayor
+        $topCodigos = $todosLosCodigos->whereIn('id', $codigosFrecuentesIds)->sortBy('code');
+        $otrosCodigos = $todosLosCodigos->whereNotIn('id', $codigosFrecuentesIds);
+
+        $periodos = Periodo::where(function($q) {
+            $q->where('year', '>=', (int)date('Y') - 5);
+        })
             ->orderBy('year', 'desc')
             ->orderBy('periodo', 'desc')
             ->get();
@@ -250,11 +295,26 @@ class Manager extends Component
                 ->get();
         }
 
-        return view('livewire.incidencias.manager', [
-            'incidencias' => $incidencias,
-            'codigos'     => $codigos,
-            'periodos'    => $periodos,
-            'medicos'     => $medicos,
-        ])->layout('layouts.app');
+        $enabledDateRanges = [];
+        $qnasPermitidas = Qna::whereIn('id', $allowedQnaIds)->get();
+        foreach($qnasPermitidas as $qna) {
+            if (!$qna->year || !$qna->qna) continue;
+            $year = (int)$qna->year;
+            $qnaNum = (int)$qna->qna;
+            $mes = (int)ceil($qnaNum / 2);
+            $isFirstHalf = ($qnaNum % 2) != 0;
+            
+            $startDate = \Carbon\Carbon::createFromDate($year, $mes, $isFirstHalf ? 1 : 16)->startOfDay();
+            $endDate = $isFirstHalf 
+                       ? \Carbon\Carbon::createFromDate($year, $mes, 15)->endOfDay()
+                       : \Carbon\Carbon::createFromDate($year, $mes, 1)->endOfMonth()->endOfDay();
+            
+            $enabledDateRanges[] = [
+                'from' => $startDate->format('Y-m-d'),
+                'to' => $endDate->format('Y-m-d')
+            ];
+        }
+
+        return view('livewire.incidencias.manager', compact('incidencias', 'topCodigos', 'otrosCodigos', 'periodos', 'medicos', 'enabledDateRanges'))->layout('layouts.app');
     }
 }

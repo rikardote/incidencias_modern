@@ -113,6 +113,17 @@
         });
 
         document.addEventListener('livewire:initialized', () => {
+            Livewire.on('swal', (event) => {
+                const data = Array.isArray(event) ? event[0] : event;
+                Swal.fire({
+                    title: data.title || 'Aviso',
+                    text: data.text || '',
+                    icon: data.icon || 'info',
+                    confirmButtonText: data.confirmButtonText || 'Entendido',
+                    confirmButtonColor: '#9b2247', // guinda
+                });
+            });
+
             // Bridge para Notificaciones
             Livewire.on('toast', (event) => {
                 const data = Array.isArray(event) ? event[0] : event;

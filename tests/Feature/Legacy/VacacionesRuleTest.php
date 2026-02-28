@@ -43,7 +43,7 @@ class VacacionesRuleTest extends TestCase
 
         $data = [
             'saltar_validacion' => 1,
-            'periodo_id'        => 5
+            'periodo_id' => 5
         ];
 
         $incidencia = new Incidencia();
@@ -61,7 +61,7 @@ class VacacionesRuleTest extends TestCase
     public function test_lanza_excepcion_si_no_tiene_jornada_asignada()
     {
         $this->expectException(DomainException::class);
-        $this->expectExceptionMessage('favor de asignar jornada laboral al trabajador');
+        $this->expectExceptionMessage('Debe asignar jornada laboral al trabajador');
 
         $rule = new VacacionesRule();
 

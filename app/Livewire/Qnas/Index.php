@@ -19,6 +19,21 @@ class Index extends Component
         'cierre' => 'nullable|date',
     ];
 
+    public function updatedQna($value)
+    {
+        if (is_numeric($value) && $value >= 1 && $value <= 24) {
+            $months = [
+                1 => 'ENERO', 2 => 'FEBRERO', 3 => 'MARZO', 4 => 'ABRIL',
+                5 => 'MAYO', 6 => 'JUNIO', 7 => 'JULIO', 8 => 'AGOSTO',
+                9 => 'SEPTIEMBRE', 10 => 'OCTUBRE', 11 => 'NOVIEMBRE', 12 => 'DICIEMBRE'
+            ];
+            
+            $monthIndex = (int) ceil($value / 2);
+            $quincenaNum = ($value % 2 == 1) ? '1RA' : '2DA';
+            $this->description = "{$quincenaNum} DE {$months[$monthIndex]}";
+        }
+    }
+
     public function toggleActive($id)
     {
         $qnaModel = Qna::find($id);

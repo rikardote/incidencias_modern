@@ -13,24 +13,42 @@ class Incidencia extends Model
     protected $table = "incidencias";
 
     protected $fillable = [
-        "qna_id", "employee_id", "fecha_inicio", "fecha_final", 
-        "codigodeincidencia_id", "periodo_id", "token", "diagnostico", 
-        "medico_id", "fecha_expedida", "num_licencia", "otorgado", 
-        "pendientes", "becas_comments", "fecha_capturado", 
+        "qna_id", "employee_id", "fecha_inicio", "fecha_final",
+        "codigodeincidencia_id", "periodo_id", "token", "diagnostico",
+        "medico_id", "fecha_expedida", "num_licencia", "otorgado",
+        "pendientes", "becas_comments", "fecha_capturado",
         "cobertura_txt", "horas_otorgadas", "autoriza_txt", "total_dias", "capturado_por"
     ];
 
     /*
-    |--------------------------------------------------------------------------
-    | MUTATORS — Guardar siempre en MAYÚSCULAS
-    |--------------------------------------------------------------------------
-    */
-    public function setDiagnosticoAttribute($v)     { $this->attributes['diagnostico']    = $v ? mb_strtoupper(trim($v)) : null; }
-    public function setCoberturaTxtAttribute($v)    { $this->attributes['cobertura_txt']   = $v ? mb_strtoupper(trim($v)) : null; }
-    public function setAutorizaTxtAttribute($v)     { $this->attributes['autoriza_txt']    = $v ? mb_strtoupper(trim($v)) : null; }
-    public function setNumLicenciaAttribute($v)     { $this->attributes['num_licencia']    = $v ? mb_strtoupper(trim($v)) : null; }
-    public function setCapturadoPorAttribute($v)    { $this->attributes['capturado_por']   = $v ? mb_strtoupper(trim($v)) : null; }
-    public function setBecasCommentsAttribute($v)   { $this->attributes['becas_comments']  = $v ? mb_strtoupper(trim($v)) : null; }
+     |--------------------------------------------------------------------------
+     | MUTATORS — Guardar siempre en MAYÚSCULAS
+     |--------------------------------------------------------------------------
+     */
+    public function setDiagnosticoAttribute($v)
+    {
+        $this->attributes['diagnostico'] = $v ? mb_strtoupper(trim($v)) : null;
+    }
+    public function setCoberturaTxtAttribute($v)
+    {
+        $this->attributes['cobertura_txt'] = $v ? mb_strtoupper(trim($v)) : null;
+    }
+    public function setAutorizaTxtAttribute($v)
+    {
+        $this->attributes['autoriza_txt'] = $v ? mb_strtoupper(trim($v)) : null;
+    }
+    public function setNumLicenciaAttribute($v)
+    {
+        $this->attributes['num_licencia'] = $v ? mb_strtoupper(trim($v)) : null;
+    }
+    public function setCapturadoPorAttribute($v)
+    {
+        $this->attributes['capturado_por'] = $v ? mb_strtoupper(trim($v)) : null;
+    }
+    public function setBecasCommentsAttribute($v)
+    {
+        $this->attributes['becas_comments'] = $v ? mb_strtoupper(trim($v)) : null;
+    }
 
 
     public function employee(): BelongsTo
@@ -45,12 +63,12 @@ class Incidencia extends Model
 
     public function codigo(): BelongsTo
     {
-        return $this->belongsTo(CodigoDeIncidencia::class, "codigodeincidencia_id");
+        return $this->belongsTo(CodigoDeIncidencia::class , "codigodeincidencia_id");
     }
 
     public function periodo(): BelongsTo
     {
-        return $this->belongsTo(Periodo::class, "periodo_id");
+        return $this->belongsTo(Periodo::class , "periodo_id");
     }
 
     /**
@@ -104,6 +122,23 @@ class Incidencia extends Model
             ->join('codigos_de_incidencias', 'codigos_de_incidencias.id', '=', 'incidencias.codigodeincidencia_id')
             ->whereNull('incidencias.deleted_at')
             ->where('codigos_de_incidencias.code', '900')
+            ->where('employees.num_empleado', $num_empleado)
+            ->whereBetween('incidencias.fecha_inicio', [$fecha_inicio, $fecha_final])
+            ->first();
+
+        return $result->total ?? 0;
+    }
+
+    /**
+     * Suma los días de incapacidad (códigos 53, 54, 55) de un empleado en un rango de fechas.
+     */
+    public static function getIncapacidadesEmpleado($num_empleado, $fecha_inicio, $fecha_final)
+    {
+        $result = self::selectRaw('SUM(total_dias) as total')
+            ->join('employees', 'employees.id', '=', 'incidencias.employee_id')
+            ->join('codigos_de_incidencias', 'codigos_de_incidencias.id', '=', 'incidencias.codigodeincidencia_id')
+            ->whereNull('incidencias.deleted_at')
+            ->whereIn('codigos_de_incidencias.code', [53, 54, 55])
             ->where('employees.num_empleado', $num_empleado)
             ->whereBetween('incidencias.fecha_inicio', [$fecha_inicio, $fecha_final])
             ->first();

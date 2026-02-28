@@ -44,14 +44,19 @@
             <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                 @foreach($this->qnas as $qna)
                 <tr class="hover:bg-gray-50 dark:hover:bg-gray-800 transition" wire:key="qna-{{ $qna->id }}">
-                    <td class="px-4 py-4 text-center text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">{{ $qna->year
+                    <td
+                        class="px-4 py-4 text-center text-sm font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                        {{ $qna->year
                         }}</td>
-                    <td class="px-4 py-4 text-center font-mono text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">{{
+                    <td
+                        class="px-4 py-4 text-center font-mono text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                        {{
                         str_pad($qna->qna, 2, '0', STR_PAD_LEFT) }}</td>
                     <td class="px-4 py-4 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                         {{ $qna->description ?: 'N/A' }}
                     </td>
-                    <td class="px-4 py-4 text-center text-sm font-bold text-[#9b2247] dark:text-[#e6d194] whitespace-nowrap">
+                    <td
+                        class="px-4 py-4 text-center text-sm font-bold text-[#9b2247] dark:text-[#e6d194] whitespace-nowrap">
                         {{ $qna->cierre ? \Carbon\Carbon::parse($qna->cierre)->format('d/m/Y') : 'N/D' }}
                     </td>
                     <td class="px-4 py-4 text-center whitespace-nowrap">
@@ -128,44 +133,58 @@
         @endif
 
         @foreach($this->qnas as $qna)
-        <div wire:key="qna-card-{{ $qna->id }}" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
+        <div wire:key="qna-card-{{ $qna->id }}"
+            class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-4 shadow-sm flex flex-col gap-3">
             <div class="flex justify-between items-center border-b border-gray-100 dark:border-gray-700 pb-3">
                 <div class="flex items-center gap-2">
                     <span class="text-sm font-black text-gray-900 dark:text-gray-100">{{ $qna->year }}</span>
                     <span class="text-xs text-gray-400">|</span>
-                    <span class="font-mono text-sm font-black text-[#9b2247] dark:text-[#e6d194]">QNA {{ str_pad($qna->qna, 2, '0', STR_PAD_LEFT) }}</span>
+                    <span class="font-mono text-sm font-black text-[#9b2247] dark:text-[#e6d194]">QNA {{
+                        str_pad($qna->qna, 2, '0', STR_PAD_LEFT) }}</span>
                 </div>
-                <button wire:click="toggleActive({{ $qna->id }})" class="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-oro rounded-full">
+                <button wire:click="toggleActive({{ $qna->id }})"
+                    class="focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-oro rounded-full">
                     @if($qna->active == '1')
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-800 transition hover:bg-green-200">
-                        <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg> Abierta
+                    <span
+                        class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-800 transition hover:bg-green-200">
+                        <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-green-400" fill="currentColor" viewBox="0 0 8 8">
+                            <circle cx="4" cy="4" r="3" />
+                        </svg> Abierta
                     </span>
                     @else
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-800 transition hover:bg-red-200">
-                        <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-red-400" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="3" /></svg> Cerrada
+                    <span
+                        class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-800 transition hover:bg-red-200">
+                        <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-red-400" fill="currentColor" viewBox="0 0 8 8">
+                            <circle cx="4" cy="4" r="3" />
+                        </svg> Cerrada
                     </span>
                     @endif
                 </button>
             </div>
-            
+
             <div class="flex flex-col gap-1">
                 <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Descripción</span>
-                <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">{{ $qna->description ?: 'N/A' }}</span>
+                <span class="text-sm text-gray-700 dark:text-gray-300 font-medium">{{ $qna->description ?: 'N/A'
+                    }}</span>
             </div>
 
             <div class="flex flex-col gap-1">
-                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Fecha de Cierre Limite</span>
+                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Fecha de Cierre
+                    Limite</span>
                 <span class="text-sm font-bold text-[#9b2247] dark:text-[#e6d194]">
                     {{ $qna->cierre ? \Carbon\Carbon::parse($qna->cierre)->format('d/m/Y') : 'N/D' }}
                 </span>
             </div>
-            
+
             @if($qna->active == '1')
             <div class="grid grid-cols-2 gap-3 mt-1 pt-3 border-t border-gray-100 dark:border-gray-700">
-                <button wire:click="edit({{ $qna->id }})" class="flex items-center justify-center gap-1 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-colors">
+                <button wire:click="edit({{ $qna->id }})"
+                    class="flex items-center justify-center gap-1 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-colors">
                     Editar
                 </button>
-                <button type="button" x-on:click="Swal.fire({ title: '¿Estás seguro?', text: 'Esta acción borrará la quincena permanentemente.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#9b2247', cancelButtonColor: '#6b7280', confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar', reverseButtons: true, customClass: { popup: 'rounded-2xl border-0 dark:bg-gray-800 dark:text-gray-100', title: 'text-xl font-black uppercase tracking-tight', confirmButton: 'rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest', cancelButton: 'rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-widest' } }).then((result) => { if (result.isConfirmed) { $wire.delete({{ $qna->id }}) } })" class="flex items-center justify-center gap-1 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-colors">
+                <button type="button"
+                    x-on:click="Swal.fire({ title: '¿Estás seguro?', text: 'Esta acción borrará la quincena permanentemente.', icon: 'warning', showCancelButton: true, confirmButtonColor: '#9b2247', cancelButtonColor: '#6b7280', confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar', reverseButtons: true, customClass: { popup: 'rounded-2xl border-0 dark:bg-gray-800 dark:text-gray-100', title: 'text-xl font-black uppercase tracking-tight', confirmButton: 'rounded-xl px-6 py-2.5 text-xs font-black uppercase tracking-widest', cancelButton: 'rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-widest' } }).then((result) => { if (result.isConfirmed) { $wire.delete({{ $qna->id }}) } })"
+                    class="flex items-center justify-center gap-1 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-colors">
                     Eliminar
                 </button>
             </div>
@@ -224,7 +243,7 @@
                                 <label for="qna"
                                     class="text-[11px] font-black text-gray-400 uppercase tracking-wider ml-1">No.
                                     Quincena</label>
-                                <input type="number" wire:model="qna" id="qna" min="1" max="24"
+                                <input type="number" wire:model.live="qna" id="qna" min="1" max="24"
                                     class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 shadow-sm focus:ring-2 focus:ring-oro/20 focus:border-oro transition-all font-mono">
                                 @error('qna') <span class="text-red-500 text-[10px] font-bold">{{ $message }}</span>
                                 @enderror
