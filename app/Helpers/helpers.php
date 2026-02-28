@@ -31,21 +31,18 @@ function capturado_por($id)
     if ($user) {
         $notocar = array('del', 'de');
         $trozos = explode(' ', $user->name);
-        $iniciales = '';
-        for ($i = 0; $i < count($trozos); $i++) {
-            if (in_array($trozos[$i], $notocar))
-                $iniciales .= $trozos[$i] . " ";
-            else
-                $iniciales .= substr($trozos[$i], 0, 1) . ". ";
+        $iniciales = [];
+        foreach ($trozos as $trozo) {
+            if (in_array(mb_strtolower($trozo), $notocar)) {
+                $iniciales[] = $trozo;
+            }
+            else {
+                $iniciales[] = mb_strtoupper(mb_substr($trozo, 0, 1)) . ".";
+            }
         }
-        return $iniciales;
-    //return $user->name;
+        return implode(' ', $iniciales);
     }
-    else {
-        return "";
-    }
-
-
+    return "";
 }
 
 function fecha_ymd($date)

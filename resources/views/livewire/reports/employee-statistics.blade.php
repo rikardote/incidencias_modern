@@ -21,9 +21,9 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <a href="{{ route('employees.incidencias', $this->employee->id) }}" wire:navigate
+                <a href="{{ route('employees.kardex', $this->employee->id) }}" wire:navigate
                     class="px-4 py-2 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-black uppercase tracking-widest border border-gray-100 dark:border-gray-700 hover:border-oro transition-all shadow-sm">
-                    Ver Incidencias
+                    Ver Kárdex
                 </a>
                 <button onclick="window.print()"
                     class="px-5 py-2 bg-[#13322B] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#0a1b17] transition-all shadow-md">
@@ -122,21 +122,10 @@
                             <span
                                 class="text-oro font-black text-[10px] uppercase tracking-widest mb-1 opacity-70">Total
                                 Histórico</span>
-                            <span class="text-4xl font-black text-white leading-none mb-1">{{ $this->stats['totalDays']
+                            <span class="text-4xl font-black text-white leading-none mb-1">{{
+                                $this->stats['totalIncidencias']
                                 }}</span>
-                            <span class="text-[10px] font-bold text-white/50 uppercase tracking-tighter">Días
-                                Ausente</span>
-                        </div>
-                    </div>
-
-                    <div
-                        class="bg-white dark:bg-gray-800 p-6 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all">
-                        <div class="flex flex-col">
-                            <span
-                                class="text-gray-400 font-black text-[10px] uppercase tracking-widest mb-1">Registros</span>
-                            <span class="text-3xl font-black text-[#13322B] dark:text-oro leading-none mb-1">{{
-                                $this->stats['totalIncidencias'] }}</span>
-                            <span class="text-[10px] font-bold text-gray-500 uppercase tracking-tighter italic">Eventos
+                            <span class="text-[10px] font-bold text-white/50 uppercase tracking-tighter">Registros
                                 Capturados</span>
                         </div>
                     </div>
@@ -208,29 +197,115 @@
                     class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-8">
                     <div class="flex items-center justify-between mb-8">
                         <div>
-                            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Tendencia
-                                Mensual ({{ $year }})</h3>
-                            <p class="text-[10px] font-bold text-gray-500 uppercase">Frecuencia de ausentismo por
-                                periodo</p>
+                            <h3 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Comparativa
+                                Anual</h3>
+                            <div class="flex items-center gap-3">
+                                <p class="text-[10px] font-bold text-gray-500 uppercase">Frecuencia de ausentismo por
+                                    periodo</p>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-1">
+                                        <div class="w-2 h-2 rounded bg-gray-200 dark:bg-gray-700"></div>
+                                        <span class="text-[9px] font-bold text-gray-400 uppercase">{{ $year - 1
+                                            }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <div class="w-2 h-2 rounded bg-oro"></div>
+                                        <span class="text-[9px] font-bold text-gray-400 uppercase">{{ $year }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="flex items-end justify-between h-40 gap-1.5 md:gap-4 px-2">
+                    <div class="flex items-end justify-between h-48 gap-1 md:gap-3 px-1 pb-6 mt-4">
                         @php
+                        $maxPrevEvents = collect($this->stats['trendData'])->max(fn($d) => $d->previous->total) ?: 0;
+                        $maxCurrEvents = collect($this->stats['trendData'])->max(fn($d) => $d->current->total) ?: 0;
+                        $maxEventsTrend = max($maxPrevEvents, $maxCurrEvents, 1);
                         $monthNames = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-                        $maxDaysTrend = collect($this->stats['trendData'])->max('days') ?: 1;
                         @endphp
-                        @foreach($this->stats['trendData'] as $month => $data)
-                        <div class="flex-1 flex flex-col items-center group relative">
-                            <div class="w-full bg-[#13322B]/5 dark:bg-white/5 rounded-t-lg transition-all duration-700 hover:bg-oro/30 relative"
-                                style="height: {{ (float)($data->days / $maxDaysTrend) * 100 }}%">
-                                <div
-                                    class="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-black text-[#13322B] dark:text-oro opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {{ $data->days }}
+                        @foreach($this->stats['trendData'] as $data)
+                        <div class="flex-1 flex flex-col justify-end items-center h-full relative group">
+                            <div class="flex items-end justify-center w-full h-full gap-[2px]">
+                                {{-- Previous Year Bar --}}
+                                <div class="w-1/2 md:w-5/12 bg-gray-100 dark:bg-gray-700/50 rounded-t-sm transition-all duration-700 hover:bg-gray-300 dark:hover:bg-gray-600 relative group/prev"
+                                    style="height: {{ max(4, (float)($data->previous->total / $maxEventsTrend) * 100) }}%">
+                                    {{-- Prev Tooltip --}}
+                                    <div
+                                        class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-[#13322B] dark:bg-gray-800 text-white p-2.5 rounded-lg shadow-xl opacity-0 group-hover/prev:opacity-100 transition-all duration-300 pointer-events-none z-20 flex flex-col items-center whitespace-nowrap transform group-hover/prev:-translate-y-1">
+                                        <div
+                                            class="text-[11px] font-black leading-none mb-1.5 text-gray-300 border-b border-white/10 pb-1.5 w-full text-center">
+                                            {{ $data->previous->year }}: {{ $data->previous->total }} Registros
+                                        </div>
+                                        @if($data->previous->total > 0 && !empty($data->previous->breakdown))
+                                        <div class="flex flex-col gap-1 items-start w-full">
+                                            @foreach($data->previous->breakdown as $item)
+                                            <div class="flex justify-between items-center w-full gap-3">
+                                                <span
+                                                    class="text-[9px] font-bold text-gray-300 uppercase tracking-wider">{{
+                                                    is_array($item) ? $item['days'] : $item->days }} D</span>
+                                                <span
+                                                    class="text-[8px] font-medium text-gray-400 uppercase truncate max-w-[100px]">{{
+                                                    is_array($item) ? $item['description'] : $item->description
+                                                    }}</span>
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                        @elseif($data->previous->total > 0)
+                                        <span class="text-[8px] font-bold text-gray-300 uppercase tracking-wider">{{
+                                            $data->previous->total }} Evento(s)</span>
+                                        @else
+                                        <span
+                                            class="text-[8px] font-bold text-gray-400 text-center uppercase tracking-wider w-full">Sin
+                                            Registro</span>
+                                        @endif
+                                        <div
+                                            class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#13322B] dark:bg-gray-800 rotate-45">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Current Year Bar --}}
+                                <div class="w-1/2 md:w-5/12 bg-oro/60 dark:bg-oro/40 rounded-t-sm transition-all duration-700 hover:bg-oro dark:hover:bg-oro/80 relative group/curr"
+                                    style="height: {{ max(4, (float)($data->current->total / $maxEventsTrend) * 100) }}%">
+                                    {{-- Curr Tooltip --}}
+                                    <div
+                                        class="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 bg-oro text-[#13322B] p-2.5 rounded-lg shadow-xl opacity-0 group-hover/curr:opacity-100 transition-all duration-300 pointer-events-none z-20 flex flex-col items-center whitespace-nowrap transform group-hover/curr:-translate-y-1">
+                                        <div
+                                            class="text-[11px] font-black leading-none mb-1.5 text-[#13322B] border-b border-[#13322B]/20 pb-1.5 w-full text-center">
+                                            {{ $data->current->year }}: {{ $data->current->total }} Registros
+                                        </div>
+                                        @if($data->current->total > 0 && !empty($data->current->breakdown))
+                                        <div class="flex flex-col gap-1 items-start w-full">
+                                            @foreach($data->current->breakdown as $item)
+                                            <div class="flex justify-between items-center w-full gap-3">
+                                                <span
+                                                    class="text-[9px] font-bold text-[#13322B] uppercase tracking-wider">{{
+                                                    is_array($item) ? $item['days'] : $item->days }} D</span>
+                                                <span
+                                                    class="text-[8px] font-bold text-[#13322B]/70 uppercase truncate max-w-[100px]">{{
+                                                    is_array($item) ? $item['description'] : $item->description
+                                                    }}</span>
+                                            </div>
+                                            @endforeach
+                                        </div>
+                                        @elseif($data->current->total > 0)
+                                        <span class="text-[8px] font-black text-[#13322B] uppercase tracking-wider">{{
+                                            $data->current->total }} Evento(s)</span>
+                                        @else
+                                        <span
+                                            class="text-[8px] font-bold text-[#13322B]/70 text-center uppercase tracking-wider w-full">Sin
+                                            Registro</span>
+                                        @endif
+                                        <div
+                                            class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-oro rotate-45">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <span class="text-[9px] font-black text-gray-400 uppercase mt-3 tracking-tighter">{{
-                                $monthNames[$month-1] }}</span>
+                            <span
+                                class="text-[9px] font-black {{ $data->monthName == $monthNames[date('n')-1] ? 'text-oro' : 'text-gray-400' }} uppercase tracking-tighter absolute -bottom-6">{{
+                                $data->monthName }}</span>
                         </div>
                         @endforeach
                     </div>
@@ -253,7 +328,6 @@
                                     <th class="px-8 py-4">Fecha</th>
                                     <th class="px-4 py-4">Código / Concepto</th>
                                     <th class="px-4 py-4">Días</th>
-                                    <th class="px-8 py-4 text-right">Estatus</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50 dark:divide-gray-700/50">
@@ -276,14 +350,10 @@
                                             class="px-2 py-0.5 bg-gray-100 dark:bg-gray-900 rounded text-xs font-black text-gray-600 dark:text-gray-400">{{
                                             $inc->total_dias }}</span>
                                     </td>
-                                    <td class="px-8 py-4 text-right">
-                                        <span
-                                            class="inline-flex w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]"></span>
-                                    </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="4" class="px-8 py-10 text-center text-gray-400 italic">No hay registros
+                                    <td colspan="3" class="px-8 py-10 text-center text-gray-400 italic">No hay registros
                                         recientes.</td>
                                 </tr>
                                 @endforelse
@@ -350,4 +420,10 @@
             animation: fadeIn 0.5s ease-out forwards;
         }
     </style>
+</div> }
+
+.animate-fadeIn {
+animation: fadeIn 0.5s ease-out forwards;
+}
+</style>
 </div>

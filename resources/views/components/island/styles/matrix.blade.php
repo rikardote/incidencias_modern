@@ -1,5 +1,5 @@
 {{-- resources/views/components/island/styles/matrix.blade.php --}}
-<div class="flex items-center gap-3 w-full h-full px-2 text-white overflow-hidden relative rounded-full" style="clip-path: inset(0 round 999px); -webkit-clip-path: inset(0 round 999px);">
+<div class="flex items-center gap-3 w-full h-full px-2 text-white overflow-hidden relative rounded-full">
     <!-- Background: Matrix Rain -->
     <div class="absolute inset-y-0 left-0 flex gap-1 opacity-20 pointer-events-none select-none">
         <div class="flex flex-col text-[5px] text-green-500 animate-matrix-fall-slow h-full">
@@ -35,7 +35,8 @@
 
     <!-- Message area: Clean Marquee -->
     <div class="flex-1 min-w-0 z-10 flex items-center overflow-hidden h-full">
-        <div class="flex items-center" :class="(islandMsg || '').length > 15 ? 'matrix-marquee-active' : ''">
+        <div class="flex items-center" :class="(islandMsg || '').length > 15 ? 'matrix-marquee-active' : ''"
+            :style="(islandMsg || '').length > 15 ? `animation-duration: ${Math.max(3, (islandMsg || '').length * 0.1)}s` : ''">
             <span x-text="islandMsg"
                 class="text-[11px] font-black text-green-400 uppercase tracking-wider nothing-font drop-shadow-[0_0_5px_rgba(74,222,128,0.4)] whitespace-nowrap px-2">
             </span>

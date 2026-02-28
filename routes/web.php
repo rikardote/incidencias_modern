@@ -37,6 +37,9 @@ Route::middleware('auth')->group(function () {
     // Usuarios (solo admins, logic in component)
     Route::get('/usuarios', \App\Livewire\Users\Index::class)->name('users.index');
 
+    // Códigos de Incidencias (solo admins, logic in component)
+    Route::get('/codigos-incidencia', \App\Livewire\CodigosIncidencia\Index::class)->name('codigos-incidencia.index');
+
     // Búsqueda de empleados para el switcher de incidencias
     Route::get('/api/employees/search', function (\Illuminate\Http\Request $request) {
             $q = trim($request->get('q', ''));

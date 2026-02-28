@@ -180,6 +180,11 @@
                         islandTimer: null,
                         showPhase: 'face',
                         progress: 0,
+                        progressInterval: null,
+                        activeStyle: Alpine.store('island').activeStyle,
+                        init() {
+                            this.$watch('$store.island.activeStyle', val => this.activeStyle = val);
+                        },
                         get face() {
                             const msg = (this.islandMsg || '').toLowerCase();
                             if (this.islandType === 'error' || msg.includes('error')) return '( > _ < )';
@@ -209,9 +214,18 @@
                             const isReport = msg.includes('Generando');
                             const isAction = msg.includes('Capturada') || msg.includes('Eliminada') || isReport;
 
-                            // 1. Determinar Fase Inicial
+                            // 1. Determinar Duración base
+                            let baseDuration = 5000;
+                            if (currentStyle === 'progress' && isAction) baseDuration = 4000;
+                            
+                            let calculatedDuration = baseDuration;
+                            if (msg.length > 25) {
+                                calculatedDuration = Math.max(baseDuration, (msg.length * 120) + 2000);
+                            }
+
+                            // 2. Determinar Fase Inicial
                             const showFaces = Alpine.store('island').showFaces;
-                            if (currentStyle === 'glass' || currentStyle === 'cyberpunk' || currentStyle === 'minimal' || currentStyle === 'kinetic' || currentStyle === 'starwars' || currentStyle === 'avengers' || isReport || !showFaces) {
+                            if (currentStyle === 'minimal' || currentStyle === 'starwars' || currentStyle === 'matrix' || isReport || !showFaces) {
                                 this.showPhase = 'text';
                             } else {
                                 this.showPhase = 'face';
@@ -220,36 +234,40 @@
                                 }, 800);
                             }
 
-                            // 2. Lógica de Progreso
-                            if (currentStyle === 'progress' || isReport) {
-                                if (isAction) {
-                                    let step = isReport ? 1 : 2;
-                                    let speed = isReport ? 15 : 20;
-                                    let limit = isReport ? 95 : 100;
+                            // 3. Lógica de Progreso
+                            if (this.activeStyle === 'progress' || isReport) {
+                                if (this.progressInterval) clearInterval(this.progressInterval);
+                                let duration = isReport ? 10000 : calculatedDuration;
+                                let startTime = Date.now();
+                                this.progressInterval = setInterval(() => {
+                                    if (this.islandMsg !== msg) {
+                                        clearInterval(this.progressInterval);
+                                        return;
+                                    }
                                     
-                                    let interval = setInterval(() => {
-                                        if (this.islandMsg !== msg || this.progress >= limit) {
-                                            clearInterval(interval);
-                                            return;
-                                        }
-                                        this.progress += step;
-                                    }, speed);
-                                }
+                                    if (isReport && this.progress >= 95) {
+                                        clearInterval(this.progressInterval);
+                                        return;
+                                    }
+
+                                    let elapsed = Date.now() - startTime;
+                                    this.progress = Math.min(100, (elapsed / duration) * 100);
+                                    
+                                    if (elapsed >= duration) {
+                                        clearInterval(this.progressInterval);
+                                    }
+                                }, 50);
                             }
 
-                            // 3. Timer de Cierre (No aplica si es reporte activo)
+                            // 4. Timer de Cierre (No aplica si es reporte activo)
                             if (!isReport) {
-                                let duration = 5000;
-                                if (currentStyle === 'progress' && isAction) duration = 4000;
-                                if (currentStyle === 'avengers') duration = 2800;
-                                
                                 this.islandTimer = setTimeout(() => {
                                     this.islandMsg = null;
                                     setTimeout(() => { 
                                         this.progress = 0; 
                                         this.showPhase = 'face'; 
                                     }, 500);
-                                }, duration);
+                                }, calculatedDuration);
                             }
                         }
                      }" @maintenance-updated.window="isMaint = $event.detail.mode"
@@ -260,10 +278,9 @@
                         'border-oro ring-2 ring-oro/20 bg-[#0a1f1a] z-[100]': islandMsg && islandType !== 'error', 
                         'border-red-500 ring-2 ring-red-500/30 bg-[#1a0a0a] z-[100]': islandMsg && islandType === 'error',
                         'border-oro/30': !islandMsg && !isMaint,
-                        'border-red-500/40 ring-1 ring-red-500/10': isMaint && !islandMsg,
-                        'ring-2 ring-white/10 shadow-[0_0_20px_rgba(255,255,255,0.1)]': islandMsg && $store.island.activeStyle === 'kinetic'
+                        'border-red-500/40 ring-1 ring-red-500/10': isMaint && !islandMsg
                      }"
-                    :style="islandMsg ? ($store.island.activeStyle === 'kinetic' ? 'min-width: 320px' : 'min-width: 280px') : ''">
+                    :style="islandMsg ? (activeStyle === 'minimal' ? 'min-width: 240px' : 'min-width: clamp(280px, 15ch + 10rem, 400px)') : ''">
 
                     {{-- Estado 1: QNA Activa (Default) --}}
                     <div class="flex items-center gap-2 sm:gap-3 shrink-0 transition-all duration-500 ease-in-out"
@@ -312,9 +329,8 @@
                         x-transition:leave="transition transform ease-in duration-300"
                         x-transition:leave-start="opacity-100 translate-y-0"
                         x-transition:leave-end="opacity-0 translate-y-2 blur-md"
-                        class="absolute inset-0 flex items-center justify-center px-4"
-                        :class="$store.island.activeStyle === 'kinetic' ? 'rounded-full' : 'overflow-hidden rounded-full'"
-                        :style="$store.island.activeStyle !== 'kinetic' ? 'clip-path: inset(0 round 999px); -webkit-clip-path: inset(0 round 999px);' : ''">
+                        class="absolute inset-0 flex items-center justify-center px-4 overflow-hidden rounded-full"
+                        style="clip-path: inset(0 round 999px); -webkit-clip-path: inset(0 round 999px);">
 
                         <div class="relative flex items-center justify-center w-full h-full">
 
@@ -338,61 +354,46 @@
                                 class="absolute inset-0 flex items-center justify-center px-4">
 
                                 {{-- CASE: REPORT OR PROGRESS STYLE --}}
-                                <template
-                                    x-if="(islandMsg || '').includes('Generando') || ($store.island.activeStyle === 'progress' && ((islandMsg || '').includes('Capturada') || (islandMsg || '').includes('Eliminada')))">
+                                <template x-if="(islandMsg || '').includes('Generando') || activeStyle === 'progress'">
                                     <x-island.styles.progress />
                                 </template>
 
-                                {{-- CASE: GLASS (Only if not progress/report) --}}
-                                <template
-                                    x-if="$store.island.activeStyle === 'glass' && !((islandMsg || '').includes('Generando'))">
-                                    <x-island.styles.glass />
-                                </template>
-
-                                {{-- CASE: CYBERPUNK (Only if not progress/report) --}}
-                                <template
-                                    x-if="$store.island.activeStyle === 'cyberpunk' && !((islandMsg || '').includes('Generando'))">
-                                    <x-island.styles.cyberpunk />
-                                </template>
-
                                 {{-- CASE: MATRIX --}}
-                                <template
-                                    x-if="$store.island.activeStyle === 'matrix' && !((islandMsg || '').includes('Generando'))">
+                                <template x-if="activeStyle === 'matrix' && !((islandMsg || '').includes('Generando'))">
                                     <x-island.styles.matrix />
-                                </template>
-
-                                {{-- CASE: KINETIC --}}
-                                <template
-                                    x-if="$store.island.activeStyle === 'kinetic' && !((islandMsg || '').includes('Generando'))">
-                                    <x-island.styles.kinetic />
                                 </template>
 
                                 {{-- CASE: STARWARS --}}
                                 <template
-                                    x-if="$store.island.activeStyle === 'starwars' && !((islandMsg || '').includes('Generando'))">
+                                    x-if="activeStyle === 'starwars' && !((islandMsg || '').includes('Generando'))">
                                     <x-island.styles.starwars />
-                                </template>
-
-                                {{-- CASE: AVENGERS --}}
-                                <template
-                                    x-if="$store.island.activeStyle === 'avengers' && !((islandMsg || '').includes('Generando'))">
-                                    <x-island.styles.avengers />
                                 </template>
 
                                 {{-- CASE: CLASSIC (Default fallback) --}}
                                 <template
-                                    x-if="($store.island.activeStyle === 'classic' || ($store.island.activeStyle === 'progress' && !((islandMsg || '').includes('Capturada') || (islandMsg || '').includes('Eliminada')))) && !((islandMsg || '').includes('Generando'))">
-                                    <x-island.styles.classic />
+                                    x-if="(activeStyle === 'classic') && !((islandMsg || '').includes('Generando'))">
+                                    <div class="flex items-center gap-2 overflow-hidden relative min-w-0 flex-1">
+                                        <div :class="islandMsg && islandMsg.length > 25 ? 'animate-marquee whitespace-nowrap' : ''"
+                                            :style="islandMsg && islandMsg.length > 25 ? `animation-duration: ${Math.max(4, islandMsg.length * 0.12)}s` : ''"
+                                            class="inline-block">
+                                            <span x-text="islandMsg"
+                                                class="text-[11px] font-black text-white uppercase tracking-widest nothing-font"></span>
+                                        </div>
+                                    </div>
                                 </template>
 
                                 {{-- CASE: MINIMAL --}}
                                 <template
-                                    x-if="$store.island.activeStyle === 'minimal' && !((islandMsg || '').includes('Generando'))">
-                                    <div class="flex items-center gap-2">
+                                    x-if="activeStyle === 'minimal' && !((islandMsg || '').includes('Generando'))">
+                                    <div class="flex items-center gap-2 overflow-hidden relative min-w-0 flex-1">
                                         <span class="w-1.5 h-1.5 rounded-full animate-pulse"
                                             :class="islandType === 'error' ? 'bg-red-500' : 'bg-emerald-500'"></span>
-                                        <span x-text="islandMsg"
-                                            class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-200 nothing-font"></span>
+                                        <div :class="islandMsg && islandMsg.length > 25 ? 'animate-marquee whitespace-nowrap' : ''"
+                                            :style="islandMsg && islandMsg.length > 25 ? `animation-duration: ${Math.max(4, islandMsg.length * 0.12)}s` : ''"
+                                            class="inline-block">
+                                            <span x-text="islandMsg"
+                                                class="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-200 nothing-font"></span>
+                                        </div>
                                     </div>
                                 </template>
                             </div>
@@ -407,34 +408,6 @@
                     src: url('/fonts/nothing-font-5x7.otf.woff2') format('woff2');
                     font-weight: normal;
                     font-style: normal;
-                }
-
-                .text-cyan-400 {
-                    color: #22d3ee;
-                }
-
-                .text-magenta-500 {
-                    color: #ff00ff;
-                }
-
-                .bg-cyan-400 {
-                    background-color: #22d3ee;
-                }
-
-                .bg-magenta-500 {
-                    background-color: #ff00ff;
-                }
-
-                .border-cyan-400\/50 {
-                    border-color: rgba(34, 211, 238, 0.5);
-                }
-
-                .border-magenta-500\/30 {
-                    border-color: rgba(255, 0, 255, 0.3);
-                }
-
-                .shadow-cyan-shadow {
-                    filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.6));
                 }
 
                 .nothing-font {
@@ -504,16 +477,16 @@
                         transform: translateX(0);
                     }
 
-                    10% {
+                    15% {
                         transform: translateX(0);
                     }
 
-                    90% {
-                        transform: translateX(calc(-100% + 150px));
+                    85% {
+                        transform: translateX(calc(-100% + 200px));
                     }
 
                     100% {
-                        transform: translateX(calc(-100% + 150px));
+                        transform: translateX(calc(-100% + 200px));
                     }
                 }
 
@@ -535,7 +508,11 @@
                     <x-slot name="trigger">
                         <button
                             class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-200 bg-[#13322B] dark:bg-gray-950 hover:text-white hover:bg-[#0a1f1a] dark:hover:bg-gray-800 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+                            <div class="flex items-center gap-2">
+                                <x-user-avatar :avatar="Auth::user()->avatar" :name="Auth::user()->name" size="w-6 h-6"
+                                    iconSize="w-3.5 h-3.5" />
+                                <div>{{ Auth::user()->name }}</div>
+                            </div>
 
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
@@ -614,6 +591,10 @@
                 wire:navigate>
                 <span class="pl-4">{{ __('General (RH5)') }}</span>
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('reports.estadisticas')"
+                :active="request()->routeIs('reports.estadisticas')" wire:navigate>
+                <span class="pl-4">{{ __('Estadística de Conceptos') }}</span>
+            </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('reports.sinderecho')"
                 :active="request()->routeIs('reports.sinderecho')" wire:navigate>
                 <span class="pl-4">{{ __('Sin Derecho a Nota Buena') }}</span>
@@ -634,9 +615,12 @@
 
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-[#0a1f1a] dark:border-gray-800">
-            <div class="px-4">
-                <div class="font-medium text-base text-white">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-400">{{ Auth::user()->email }}</div>
+            <div class="px-4 flex items-center gap-3">
+                <x-user-avatar :avatar="Auth::user()->avatar" :name="Auth::user()->name" />
+                <div>
+                    <div class="font-medium text-base text-white">{{ Auth::user()->name }}</div>
+                    <div class="font-medium text-sm text-gray-400">{{ Auth::user()->email }}</div>
+                </div>
             </div>
 
             <div class="mt-3 space-y-1">
@@ -685,15 +669,7 @@
                         });
                     }
 
-                    if (hasError) {
-                        window.dispatchEvent(new CustomEvent('topbar-end', { detail: 'error' }));
-                    } else {
-                        window.dispatchEvent(new CustomEvent('topbar-end', { detail: 'success' }));
-                    }
-                });
-
-                fail(() => {
-                    window.dispatchEvent(new CustomEvent('topbar-end', { detail: 'error' }));
+                    window.dispatchEvent(new CustomEvent('topbar-end', { detail: hasError ? 'error' : 'success' }));
                 });
             });
         });

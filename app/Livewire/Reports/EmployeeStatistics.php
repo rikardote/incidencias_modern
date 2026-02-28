@@ -33,39 +33,89 @@ class EmployeeStatistics extends Component
     {
         $employee = $this->employee();
         
+        $baseQuery = Incidencia::where('employee_id', $this->employeeId)
+            ->whereHas('codigo', function ($q) {
+                $q->where('code', '!=', '77');
+            });
+            
         // Total history
-        $totalIncidencias = Incidencia::where('employee_id', $this->employeeId)->count();
-        $totalDays = Incidencia::where('employee_id', $this->employeeId)->sum('total_dias');
+        $totalIncidencias = (clone $baseQuery)->count();
+        $totalDays = (clone $baseQuery)->sum('total_dias');
         
         // Distribution by Code (Top 10)
-        $byCode = Incidencia::select('codigodeincidencia_id', DB::raw('count(*) as total'), DB::raw('sum(total_dias) as days'))
-            ->where('employee_id', $this->employeeId)
+        $byCode = (clone $baseQuery)->select('codigodeincidencia_id', DB::raw('count(*) as total'), DB::raw('sum(total_dias) as days'))
             ->with('codigo')
             ->groupBy('codigodeincidencia_id')
             ->orderByDesc('total')
             ->limit(10)
             ->get();
 
-        // Monthly Trend (Current Year)
-        $monthlyTrend = Incidencia::select(
+        // Monthly Trend (Current vs Previous Year)
+        $currentYear = intval($this->year);
+        $previousYear = $currentYear - 1;
+        $startDate = Carbon::create($previousYear, 1, 1)->startOfDay();
+        
+        $monthlyTrend = (clone $baseQuery)->select(
+            DB::raw('YEAR(fecha_inicio) as year'),
             DB::raw('MONTH(fecha_inicio) as month'),
             DB::raw('count(*) as total'),
             DB::raw('sum(total_dias) as days')
         )
-        ->where('employee_id', $this->employeeId)
-        ->whereYear('fecha_inicio', $this->year)
-        ->groupBy('month')
-        ->orderBy('month')
-        ->get()
-        ->keyBy('month');
+        ->where('fecha_inicio', '>=', $startDate)
+        ->groupBy('year', 'month')
+        ->get();
+
+        $monthlyBreakdown = (clone $baseQuery)->select(
+            DB::raw('YEAR(fecha_inicio) as year'),
+            DB::raw('MONTH(fecha_inicio) as month'),
+            'codigodeincidencia_id',
+            DB::raw('sum(total_dias) as days')
+        )
+        ->with('codigo')
+        ->where('fecha_inicio', '>=', $startDate)
+        ->groupBy('year', 'month', 'codigodeincidencia_id')
+        ->get();
 
         $trendData = [];
-        for ($i = 1; $i <= 12; $i++) {
-            $trendData[$i] = $monthlyTrend->get($i, (object)['total' => 0, 'days' => 0]);
+        $monthNames = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        
+        for ($m = 1; $m <= 12; $m++) {
+            
+            // Previous year data
+            $statPrev = $monthlyTrend->first(fn($item) => $item->year == $previousYear && $item->month == $m);
+            $breakdownPrev = $monthlyBreakdown->filter(fn($item) => $item->year == $previousYear && $item->month == $m)
+                ->map(fn($item) => (object) [
+                    'description' => $item->codigo ? $item->codigo->description : 'Desconocido',
+                    'days' => $item->days
+                ])->toArray();
+
+            // Current year data
+            $statCurr = $monthlyTrend->first(fn($item) => $item->year == $currentYear && $item->month == $m);
+            $breakdownCurr = $monthlyBreakdown->filter(fn($item) => $item->year == $currentYear && $item->month == $m)
+                ->map(fn($item) => (object) [
+                    'description' => $item->codigo ? $item->codigo->description : 'Desconocido',
+                    'days' => $item->days
+                ])->toArray();
+
+            $trendData[] = (object)[
+                'monthName' => $monthNames[$m - 1],
+                'previous' => (object)[
+                    'year' => $previousYear,
+                    'total' => $statPrev ? $statPrev->total : 0,
+                    'days' => $statPrev ? $statPrev->days : 0,
+                    'breakdown' => $breakdownPrev
+                ],
+                'current' => (object)[
+                    'year' => $currentYear,
+                    'total' => $statCurr ? $statCurr->total : 0,
+                    'days' => $statCurr ? $statCurr->days : 0,
+                    'breakdown' => $breakdownCurr
+                ]
+            ];
         }
 
         // Recent Incidencias
-        $recent = Incidencia::where('employee_id', $this->employeeId)
+        $recent = (clone $baseQuery)
             ->with('codigo')
             ->orderByDesc('fecha_inicio')
             ->limit(5)

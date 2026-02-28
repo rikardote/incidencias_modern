@@ -42,60 +42,51 @@
                             <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 px-4 py-3">
                                 <div class="flex items-center gap-4 min-w-0 w-full xl:w-auto">
                                     {{-- Avatar --}}
-                                    <div
-                                    class="shrink-0 w-10 h-10 rounded-full bg-[#13322B]/10 dark:bg-[#13322B]/40 flex items-center justify-center">
-                                    <span class="text-sm font-black text-[#13322B] dark:text-[#e6d194] leading-none">
-                                        @php
-                                        $parts = explode(' ', trim($user->name));
-                                        $initials = strtoupper(mb_substr($parts[0] ?? '', 0, 1));
-                                        if (count($parts) > 1) {
-                                        $initials .= strtoupper(mb_substr($parts[1], 0, 1));
-                                        }
-                                        @endphp
-                                        {{ $initials }}
-                                    </span>
-                                </div>
+                                    <div class="shrink-0 w-10 h-10 flex items-center justify-center">
+                                        <x-user-avatar :avatar="$user->avatar" :name="$user->name" />
+                                    </div>
 
-                                {{-- Info --}}
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <span
-                                            class="font-mono text-xs font-bold text-[#9b2247] dark:text-[#e6d194] shrink-0">
-                                            #{{ $user->username }}
-                                        </span>
-                                        <span class="text-gray-200 dark:text-gray-600 text-xs text-bold">|</span>
-                                        <span
-                                            class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase truncate">
-                                            {{ $user->name }}
-                                        </span>
-                                        @if(auth()->id() === $user->id)
-                                        <span
-                                            class="shrink-0 px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase ml-1">Tú</span>
-                                        @endif
-                                    </div>
-                                    <div class="flex items-center gap-2 mt-0.5 flex-wrap">
-                                        <span class="text-[11px] text-gray-500 dark:text-gray-400">
-                                            {{ $user->type === 'admin' ? 'Administrador del Sistema' : 'Usuario de
-                                            Captura' }}
-                                        </span>
-                                        <span class="text-gray-200 dark:text-gray-600 text-xs">·</span>
-                                        <button wire:click="toggleActive({{ $user->id }})"
-                                            class="flex items-center gap-1 focus:outline-none {{ auth()->id() === $user->id ? 'cursor-not-allowed opacity-50' : 'hover:scale-105 transition-transform' }}"
-                                            {{ auth()->id() === $user->id ? 'disabled' : '' }}>
-                                            <div
-                                                class="w-1 h-1 rounded-full {{ $user->active ? 'bg-green-500 animate-pulse' : 'bg-red-500' }}">
-                                            </div>
+                                    {{-- Info --}}
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 flex-wrap">
                                             <span
-                                                class="text-[10px] font-black uppercase tracking-widest {{ $user->active ? 'text-green-600' : 'text-red-600' }}">
-                                                {{ $user->active ? 'Activo' : 'Inactivo' }}
+                                                class="font-mono text-xs font-bold text-[#9b2247] dark:text-[#e6d194] shrink-0">
+                                                #{{ $user->username }}
                                             </span>
-                                        </button>
+                                            <span class="text-gray-200 dark:text-gray-600 text-xs text-bold">|</span>
+                                            <span
+                                                class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase truncate">
+                                                {{ $user->name }}
+                                            </span>
+                                            @if(auth()->id() === $user->id)
+                                            <span
+                                                class="shrink-0 px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[9px] font-black uppercase ml-1">Tú</span>
+                                            @endif
+                                        </div>
+                                        <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                                            <span class="text-[11px] text-gray-500 dark:text-gray-400">
+                                                {{ $user->type === 'admin' ? 'Administrador del Sistema' : 'Usuario de
+                                                Captura' }}
+                                            </span>
+                                            <span class="text-gray-200 dark:text-gray-600 text-xs">·</span>
+                                            <button wire:click="toggleActive({{ $user->id }})"
+                                                class="flex items-center gap-1 focus:outline-none {{ auth()->id() === $user->id ? 'cursor-not-allowed opacity-50' : 'hover:scale-105 transition-transform' }}"
+                                                {{ auth()->id() === $user->id ? 'disabled' : '' }}>
+                                                <div
+                                                    class="w-1 h-1 rounded-full {{ $user->active ? 'bg-green-500 animate-pulse' : 'bg-red-500' }}">
+                                                </div>
+                                                <span
+                                                    class="text-[10px] font-black uppercase tracking-widest {{ $user->active ? 'text-green-600' : 'text-red-600' }}">
+                                                    {{ $user->active ? 'Activo' : 'Inactivo' }}
+                                                </span>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
                                 {{-- Acciones --}}
-                                <div class="shrink-0 flex flex-wrap items-center justify-around sm:justify-end gap-1 w-full xl:w-auto border-t xl:border-t-0 border-gray-100 dark:border-gray-700 pt-3 xl:pt-0 text-[#9b2247]">
+                                <div
+                                    class="shrink-0 flex flex-wrap items-center justify-around sm:justify-end gap-1 w-full xl:w-auto border-t xl:border-t-0 border-gray-100 dark:border-gray-700 pt-3 xl:pt-0 text-[#9b2247]">
                                     {{-- Pase --}}
                                     <button wire:click="grantException({{ $user->id }})"
                                         class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg {{ $user->canCaptureInClosedQna() ? 'bg-[#9b2247]/10 text-[#9b2247]' : 'text-gray-400 hover:bg-[#9b2247]/5 hover:text-[#9b2247]' }} transition-colors">

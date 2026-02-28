@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class CodigoDeIncidencia extends Model
 {
     protected $table = "codigos_de_incidencias";
-    protected $fillable = ["code", "description", "grupo"];
+    protected $fillable = ["code", "description"];
 
     public function getCodeAttribute($value)
     {
