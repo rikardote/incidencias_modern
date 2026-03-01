@@ -29,6 +29,10 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
-# Expose port 9000 and start php-fpm server
+# Copiar el script de inicio
+COPY docker/php/entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Expose port 9000 and start php-fpm server via entrypoint
 EXPOSE 9000
-CMD ["php-fpm"]
+ENTRYPOINT ["entrypoint.sh"]
