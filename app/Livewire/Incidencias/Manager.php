@@ -9,21 +9,16 @@ use App\Models\Qna;
 use App\Models\Periodo;
 use App\Services\Incidencias\IncidenciasService;
 use App\Constants\Incidencias as IncConstants;
+use App\Events\NewIncidenciaBatchCreated; // Importado para tiempo real
 use Livewire\Component;
-
 use Livewire\Attributes\On;
+use Illuminate\Support\Facades\Cache;
+use Carbon\Carbon;
 
 class Manager extends Component
 {
-    #[On('refreshIncidencias')]
-    public function refresh()
-    {
-        // El componente se refrescará automáticamente
-    }
     public $employeeId;
     public $employee;
-    
-    public $isModalOpen = false; // kept for compatibility, not used in new layout
     
     // Formulario de Captura
     public $codigo;
@@ -40,8 +35,14 @@ class Manager extends Component
     public $isVacacional = false;
     public $isTxt = false;
 
-    // Búscador de empleado
-    public $searchEmployee = '';
+    // Propiedades para optimización (No se envían al cliente en cada request si son pesadas)
+    protected $medicos = [];
+
+    #[On('refreshIncidencias')]
+    public function refresh()
+    {
+        // Refresco automático
+    }
 
     public function mount($employeeId)
     {
@@ -60,10 +61,7 @@ class Manager extends Component
     public function updatedCodigo($value)
     {
         if(!$value) {
-            $this->isLicencia = false;
-            $this->isIncapacidad = false;
-            $this->isVacacional = false;
-            $this->isTxt = false;
+            $this->resetFlags();
             return;
         }
 
@@ -73,40 +71,13 @@ class Manager extends Component
             $this->isLicencia    = IncConstants::esLicencia($codeInt);
             $this->isIncapacidad = IncConstants::esIncapacidad($codeInt);
             $this->isVacacional  = IncConstants::esVacacional($codeInt);
-            $this->isTxt         = ($codeInt === IncConstants::TXT); // 900
+            $this->isTxt         = ($codeInt === IncConstants::TXT);
             $this->dateMode = ($this->isLicencia || $this->isIncapacidad || $this->isVacacional) ? 'range' : 'multiple';
         }
     }
 
-    public function create()
+    private function resetFlags()
     {
-        $this->resetInputFields();
-    }
-
-    public function cambiarEmpleado($id)
-    {
-        $this->redirect(route('employees.incidencias', ['employeeId' => $id]));
-    }
-
-    public function closeModal()
-    {
-        $this->resetInputFields();
-        $this->resetValidation();
-    }
-
-    private function resetInputFields()
-    {
-        $this->codigo = '';
-        $this->fechas_seleccionadas = '';
-        $this->dateMode = 'multiple';
-        $this->medico_id = '';
-        $this->fecha_expedida = '';
-        $this->diagnostico = '';
-        $this->num_licencia = '';
-        $this->periodo_id = '';
-        $this->autoriza_txt = '';
-        $this->cobertura_txt = '';
-        
         $this->isLicencia = false;
         $this->isIncapacidad = false;
         $this->isVacacional = false;
@@ -115,19 +86,18 @@ class Manager extends Component
 
     public function store(IncidenciasService $service)
     {
-        if (\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin()) {
-            $this->dispatch('toast', [
-                'icon' => 'error', 
-                'title' => 'Sistema en mantenimiento: Captura deshabilitada.'
-            ]);
+        if (Cache::get('capture_maintenance', false) && !auth()->user()->admin()) {
+            $this->dispatch('toast', ['icon' => 'error', 'title' => 'Sistema en mantenimiento.']);
             return;
         }
+
         $this->validate([
             'codigo' => 'required|exists:codigos_de_incidencias,id',
             'fechas_seleccionadas' => 'required|string',
         ]);
 
         try {
+            $token = sha1(time() . '_' . $this->employee->id);
             $baseData = [
                 'empleado_id' => $this->employee->id,
                 'codigo' => $this->codigo,
@@ -138,183 +108,118 @@ class Manager extends Component
                 'periodo_id' => $this->periodo_id,
                 'autoriza_txt' => $this->autoriza_txt,
                 'cobertura_txt' => $this->cobertura_txt,
-                'token' => sha1(time() . '_' . $this->employee->id),
+                'token' => $token,
             ];
 
             if ($this->dateMode === 'multiple') {
                 $fechas = explode(', ', $this->fechas_seleccionadas);
                 foreach ($fechas as $fecha) {
-                    $fecha = trim($fecha);
-                    if (!$fecha) continue;
+                    if (empty(trim($fecha))) continue;
                     $data = $baseData;
-                    $data['datepicker_inicial'] = $fecha;
-                    $data['datepicker_final'] = $fecha;
+                    $data['datepicker_inicial'] = trim($fecha);
+                    $data['datepicker_final'] = trim($fecha);
                     $service->crearIncidencias($data);
                 }
             } else {
-                // Remplazo preventivo en caso de variaciones de Flatpickr (" a ", " to ", "||", " - ", ", ")
-                $fechasNormalized = str_replace([' a ', ' to ', '||', ' - ', ', '], '|', $this->fechas_seleccionadas);
+                $fechasNormalized = str_replace([' a ', ' to ', '||', ' - '], '|', $this->fechas_seleccionadas);
                 $parts = explode('|', $fechasNormalized);
-                
                 $inicio = trim($parts[0] ?? '');
-                $fin = trim($parts[1] ?? '');
-                
-                if (empty($fin)) {
-                    $fin = $inicio; // Si no hay segunda fecha, asume el mismo día inicial en caso de error de guardado prematuro
-                }
-                
-                // Medida extra de seguridad contra envío de basuras HTML
-                if (strlen($inicio) > 10) $inicio = substr($inicio, 0, 10);
-                if (strlen($fin) > 10) $fin = substr($fin, 0, 10);
-                
-                if (empty($inicio) || empty($fin) || strlen($inicio) != 10) {
-                    throw new \DomainException("El rango de fechas no se ha seleccionado correctamente por completo. Recibido: '{$this->fechas_seleccionadas}'");
-                }
-                
+                $fin = trim($parts[1] ?? $inicio);
+
                 $data = $baseData;
-                $data['datepicker_inicial'] = $inicio;
-                $data['datepicker_final'] = $fin;
+                $data['datepicker_inicial'] = substr($inicio, 0, 10);
+                $data['datepicker_final'] = substr($fin, 0, 10);
                 $service->crearIncidencias($data);
             }
 
+            // NOTIFICACIÓN TIEMPO REAL
+            broadcast(new NewIncidenciaBatchCreated())->toOthers();
+
             $this->dispatch('toast', ['icon' => 'success', 'title' => 'Incidencia Capturada']);
             $this->dispatch('reset-calendar');
-            // Si el motor de reglas generó un aviso de exceso, lo enviamos como modal de SweetAlert2
-            if (session()->has('incapacidad_warning')) {
-                $this->dispatch('swal', [
-                    'icon' => 'warning',
-                    'title' => '¡Aviso de Exceso!',
-                    'text' => session('incapacidad_warning')
-                ]);
-            }
-
             $this->fechas_seleccionadas = ''; 
-        } catch (\DomainException $e) {
-            $this->dispatch('toast', ['icon' => 'error', 'title' => $e->getMessage()]);
         } catch (\Exception $e) {
-            $this->dispatch('toast', [
-                'icon' => 'error', 
-                'title' => 'Error inesperado: ' . $e->getMessage()
-            ]);
+            $this->dispatch('toast', ['icon' => 'error', 'title' => $e->getMessage()]);
         }
     }
 
     public function delete($token, IncidenciasService $service)
     {
-        if (\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin()) {
-            $this->dispatch('toast', [
-                'icon' => 'error', 
-                'title' => 'Sistema en mantenimiento: Eliminación deshabilitada.'
-            ]);
+        if (Cache::get('capture_maintenance', false) && !auth()->user()->admin()) {
+            $this->dispatch('toast', ['icon' => 'error', 'title' => 'Mantenimiento activo.']);
             return;
-        }
-        $incidencias = Incidencia::with('qna')->where(function($q) use ($token) {
-            $q->where('token', $token);
-        })->get();
-        
-        foreach ($incidencias as $inc) {
-            if ($inc->qna && $inc->qna->active != '1' && !auth()->user()->admin() && !auth()->user()->canCaptureInClosedQna($inc->qna->id)) {
-                $this->dispatch('toast', [
-                    'icon' => 'error', 
-                    'title' => 'No se puede eliminar porque una de las partes de esta captura pertenece a una Quincena que ya ha sido cerrada.'
-                ]);
-                return;
-            }
         }
 
         try {
             $service->eliminarPorToken($token);
+            
+            // NOTIFICACIÓN TIEMPO REAL
+            broadcast(new NewIncidenciaBatchCreated())->toOthers();
+
             $this->dispatch('toast', ['icon' => 'success', 'title' => 'Incidencia Eliminada']);
         } catch (\Exception $e) {
-            $this->dispatch('toast', [
-                'icon' => 'error', 
-                'title' => 'Error al eliminar: ' . $e->getMessage()
-            ]);
+            $this->dispatch('toast', ['icon' => 'error', 'title' => $e->getMessage()]);
         }
     }
 
     public function render()
     {
-        // Construir la lista de QNA IDs permitidas para mostrar:
-        // 1. Siempre: las QNAs activas
-        $allowedQnaIds = Qna::where(function($q) {
-            $q->where('active', '1');
-        })->pluck('id');
-
-        // 2. Si el usuario tiene un pase temporal activo, agregar la QNA desbloqueada
+        // 1. Obtener IDs de Qnas permitidas
+        $allowedQnaIds = Qna::where('active', '1')->pluck('id');
         $exception = auth()->user()->activeCaptureException();
         if ($exception) {
-            if ($exception->qna_id) {
-                // Pase nuevo: tiene qna_id explícito
-                $allowedQnaIds = $allowedQnaIds->push($exception->qna_id)->unique();
-            } else {
-                // Pase legacy (qna_id NULL): inferir la QNA más recientemente cerrada
-                $lastClosed = Qna::where('active', '0')
-                    ->orderBy('year', 'desc')
-                    ->orderBy('qna', 'desc')
-                    ->first();
-                if ($lastClosed) {
-                    $allowedQnaIds = $allowedQnaIds->push($lastClosed->id)->unique();
-                }
-            }
+            $qnaId = $exception->qna_id ?? Qna::where('active', '0')->orderBy('year', 'desc')->orderBy('qna', 'desc')->value('id');
+            if ($qnaId) $allowedQnaIds->push($qnaId)->unique();
         }
 
+        // 2. Cargar Médicos solo si es Incapacidad (Carga diferida)
+        $medicos = [];
+        if ($this->isIncapacidad) {
+            $medicos = Cache::remember('medicos_list', 3600, function() {
+                $doctorPuestos = ['24','25','28','30','56','57','58','59','60','61','62','63','64','65','66','67','68','87','88','101','95','96','97','98'];
+                return Employe::whereIn('puesto_id', $doctorPuestos)->orderBy('name')->get();
+            });
+        }
+
+        // 3. Rangos de fechas habilitados con Caché
+        $enabledDateRanges = $this->getEnabledDateRanges($allowedQnaIds);
+
+        // 4. Códigos y Periodos
         $incidencias = Incidencia::with(['qna', 'codigo', 'periodo'])
             ->where('employee_id', $this->employeeId)
             ->whereIn('qna_id', $allowedQnaIds)
-            ->orderBy('fecha_inicio', 'desc')
-            ->get();
-            
-        $codigosFrecuentesIds = \Illuminate\Support\Facades\Cache::remember('codigos_frecuentes_3yrs', 86400, function() {
-            return Incidencia::select('codigodeincidencia_id')
-                ->where('fecha_inicio', '>=', now()->subYears(3)->startOfDay())
-                ->groupBy('codigodeincidencia_id')
-                ->orderByRaw('COUNT(*) DESC')
-                ->take(10)
-                ->pluck('codigodeincidencia_id')
-                ->toArray();
-        });
+            ->orderBy('fecha_inicio', 'desc')->get();
 
         $todosLosCodigos = CodigoDeIncidencia::orderBy('code')->get();
-        // Extraer el top 10 y ordenarlo por el valor de su código de menor a mayor
-        $topCodigos = $todosLosCodigos->whereIn('id', $codigosFrecuentesIds)->sortBy('code');
-        $otrosCodigos = $todosLosCodigos->whereNotIn('id', $codigosFrecuentesIds);
+        $frecuentesIds = Cache::get('codigos_frecuentes_3yrs', []);
+        $topCodigos = $todosLosCodigos->whereIn('id', $frecuentesIds)->sortBy('code');
+        $otrosCodigos = $todosLosCodigos->whereNotIn('id', $frecuentesIds);
 
-        $periodos = Periodo::where(function($q) {
-            $q->where('year', '>=', (int)date('Y') - 5);
-        })
-            ->orderBy('year', 'desc')
-            ->orderBy('periodo', 'desc')
-            ->get();
+        $periodos = Periodo::where('year', '>=', (int)date('Y') - 5)
+            ->orderBy('year', 'desc')->orderBy('periodo', 'desc')->get();
 
-        $medicos = [];
-        if ($this->isIncapacidad) {
-            $doctorPuestos = ['24','25','28','30','56','57','58','59','60','61','62','63','64','65','66','67','68','87','88','101','95','96','97','98'];
-            $medicos = Employe::whereIn('puesto_id', $doctorPuestos)
-                ->orderBy('name')
-                ->get();
-        }
+        return view('livewire.incidencias.manager', compact(
+            'incidencias', 'topCodigos', 'otrosCodigos', 'periodos', 'medicos', 'enabledDateRanges'
+        ))->layout('layouts.app');
+    }
 
-        $enabledDateRanges = [];
-        $qnasPermitidas = Qna::whereIn('id', $allowedQnaIds)->get();
-        foreach($qnasPermitidas as $qna) {
-            if (!$qna->year || !$qna->qna) continue;
-            $year = (int)$qna->year;
-            $qnaNum = (int)$qna->qna;
-            $mes = (int)ceil($qnaNum / 2);
-            $isFirstHalf = ($qnaNum % 2) != 0;
-            
-            $startDate = \Carbon\Carbon::createFromDate($year, $mes, $isFirstHalf ? 1 : 16)->startOfDay();
-            $endDate = $isFirstHalf 
-                       ? \Carbon\Carbon::createFromDate($year, $mes, 15)->endOfDay()
-                       : \Carbon\Carbon::createFromDate($year, $mes, 1)->endOfMonth()->endOfDay();
-            
-            $enabledDateRanges[] = [
-                'from' => $startDate->format('Y-m-d'),
-                'to' => $endDate->format('Y-m-d')
-            ];
-        }
-
-        return view('livewire.incidencias.manager', compact('incidencias', 'topCodigos', 'otrosCodigos', 'periodos', 'medicos', 'enabledDateRanges'))->layout('layouts.app');
+    private function getEnabledDateRanges($allowedIds)
+    {
+        $cacheKey = 'qna_ranges_' . md5(implode(',', $allowedIds->toArray()));
+        
+        return Cache::remember($cacheKey, 3600, function() use ($allowedIds) {
+            $ranges = [];
+            $qnas = Qna::whereIn('id', $allowedIds)->get();
+            foreach($qnas as $qna) {
+                $mes = (int)ceil($qna->qna / 2);
+                $isFirst = ($qna->qna % 2) != 0;
+                $ranges[] = [
+                    'from' => Carbon::createFromDate($qna->year, $mes, $isFirst ? 1 : 16)->format('Y-m-d'),
+                    'to' => $isFirst ? Carbon::createFromDate($qna->year, $mes, 15)->format('Y-m-d') 
+                                     : Carbon::createFromDate($qna->year, $mes, 1)->endOfMonth()->format('Y-m-d')
+                ];
+            }
+            return $ranges;
+        });
     }
 }

@@ -11,32 +11,47 @@ class LiveCaptureLog extends Component
 {
     public $logs = [];
 
+    /**
+     * Inicialización del componente.
+     */
     public function mount()
     {
         $this->loadInitialLogs();
     }
 
-    #[On('echo-presence:chat,NewIncidenciaBatchCreated')]
-    #[On('echo-presence:chat,.NewIncidenciaBatchCreated')]
+    /**
+     * Escucha el evento de Reverb en el canal privado 'chat'.
+     * Se activa instantáneamente cuando se dispara desde el Manager.
+     */
+    #[On('echo-private:chat,NewIncidenciaBatchCreated')]
     #[On('live-log-refresh')]
+    public function refreshLog()
+    {
+        $this->loadInitialLogs();
+    }
+
+    /**
+     * Carga y procesa las últimas incidencias capturadas.
+     */
     public function loadInitialLogs()
     {
         try {
-            // OPTIMIZED QUERY: Step 1 - Get unique tokens only
+            // Paso 1: Obtener los tokens más recientes de forma optimizada
             $latestTokens = DB::table('incidencias')
                 ->whereNull('deleted_at')
-                ->select('token', DB::raw('MAX(created_at) as created_at'))
-                ->groupBy('token')
                 ->orderBy('created_at', 'desc')
-                ->take(15)
-                ->pluck('token');
+                ->take(100) 
+                ->pluck('token')
+                ->unique()
+                ->take(15);
 
+            // Si no hay datos, mostrar placeholder de sistema activo
             if ($latestTokens->isEmpty()) {
                 $this->logs = [$this->getSystemOnlinePlaceholder()];
                 return;
             }
 
-            // Step 2 - Fech consolidated data for these tokens only (VERY FAST)
+            // Paso 2: Consultar datos consolidados para esos tokens
             $batches = DB::table('incidencias')
                 ->join('employees', 'incidencias.employee_id', '=', 'employees.id')
                 ->join('codigos_de_incidencias', 'incidencias.codigodeincidencia_id', '=', 'codigos_de_incidencias.id')
@@ -70,6 +85,7 @@ class LiveCaptureLog extends Component
                 ->orderBy('incidencias.created_at', 'desc')
                 ->get();
 
+            // Paso 3: Mapear resultados al formato del frontend
             $this->logs = $batches->map(function($g) {
                 return [
                     'employee_name' => "{$g->name} {$g->father_lastname} {$g->mother_lastname}",
@@ -85,12 +101,16 @@ class LiveCaptureLog extends Component
                     'created_at' => $g->created_at
                 ];
             })->toArray();
+
         } catch (\Exception $e) {
             Log::error("LiveLog Load Error: " . $e->getMessage());
             $this->logs = [$this->getSystemOnlinePlaceholder('Error de carga')];
         }
     }
 
+    /**
+     * Resuelve las quincenas asociadas a un token específico.
+     */
     private function resolveQnasForToken($token)
     {
         return DB::table('incidencias')
@@ -104,6 +124,9 @@ class LiveCaptureLog extends Component
             ->implode(', ');
     }
 
+    /**
+     * Genera un registro visual de estado del sistema.
+     */
     private function getSystemOnlinePlaceholder($msg = 'ACTIVO')
     {
         return [
@@ -122,6 +145,9 @@ class LiveCaptureLog extends Component
         ];
     }
 
+    /**
+     * Renderiza la vista del componente.
+     */
     public function render()
     {
         return view('livewire.admin.live-capture-log');

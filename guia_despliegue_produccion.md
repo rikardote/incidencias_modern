@@ -149,3 +149,20 @@ Si vas a usar **HTTPS (SSL)**:
 
 ---
 > **Tip Pro:** Cada vez que hagas un cambio en el `.env` relacionado con Reverb o la URL, **obligatoriamente** debes correr `npm run build` para que los cambios lleguen a los navegadores de tus usuarios.
+
+correr en phpmyadmin
+en la tabla empleados:
+-- Acelera la búsqueda por nombre completo (el orden importa)
+ALTER TABLE employees ADD INDEX idx_full_name (name, father_lastname, mother_lastname);
+
+-- Acelera el filtro de empleados activos (usado en casi todas tus listas)
+ALTER TABLE employees ADD INDEX idx_active_status (active);
+
+-- Acelera la carga de departamentos (usado para verificar permisos en Manager.php)
+ALTER TABLE employees ADD INDEX idx_department (deparment_id);
+
+y en la tabla incidencias
+ALTER TABLE incidencias ADD INDEX idx_employee (employee_id);
+ALTER TABLE incidencias ADD INDEX idx_token (token);
+ALTER TABLE incidencias ADD INDEX idx_created (created_at);
+ALTER TABLE incidencias ADD INDEX idx_deleted_created (deleted_at, created_at);

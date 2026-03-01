@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('qnas', function (Blueprint $table) {
@@ -16,6 +15,9 @@ return new class extends Migration
             $table->enum('active', ['0', '1'])->default('1');
             $table->date('cierre')->nullable();
             $table->timestamps();
+
+            // Índice para búsquedas rápidas por año/quincena
+            $table->index(['year', 'qna']);
         });
 
         Schema::create('deparments', function (Blueprint $table) {
@@ -77,6 +79,11 @@ return new class extends Migration
             $table->enum('active', ['0', '1'])->default('1');
             $table->softDeletes();
             $table->timestamps();
+
+            // --- NUEVOS ÍNDICES PARA VELOCIDAD ---
+            $table->index(['name', 'father_lastname', 'mother_lastname'], 'idx_full_name');
+            $table->index('active');
+        // -------------------------------------
         });
 
         Schema::create('codigos_de_incidencias', function (Blueprint $table) {
@@ -119,11 +126,18 @@ return new class extends Migration
             $table->string('capturado_por')->nullable();
             $table->softDeletes();
             $table->timestamps();
+
+            // --- NUEVOS ÍNDICES PARA VELOCIDAD ---
+            $table->index('token');
+            $table->index('created_at');
+            $table->index(['deleted_at', 'created_at']);
+        // -------------------------------------
         });
     }
 
     public function down(): void
     {
+        // El orden de borrado se mantiene igual
         Schema::dropIfExists('incidencias');
         Schema::dropIfExists('periodos');
         Schema::dropIfExists('codigos_de_incidencias');

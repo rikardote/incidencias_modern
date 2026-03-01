@@ -115,7 +115,7 @@
         document.addEventListener('livewire:initialized', () => {
             // Centralized Echo Listener
             if (typeof Echo !== 'undefined') {
-                Echo.join('chat')
+                Echo.private('chat')
                     .listen('.NewIncidenciaBatchCreated', (e) => {
                         console.log('BATCH RECEPTION (LAYOUT):', e);
 
@@ -205,7 +205,7 @@
             </button>
         </div>
 
-        <livewire:admin.live-capture-log lazy />
+        <livewire:admin.live-capture-log />
     </div>
 
     @livewire('chat-widget')
