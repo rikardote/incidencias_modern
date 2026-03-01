@@ -10,6 +10,7 @@ services:
       - .:/var/www
     ports:
       - "5173:5173"
+      - "8080:8080"
     networks:
       - modern-net
 

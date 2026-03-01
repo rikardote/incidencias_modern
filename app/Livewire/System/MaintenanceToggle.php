@@ -51,6 +51,9 @@ class MaintenanceToggle extends Component
         ]);
         
         $this->dispatch('maintenance-updated', mode: $this->isMaintenanceMode);
+        
+        // Broadcast the event to all users via Reverb
+        broadcast(new \App\Events\GlobalMaintenanceEvent($this->isMaintenanceMode));
     }
 
     public function render()

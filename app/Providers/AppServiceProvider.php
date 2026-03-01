@@ -12,7 +12,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+    //
     }
 
     /**
@@ -21,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::useBuildDirectory('dist');
+        require base_path('routes/channels.php');
 
         // Compartir la QNA activa con absolutamente todas las vistas
         $activeQna = null;
@@ -31,13 +32,14 @@ class AppServiceProvider extends ServiceProvider
                 ->whereNotNull('cierre')
                 ->orderBy('year', 'asc')
                 ->orderBy('qna', 'asc')
-                ->first() 
+                ->first()
                 ?? \App\Models\Qna::where('active', '1')
                 ->orderBy('year', 'asc')
                 ->orderBy('qna', 'asc')
                 ->first();
-        } catch (\Exception $e) {
-            // Silencio en caso de que la tabla no exista aún (migraciones)
+        }
+        catch (\Exception $e) {
+        // Silencio en caso de que la tabla no exista aún (migraciones)
         }
 
         \Illuminate\Support\Facades\View::share('activeQna', $activeQna);

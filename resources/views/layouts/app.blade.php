@@ -159,6 +159,8 @@
             });
         });
     </script>
+
+    @livewire('chat-widget')
     @livewireScripts
 </body>
 

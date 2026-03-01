@@ -78,6 +78,15 @@ Route::middleware('auth')->group(function () {
         Route::delete('/profile', [ProfileController::class , 'destroy'])->name('profile.destroy');
     });
 
+Route::get('/debug-auth', function () {
+    return [
+    'check' => auth()->check(),
+    'user' => auth()->user(),
+    'session_id' => session()->getId(),
+    'app_url' => config('app.url'),
+    ];
+});
+
 require __DIR__ . '/auth.php';
 Route::get('/test-config', function () {
     return config('database.connections.biometrico');
