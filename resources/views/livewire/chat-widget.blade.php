@@ -5,7 +5,7 @@
             container.scrollTop = container.scrollHeight;
         }
     }
-}" x-effect="if ($wire.activeConversationId) setTimeout(() => scrollBottom(), 50)"
+}" x-effect="$wire.activeConversationId ? setTimeout(() => scrollBottom(), 50) : null"
     @chat-scrolled-bottom.window="setTimeout(() => scrollBottom(), 50)" x-init="
         const chatChannel = Echo.join('chat');
         

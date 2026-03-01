@@ -915,8 +915,13 @@
     </div> {{-- fin py-6 --}}
 
     <script>
-    document.addEventListener('livewire:init',                     window.addEventListener('storage', (even                        if (event.key === 'biometrico_refr                            Livewire.dispatch('refreshInciden                                          });
-    });
+        document.addEventListener('livewire:init', () => {
+            window.addEventListener('storage', (event) => {
+                if (event.key === 'biometrico_refresh') {
+                    Livewire.dispatch('refreshIncidencias');
+                }
+            });
+        });
     </script>
 
     {{-- MODAL DE BÚSQUEDA GLOBAL --}}

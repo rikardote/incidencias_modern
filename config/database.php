@@ -153,6 +153,13 @@ return [
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
 
+        'sqlite_logs' => [
+            'driver' => 'sqlite',
+            'database' => database_path('logs.sqlite'),
+            'prefix' => '',
+            'foreign_key_constraints' => true,
+        ],
+
     ],
 
     /*

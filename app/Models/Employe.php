@@ -13,15 +13,15 @@ class Employe extends Model
     protected $table = "employees";
 
     protected $fillable = [
-        "num_empleado", "name", "father_lastname", "mother_lastname", 
-        "deparment_id", "condicion_id", "puesto_id", "horario_id", 
-        "num_plaza", "num_seguro", "jornada_id", "lactancia", 
+        "num_empleado", "name", "father_lastname", "mother_lastname",
+        "deparment_id", "condicion_id", "puesto_id", "horario_id",
+        "num_plaza", "num_seguro", "jornada_id", "lactancia",
         "lactancia_inicio", "lactancia_fin", "comisionado", "estancia", "active"
     ];
 
     public function department(): BelongsTo
     {
-        return $this->belongsTo(Department::class, "deparment_id");
+        return $this->belongsTo(Department::class , "deparment_id");
     }
 
     public function puesto(): BelongsTo
@@ -39,7 +39,7 @@ class Employe extends Model
         return $this->belongsTo(Jornada::class);
     }
 
-    public function getFullnameAttribute(): string
+    public function getFullNameAttribute(): string
     {
         return "{$this->name} {$this->father_lastname} {$this->mother_lastname}";
     }

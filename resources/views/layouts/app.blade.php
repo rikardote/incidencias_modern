@@ -160,6 +160,7 @@
         });
     </script>
 
+    <livewire:admin.live-capture-log lazy />
     @livewire('chat-widget')
     @livewireScripts
 </body>

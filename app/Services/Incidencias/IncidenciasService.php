@@ -45,20 +45,20 @@ class IncidenciasService
         $saltarLic = (
             (isset($data['saltar_validacion_lic']) && $data['saltar_validacion_lic'] == "1") ||
             (request('saltar_validacion_lic') == "1")
-        );
+            );
 
         $saltarInca = (
             (isset($data['saltar_validacion_inca']) && $data['saltar_validacion_inca'] == "1") ||
             (request('saltar_validacion_inca') == "1")
-        );
+            );
 
         $token = $data['token'] ?? sha1(time() . $empleado->id);
 
-        $segmentos = SegmentadorQuincenal::calcularSegmentos($inicio, $fin, function($fecha) {
+        $segmentos = SegmentadorQuincenal::calcularSegmentos($inicio, $fin, function ($fecha) {
             return $this->helpers->qnaDesdeFecha($fecha);
         });
 
-        return DB::transaction(function() use ($segmentos, $empleado, $incidenciaCodigo, $codeReal, $data, $token, $saltarLic, $saltarInca) {
+        return DB::transaction(function () use ($segmentos, $empleado, $incidenciaCodigo, $codeReal, $data, $token, $saltarLic, $saltarInca, $inicio, $fin) {
             foreach ($segmentos as $segmento) {
                 $incidencia = new Incidencia();
                 $incidencia->employee_id = $empleado->id;
@@ -68,17 +68,17 @@ class IncidenciasService
                 $incidencia->qna_id = $segmento['qna_id'];
 
                 // Asignación inicial (4 días)
-                $inicio = \Carbon\Carbon::parse($segmento['fecha_inicio']);
-                $fin = \Carbon\Carbon::parse($segmento['fecha_final']);
-                $incidencia->total_dias = $inicio->diffInDays($fin) + 1;
+                $inicioSeg = \Carbon\Carbon::parse($segmento['fecha_inicio']);
+                $finSeg = \Carbon\Carbon::parse($segmento['fecha_final']);
+                $incidencia->total_dias = $inicioSeg->diffInDays($finSeg) + 1;
 
                 $incidencia->token = $token;
                 $incidencia->fecha_capturado = \Carbon\Carbon::now();
                 $incidencia->capturado_por = $this->helpers->capturadoPor(auth()->user()->id);
 
-                $esLicencia    = Inc::esLicencia($codeReal);
+                $esLicencia = Inc::esLicencia($codeReal);
                 $esIncapacidad = Inc::esIncapacidad($codeReal);
-                $esFalta       = ($codeReal === Inc::FALTA);
+                $esFalta = ($codeReal === Inc::FALTA);
 
                 $reglasEspecificas = [
                     new TXTRule($this->helpers),
@@ -107,6 +107,54 @@ class IncidenciasService
 
                 $incidencia->save();
             }
+
+            // --- LOG EN TIEMPO REAL (AL VUELO) ---
+            try {
+                $totalDiasFinal = DB::table('incidencias')->where('token', $token)->whereNull('deleted_at')->sum('total_dias');
+
+                // Resolver Qnas involucradas
+                $qnasJoined = DB::table('incidencias')
+                    ->join('qnas', 'incidencias.qna_id', '=', 'qnas.id')
+                    ->where('incidencias.token', $token)
+                    ->whereNull('incidencias.deleted_at')
+                    ->select('qnas.qna', 'qnas.year')
+                    ->distinct()
+                    ->get()
+                    ->map(fn($q) => "Q{$q->qna}/" . substr($q->year, -2))
+                    ->implode(', ');
+
+                if (empty($qnasJoined))
+                    $qnasJoined = 'Pendiente';
+
+                $periodoTxt = 'N/A';
+                if (!empty($data['periodo_id'])) {
+                    $p = \App\Models\Periodo::find($data['periodo_id']);
+                    if ($p)
+                        $periodoTxt = "P{$p->periodo}/" . substr($p->year, -2);
+                }
+
+                // Payload para el broadcast (sin guardar en tabla de logs separada)
+                $broadcastPayload = [
+                    'employee_name' => $empleado->full_name,
+                    'type' => $incidenciaCodigo->code,
+                    'user_name' => auth()->user()->name,
+                    'details' => [
+                        'fecha_inicio' => $inicio,
+                        'fecha_final' => $fin,
+                        'total_dias' => (int)$totalDiasFinal,
+                        'qnas' => $qnasJoined,
+                        'periodo' => $periodoTxt
+                    ],
+                    'created_at' => now()->toDateTimeString()
+                ];
+
+                \Illuminate\Support\Facades\Log::info("BROADCASTING BATCH:", $broadcastPayload);
+                broadcast(new \App\Events\NewIncidenciaBatchCreated($broadcastPayload));
+            }
+            catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Real-time Log Broadcast Error: " . $e->getMessage());
+            }
+
             return $empleado->id;
         });
     }
@@ -117,12 +165,15 @@ class IncidenciasService
 
         if (Inc::esGuardia($jornadaId)) {
             $incidencia->total_dias = Inc::DIAS_GUARDIAS;
-        } elseif (Inc::esSyfDyf($jornadaId)) {
+        }
+        elseif (Inc::esSyfDyf($jornadaId)) {
             $incidencia->total_dias = Inc::DIAS_SYF_DYF;
         }
     }
 
-    public function eliminarPorToken($token) {
-        if ($token) return DB::table('incidencias')->where('token', $token)->update(['deleted_at' => Carbon::now()]);
+    public function eliminarPorToken($token)
+    {
+        if ($token)
+            return DB::table('incidencias')->where('token', $token)->update(['deleted_at' => Carbon::now()]);
     }
 }

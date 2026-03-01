@@ -641,40 +641,5 @@
         </div>
     </div>
 
-    <!-- Hooks Globales Livewire para Barra de Progreso -->
-    <script>
-        document.addEventListener('livewire:init', () => {
-            Livewire.hook('commit', ({ component, succeed, fail }) => {
-                // IGNORAR PETICIONES DEL CHAT PARA LA BARRA DE PROGRESO
-                if (component.name === 'chat-widget') return;
-
-                window.dispatchEvent(new CustomEvent('topbar-start'));
-
-                succeed(({ snapshot }) => {
-                    let hasError = false;
-
-                    // 1. Validar si la petición resultó en errores de validación
-                    if (snapshot && snapshot.memo && snapshot.memo.errors && Object.keys(snapshot.memo.errors).length > 0) {
-                        hasError = true;
-                    }
-
-                    // 2. Inspeccionar Nativamente si el Servidor ordenó emitir un Toast de Error (Ej. Traslapes Exception)
-                    if (snapshot && snapshot.effects && snapshot.effects.dispatches) {
-                        snapshot.effects.dispatches.forEach(d => {
-                            if (d.name === 'toast') {
-                                let params = d.params || {};
-                                if (Array.isArray(params)) params = params[0] || {};
-                                // Los parámetros interceptan si trae icono de error nativo programado en Managers
-                                if (params.icon === 'error' || params.type === 'error') {
-                                    hasError = true;
-                                }
-                            }
-                        });
-                    }
-
-                    window.dispatchEvent(new CustomEvent('topbar-end', { detail: hasError ? 'error' : 'success' }));
-                });
-            });
-        });
-    </script>
+    <!-- Hooks Globales Livewire removidos temporalmente para depuración -->
 </nav>
