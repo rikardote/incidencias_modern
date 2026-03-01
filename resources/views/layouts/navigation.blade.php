@@ -613,6 +613,8 @@
             </x-responsive-nav-link>
         </div>
 
+
+
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-[#0a1f1a] dark:border-gray-800">
             <div class="px-4 flex items-center gap-3">
