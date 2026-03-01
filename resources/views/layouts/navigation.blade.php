@@ -644,7 +644,10 @@
     <!-- Hooks Globales Livewire para Barra de Progreso -->
     <script>
         document.addEventListener('livewire:init', () => {
-            Livewire.hook('commit', ({ succeed, fail }) => {
+            Livewire.hook('commit', ({ component, succeed, fail }) => {
+                // IGNORAR PETICIONES DEL CHAT PARA LA BARRA DE PROGRESO
+                if (component.name === 'chat-widget') return;
+
                 window.dispatchEvent(new CustomEvent('topbar-start'));
 
                 succeed(({ snapshot }) => {

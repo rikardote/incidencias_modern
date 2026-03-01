@@ -17,11 +17,9 @@ class ChatWidget extends Component
     public $searchQuery = '';
     public $onlineUsers = []; // Array of IDs
 
-    protected $listeners = [
-        'echo-presence:chat,here' => 'setOnlineUsers',
-        'echo-presence:chat,joining' => 'userJoined',
-        'echo-presence:chat,leaving' => 'userLeft',
-    ];
+    // Eliminamos los $listeners de Livewire que activan la barra de progreso principal
+    // al recibir actualizaciones de presencia.
+
 
     public function setOnlineUsers($users)
     {

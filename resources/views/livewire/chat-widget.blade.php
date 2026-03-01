@@ -7,15 +7,26 @@
     }
 }" x-effect="if ($wire.activeConversationId) setTimeout(() => scrollBottom(), 50)"
     @chat-scrolled-bottom.window="setTimeout(() => scrollBottom(), 50)" x-init="
-        Echo.join('chat')
-            .listen('.MessageSent', (e) => {
-                console.log('EVENT RECEIVED JS:', e);
-                $wire.receiveMessage();
-            })
-            .listen('.GlobalMaintenanceEvent', (e) => {
-                console.log('Mantenimiento toggleado en chat channel, recargando...', e);
-                window.location.reload();
-            });
+        const chatChannel = Echo.join('chat');
+        
+        chatChannel.here((users) => {
+            $wire.setOnlineUsers(users, { noprogress: true });
+        })
+        .joining((user) => {
+            $wire.userJoined(user, { noprogress: true });
+        })
+        .leaving((user) => {
+            $wire.userLeft(user, { noprogress: true });
+        })
+        .listen('.MessageSent', (e) => {
+            console.log('EVENT RECEIVED JS:', e);
+            $wire.receiveMessage({ noprogress: true });
+        })
+        .listen('.GlobalMaintenanceEvent', (e) => {
+            console.log('Mantenimiento toggleado en chat channel, recargando...', e);
+            if (e.sender_id == {{ auth()->user() ? auth()->id() : '0' }}) return;
+            window.location.reload();
+        });
     " class="fixed bottom-6 right-6 z-50 flex flex-col items-end">
 
     @if($isOpen) <div
