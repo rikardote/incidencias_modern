@@ -113,6 +113,20 @@
         });
 
         document.addEventListener('livewire:initialized', () => {
+            // Centralized Echo Listener
+            if (typeof Echo !== 'undefined') {
+                Echo.join('chat')
+                    .listen('.NewIncidenciaBatchCreated', (e) => {
+                        console.log('BATCH RECEPTION (LAYOUT):', e);
+
+                        // Increment badge in layout's Alpine store
+                        window.dispatchEvent(new CustomEvent('live-log-new'));
+
+                        // Trigger internal component refresh if it exists
+                        window.dispatchEvent(new CustomEvent('live-log-refresh'));
+                    });
+            }
+
             Livewire.on('swal', (event) => {
                 const data = Array.isArray(event) ? event[0] : event;
                 Swal.fire({
@@ -160,7 +174,40 @@
         });
     </script>
 
-    <livewire:admin.live-capture-log lazy />
+    <div x-data="{ 
+         openBitacora: false, 
+         newBitacoraCount: 0 
+     }" x-on:toggle-live-log.window="openBitacora = !openBitacora; newBitacoraCount = 0"
+        x-on:live-log-new.window="if(!openBitacora) newBitacoraCount++">
+
+        <!-- Toggle Button (Siempre visible) -->
+        <div class="fixed bottom-6 right-24 z-[60]">
+            <button @click="openBitacora = !openBitacora; newBitacoraCount = 0"
+                class="group relative w-12 h-12 bg-[#13322B] hover:bg-[#0a1f1a] text-oro rounded-full shadow-2xl border border-oro/20 flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95">
+
+                <template x-if="newBitacoraCount > 0">
+                    <span class="absolute -top-1 -right-1 flex h-5 w-5">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span
+                            class="relative inline-flex rounded-full h-5 w-5 bg-red-500 text-[10px] text-white font-black flex items-center justify-center"
+                            x-text="newBitacoraCount"></span>
+                    </span>
+                </template>
+
+                <svg class="w-5 h-5 transition-transform duration-500" :class="openBitacora ? 'rotate-90' : ''"
+                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path x-show="!openBitacora" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    <path x-show="openBitacora" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <livewire:admin.live-capture-log lazy />
+    </div>
+
     @livewire('chat-widget')
     @livewireScripts
 </body>

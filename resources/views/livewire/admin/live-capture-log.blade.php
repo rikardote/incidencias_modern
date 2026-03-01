@@ -1,43 +1,13 @@
-<div x-data="{ 
-    open: false,
-    newItems: 0
-}" x-on:toggle-live-log.window="open = !open; newItems = 0" x-on:live-log-new.window="if(!open) newItems++"
-    class="relative">
-
-    <!-- Token de Acceso Flotante -->
-    <div class="fixed bottom-6 right-24 z-[60] flex flex-col gap-3">
-        <button @click="open = !open; newItems = 0"
-            class="group relative w-12 h-12 bg-[#13322B] hover:bg-[#0a1f1a] text-oro rounded-full shadow-2xl border border-oro/20 flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95">
-
-            <!-- Badge -->
-            <template x-if="newItems > 0">
-                <span class="absolute -top-1 -right-1 flex h-5 w-5">
-                    <span
-                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span
-                        class="relative inline-flex rounded-full h-5 w-5 bg-red-500 text-[10px] text-white font-black flex items-center justify-center"
-                        x-text="newItems"></span>
-                </span>
-            </template>
-
-            <svg class="w-5 h-5 transition-transform duration-500" :class="open ? 'rotate-90' : ''" fill="none"
-                stroke="currentColor" viewBox="0 0 24 24">
-                <path x-show="!open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                <path x-show="open" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
-    </div>
-
+<div class="relative">
     <!-- Sidebar Overlay -->
-    <div x-show="open" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
-        x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="open = false"
+    <div x-show="openBitacora" x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0" @click="openBitacora = false"
         class="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[70]"></div>
 
     <!-- Sidebar Content -->
-    <div x-show="open" x-transition:enter="transition ease-out duration-500 cubic-bezier(0.4, 0, 0.2, 1)"
+    <div x-show="openBitacora" x-transition:enter="transition ease-out duration-500 cubic-bezier(0.4, 0, 0.2, 1)"
         x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
         x-transition:leave="transition ease-in duration-400" x-transition:leave-start="translate-x-0"
         x-transition:leave-end="translate-x-full"
@@ -49,7 +19,7 @@
                 <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                 <h2 class="text-sm font-black text-white tracking-[0.2em] uppercase">Bitácora de Captura</h2>
             </div>
-            <button @click="open = false" class="text-gray-500 hover:text-white transition-colors">
+            <button @click="openBitacora = false" class="text-gray-500 hover:text-white transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -154,19 +124,6 @@
             <span class="text-[8px] font-bold text-gray-600 uppercase">Snapshot {{ date('H:i:s') }}</span>
         </div>
     </div>
-
-    <script>
-        document.addEventListener('livewire:initialized', () => {
-            Echo.join('chat')
-                .listen('.NewIncidenciaBatchCreated', (e) => {
-                    console.log('BATCH RECEPTION:', e);
-                    // Dispatch to increment badge
-                    window.dispatchEvent(new CustomEvent('live-log-new'));
-                    // Force Livewire refresh immediately as backup
-                    @this.$refresh();
-                });
-        });
-    </script>
 
     <style>
         .custom-scrollbar::-webkit-scrollbar {
