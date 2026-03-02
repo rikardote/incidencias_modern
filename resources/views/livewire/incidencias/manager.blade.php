@@ -999,7 +999,7 @@
                             <div @click="select(emp)"
                                 class="p-4 bg-gray-50/50 dark:bg-gray-900/30 hover:bg-oro/5 dark:hover:bg-oro/10 border border-transparent hover:border-oro/20 rounded-2xl cursor-pointer transition-all flex items-center gap-4 group">
                                 <div class="w-10 h-10 rounded-xl bg-white dark:bg-gray-800 flex items-center justify-center font-black text-[#13322B] dark:text-oro shadow-sm group-hover:scale-110 transition-transform"
-                                    x-text="emp.id"></div>
+                                    x-text="emp.initials"></div>
                                 <div class="flex-1">
                                     <div class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-0.5"
                                         x-text="emp.department || 'Sin Departamento'"></div>

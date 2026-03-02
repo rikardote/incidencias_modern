@@ -97,44 +97,43 @@
                 </div>
 
             </div>
-        </div>
-        @endif
+            @endif
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Card Empleados -->
-            <a href="{{ route('employees.index') }}"
-                class="mt-4 md:mt-0 md:col-span-2 flex items-center justify-between p-6 bg-[#13322B] dark:bg-gray-800 rounded-xl shadow-sm border border-[#0a1f1a] dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all group relative overflow-hidden">
-                <div class="absolute right-0 top-0 -mr-6 -mt-6">
-                    <svg class="w-24 h-24 text-white opacity-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path
-                            d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z">
-                        </path>
-                    </svg>
-                </div>
-                <div class="relative z-10">
-                    <h5 class="text-lg font-bold text-white group-hover:text-[#e6d194] transition-colors">Empleados
-                    </h5>
-                    <p class="text-sm text-gray-300 dark:text-gray-400 mt-1">Directorio y Captura</p>
-                </div>
-            </a>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Card Empleados -->
+                <a href="{{ route('employees.index') }}"
+                    class="mt-4 md:mt-0 md:col-span-2 flex items-center justify-between p-6 bg-[#13322B] dark:bg-gray-800 rounded-xl shadow-sm border border-[#0a1f1a] dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all group relative overflow-hidden">
+                    <div class="absolute right-0 top-0 -mr-6 -mt-6">
+                        <svg class="w-24 h-24 text-white opacity-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path
+                                d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z">
+                            </path>
+                        </svg>
+                    </div>
+                    <div class="relative z-10">
+                        <h5 class="text-lg font-bold text-white group-hover:text-[#e6d194] transition-colors">Empleados
+                        </h5>
+                        <p class="text-sm text-gray-300 dark:text-gray-400 mt-1">Directorio y Captura</p>
+                    </div>
+                </a>
 
-            <!-- Card Reportes -->
-            <a href="{{ route('reports.general') }}"
-                class="mt-4 md:mt-0 md:col-span-2 flex items-center justify-between p-6 bg-[#9b2247] dark:bg-gray-800 rounded-xl shadow-sm border border-[#611232] dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all group relative overflow-hidden">
-                <div class="absolute right-0 top-0 -mr-6 -mt-6">
-                    <svg class="w-24 h-24 text-white opacity-10" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z"
-                            clip-rule="evenodd"></path>
-                    </svg>
-                </div>
-                <div class="relative z-10">
-                    <h5 class="text-lg font-bold text-white group-hover:text-[#e6d194] transition-colors">Reportes
-                    </h5>
-                    <p class="text-sm text-gray-200 dark:text-gray-400 mt-1">Generación de RH5</p>
-                </div>
-            </a>
+                <!-- Card Reportes -->
+                <a href="{{ route('reports.general') }}"
+                    class="mt-4 md:mt-0 md:col-span-2 flex items-center justify-between p-6 bg-[#9b2247] dark:bg-gray-800 rounded-xl shadow-sm border border-[#611232] dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all group relative overflow-hidden">
+                    <div class="absolute right-0 top-0 -mr-6 -mt-6">
+                        <svg class="w-24 h-24 text-white opacity-10" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd"
+                                d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V8z"
+                                clip-rule="evenodd"></path>
+                        </svg>
+                    </div>
+                    <div class="relative z-10">
+                        <h5 class="text-lg font-bold text-white group-hover:text-[#e6d194] transition-colors">Reportes
+                        </h5>
+                        <p class="text-sm text-gray-200 dark:text-gray-400 mt-1">Generación de RH5</p>
+                    </div>
+                </a>
+            </div>
         </div>
-    </div>
     </div>
 </x-app-layout>

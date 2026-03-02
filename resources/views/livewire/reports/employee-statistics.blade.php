@@ -1,32 +1,31 @@
 <div class="py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto">
-        <!-- Header -->
+        {{-- Header del Reporte --}}
         <div
-            class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-gray-200 dark:border-gray-800">
-            <div>
-                <div class="flex items-center gap-3 mb-2">
-                    <span
-                        class="px-2 py-0.5 bg-[#9b2247]/10 text-[#9b2247] dark:text-[#e6d194] text-[10px] font-black uppercase tracking-widest rounded shadow-sm">
-                        PERFIL ANALÍTICO
-                    </span>
-                    <span class="text-gray-300 dark:text-gray-600 text-xs">|</span>
-                    <span class="text-xs font-bold text-gray-500 uppercase tracking-tighter italic">ID: {{
-                        $this->employee->num_empleado }}</span>
+            class="mb-8 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6 pb-6 border-b border-gray-100 dark:border-gray-800">
+            <div class="flex items-center gap-5">
+                <div>
+                    <h1 class="text-3xl font-extrabold text-[#13322B] dark:text-gray-100 uppercase tracking-tight">
+                        Perfil <span class="text-oro">Analítico</span></h1>
+                    <div class="flex items-center gap-3 mt-1 flex-wrap">
+                        <span
+                            class="px-2.5 py-1 bg-[#9B2247]/10 text-[#9B2247] dark:text-oro text-[10px] font-black rounded-lg uppercase tracking-wider border border-[#9b2247]/20 shadow-sm">
+                            #{{ $this->employee->num_empleado }}
+                        </span>
+                        <span class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-tight">
+                            {{ $this->employee->fullname }}
+                        </span>
+                    </div>
                 </div>
-                <h1 class="text-4xl font-black text-[#13322B] dark:text-gray-100 uppercase tracking-tight">
-                    {{ $this->employee->fullname }}
-                </h1>
-                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400 font-medium">Consolidado histórico y estadística
-                    de desempeño institucional.</p>
             </div>
 
             <div class="flex items-center gap-3">
                 <a href="{{ route('employees.kardex', $this->employee->id) }}" wire:navigate
-                    class="px-4 py-2 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-black uppercase tracking-widest border border-gray-100 dark:border-gray-700 hover:border-oro transition-all shadow-sm">
+                    class="h-[42px] px-5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-black uppercase tracking-widest border border-gray-100 dark:border-gray-700 hover:border-oro transition-all shadow-sm flex items-center justify-center">
                     Ver Kárdex
                 </a>
                 <button onclick="window.print()"
-                    class="px-5 py-2 bg-[#13322B] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#0a1b17] transition-all shadow-md">
+                    class="h-[42px] px-5 bg-[#13322B] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#0a1b17] transition-all shadow-md">
                     Imprimir Perfil
                 </button>
             </div>
@@ -420,10 +419,4 @@
             animation: fadeIn 0.5s ease-out forwards;
         }
     </style>
-</div> }
-
-.animate-fadeIn {
-animation: fadeIn 0.5s ease-out forwards;
-}
-</style>
 </div>

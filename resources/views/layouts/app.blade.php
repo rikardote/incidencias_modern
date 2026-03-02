@@ -25,8 +25,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
         rel="stylesheet">
 
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
     <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'], 'dist')
     @livewireStyles
 
     <!-- Institutional Colors Shim -->
@@ -101,6 +104,8 @@
             Alpine.store('island', {
                 activeStyle: localStorage.getItem('island_style') || 'classic',
                 showFaces: localStorage.getItem('island_show_faces') !== 'false',
+                logCount: 0,
+                logIsOpen: false,
                 setStyle(style) {
                     this.activeStyle = style;
                     localStorage.setItem('island_style', style);
@@ -108,11 +113,47 @@
                 setFaces(show) {
                     this.showFaces = show;
                     localStorage.setItem('island_show_faces', show);
+                },
+                incrementLog() {
+                    if (!this.logIsOpen) this.logCount++;
+                },
+                toggleLog() {
+                    this.logIsOpen = !this.logIsOpen;
+                    if (this.logIsOpen) this.logCount = 0;
+                    window.dispatchEvent(new CustomEvent('toggle-live-log-internal', {
+                        detail: { open: this.logIsOpen }
+                    }));
                 }
             });
         });
 
         document.addEventListener('livewire:initialized', () => {
+            // Centralized Echo Listener
+            if (typeof Echo !== 'undefined') {
+                Echo.private('chat')
+                    .listen('.NewIncidenciaBatchCreated', (e) => {
+                        console.log('BATCH RECEPTION (LAYOUT):', e);
+
+                        // Increment badge in layout's Alpine store
+                        if (window.Alpine) {
+                            Alpine.store('island').incrementLog();
+                        }
+
+                        // Dispatch visual notification to Dynamic Island
+                        window.dispatchEvent(new CustomEvent('island-notif', {
+                            detail: { message: 'Nuevas incidencias detectadas', type: 'info' }
+                        }));
+
+                        // Trigger internal component refresh if it exists
+                        window.dispatchEvent(new CustomEvent('live-log-refresh'));
+                    });
+            }
+
+            // Global Debug Monitor
+            window.addEventListener('island-notif', (e) => {
+                console.warn('⚡️ EVENT-DEBUG: island-notif arrived at window:', e.detail);
+            });
+
             Livewire.on('swal', (event) => {
                 const data = Array.isArray(event) ? event[0] : event;
                 Swal.fire({
@@ -160,7 +201,12 @@
         });
     </script>
 
-    <livewire:admin.live-capture-log lazy />
+    <div x-data x-on:toggle-live-log.window="$store.island.toggleLog()">
+
+
+        <livewire:admin.live-capture-log />
+    </div>
+
     @livewire('chat-widget')
     @livewireScripts
 </body>
