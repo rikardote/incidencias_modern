@@ -39,6 +39,16 @@ class KardexReport extends Component
         }
     }
 
+    public function cambiarEmpleadoByNum()
+    {
+        $emp = Employe::where('num_empleado', $this->num_empleado)->value('id');
+        if ($emp) {
+            $this->cambiarEmpleado($emp);
+        } else {
+            $this->addError('num_empleado', 'Empleado no encontrado.');
+        }
+    }
+
     public function updatedFechaInicio()
     {
         $this->results = null;
@@ -64,7 +74,6 @@ class KardexReport extends Component
 
     public function generate()
     {
-        usleep(1500000); // Delay intencional para ver la animación de la Isla
         if (!$this->employee) {
             $this->addError('num_empleado', 'Empleado no encontrado. Verifique el número de empleado.');
             return;
@@ -80,22 +89,23 @@ class KardexReport extends Component
         })->map(function ($group) {
             $first = $group->first();
             return (object)[
-            'codigo' => $first->codigo,
-            'fecha_inicio' => $group->min('fecha_inicio'),
-            'fecha_final' => $group->max('fecha_final'),
-            'total_dias' => $group->sum('total_dias'),
-            'periodo' => $first->periodo,
-            'otorgado' => $first->otorgado,
-            'horas_otorgadas' => $first->horas_otorgadas,
-            'diagnostico' => $first->diagnostico,
-            'num_licencia' => $first->num_licencia,
-            'cobertura_txt' => $first->cobertura_txt,
+                'codigo' => $first->codigo,
+                'fecha_inicio' => $group->min('fecha_inicio'),
+                'fecha_final' => $group->max('fecha_final'),
+                'total_dias' => $group->sum('total_dias'),
+                'periodo' => $first->periodo,
+                'otorgado' => $first->otorgado,
+                'horas_otorgadas' => $first->horas_otorgadas,
+                'diagnostico' => $first->diagnostico,
+                'num_licencia' => $first->num_licencia,
+                'cobertura_txt' => $first->cobertura_txt,
             ];
         })->sortBy(function ($item) {
-            return $item->codigo->code . $item->fecha_inicio;
+            $code = $item->codigo->code ?? 'ZZ';
+            return $code . $item->fecha_inicio;
         })->values();
 
-        $this->results = collect($grouped);
+        $this->results = $grouped;
 
         // Notificar a la Isla Dinámica que hemos terminado
         $this->dispatch('island-progress-update', progress: 100);

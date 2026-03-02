@@ -73,9 +73,14 @@ class Index extends Component
         }
         $centros = $centrosQuery->orderBy('code')->get();
 
-        // Opciones de quincenas
-        $quincenas = $this->getQuincenasOptions();
+        // Opciones de quincenas (ahora las obtenemos desde el modelo Qna para consistencia)
         $años = range(2024, (int)date('Y'));
+        $qnasList = \App\Models\Qna::where('year', $this->año_seleccionado)->orderBy('qna')->get();
+        
+        $quincenas = $qnasList->map(fn($q) => [
+            'value' => (int)$q->qna,
+            'label' => "QNA " . str_pad($q->qna, 2, '0', STR_PAD_LEFT) . ($q->description ? " (" . mb_strtoupper($q->description) . ")" : "")
+        ])->toArray();
 
         // Calcular fechas
         $this->calcularFechas();

@@ -33,14 +33,57 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <input type="date" wire:model="fechaInicio"
-                        class="h-[42px] px-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 text-center">
-                    <span class="text-gray-400">-</span>
-                    <input type="date" wire:model="fechaFinal"
-                        class="h-[42px] px-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 text-center">
+                    <div wire:ignore class="relative" x-data="{ 
+                        flatpickrInstance: null,
+                        init() { 
+                            this.flatpickrInstance = window.flatpickr(this.$refs.input, { 
+                                dateFormat: 'd/m/Y', 
+                                defaultDate: '{{ \Carbon\Carbon::parse($fechaInicio)->format('d/m/Y') }}', 
+                                onChange: (selectedDates, dateStr, instance) => { 
+                                    if(selectedDates.length > 0) { 
+                                        $wire.set('fechaInicio', instance.formatDate(selectedDates[0], 'Y-m-d')) 
+                                    }
+                                } 
+                            }); 
+                        } 
+                    }">
+                        <input type="text" x-ref="input"
+                            class="h-[42px] w-[130px] px-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 focus:ring-[#13322B] cursor-pointer text-center"
+                            placeholder="Inicio">
+                    </div>
+                    <span class="text-gray-400 font-bold">-</span>
+                    <div wire:ignore class="relative" x-data="{ 
+                        flatpickrInstance: null,
+                        init() { 
+                            this.flatpickrInstance = window.flatpickr(this.$refs.input, { 
+                                dateFormat: 'd/m/Y', 
+                                defaultDate: '{{ \Carbon\Carbon::parse($fechaFinal)->format('d/m/Y') }}', 
+                                onChange: (selectedDates, dateStr, instance) => { 
+                                    if(selectedDates.length > 0) { 
+                                        $wire.set('fechaFinal', instance.formatDate(selectedDates[0], 'Y-m-d')) 
+                                    }
+                                } 
+                            }); 
+                        } 
+                    }">
+                        <input type="text" x-ref="input"
+                            class="h-[42px] w-[130px] px-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 focus:ring-[#13322B] cursor-pointer text-center"
+                            placeholder="Fin">
+                    </div>
                 </div>
                 <button wire:click="loadData"
-                    class="h-[42px] px-5 bg-[#13322B] hover:bg-[#0a1b17] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md">Generar</button>
+                    class="h-[42px] px-5 bg-[#13322B] hover:bg-[#0a1b17] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md transition-colors flex items-center justify-center min-w-[120px]">
+                    <span wire:loading.remove wire:target="loadData">Generar</span>
+                    <span wire:loading wire:target="loadData">
+                        <svg class="animate-spin h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                            </circle>
+                            <path class="opacity-75" fill="currentColor"
+                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </span>
+                </button>
             </div>
         </div>
 

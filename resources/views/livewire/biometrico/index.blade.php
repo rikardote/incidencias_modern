@@ -1,7 +1,11 @@
-<div x-data="{ 
+<div class="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen" x-data="{ 
         tempEmpId: '', 
         tempName: '', 
         tempDate: '',
+        openYear: false,
+        openQna: false,
+        openDept: false,
+        searchDept: '',
         openModal(employeeId, numEmpleado, name, date, displayDate) {
             this.tempEmpId = numEmpleado;
             this.tempName = name;
@@ -9,227 +13,111 @@
             $wire.isModalOpen = true;
             $wire.openCaptureModal(employeeId, numEmpleado, name, date);
         }
-    }" class="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen bg-gray-50 dark:bg-gray-950">
+    }">
     {{-- Header del Reporte --}}
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-5 mb-6">
-        <div class="flex items-center gap-4">
-            <div
-                class="w-12 h-12 rounded-xl bg-[#1e5b4f] flex items-center justify-center shadow-lg shadow-[#1e5b4f]/20 shrink-0">
-                <svg class="w-6 h-6 text-[#e6d194]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A10.003 10.003 0 0112 3a10.003 10.003 0 014.139 18.442l.054.09M12 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-            </div>
-            <div>
-                <h2 class="text-lg font-bold text-gray-900 dark:text-white uppercase tracking-tight">
-                    Control Biométrico de Asistencia
-                </h2>
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">
-                    Monitoreo y Captura de Incidencias desde Checadas
-                </p>
-            </div>
+    <div class="mb-8 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-extrabold text-[#13322B] dark:text-gray-100 uppercase tracking-tight">Control <span
+                    class="text-oro">Biométrico</span></h1>
+            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Monitoreo y captura de incidencias desde checadas.
+            </p>
         </div>
-    </div>
 
-    {{-- Filtros del Reporte (Estilo Vertical Stacked) --}}
-    <div class="space-y-4 mb-8">
         <div
-            class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 divide-y divide-gray-50 dark:divide-gray-700">
-
+            class="bg-white dark:bg-gray-800 p-2 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col lg:flex-row items-stretch lg:items-center gap-2">
             {{-- Año --}}
-            <div class="flex items-center gap-4 p-4">
-                <div
-                    class="w-12 h-12 rounded-xl bg-white dark:bg-gray-900 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 shrink-0">
-                    <svg class="w-6 h-6 text-[#1e5b4f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <div class="relative w-full lg:w-[120px]" @click.away="openYear = false">
+                <button @click="openYear = !openYear" type="button"
+                    class="flex items-center justify-between w-full py-2.5 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200">
+                    <span class="truncate">{{ $año_seleccionado ?? 'Año' }}</span>
+                    <svg class="w-4 h-4 text-gray-400 transition-transform" :class="{'rotate-180': openYear}"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <label
-                        class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Año</label>
-                    <div x-data="{ open: false }" @click.away="open = false" class="relative group">
-                        <button @click="open = !open" type="button"
-                            class="flex items-center justify-between w-full py-2 pl-3 pr-3 bg-gray-50 hover:bg-gray-100 dark:bg-gray-900/50 dark:hover:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl text-lg font-black text-gray-900 dark:text-white focus:ring-2 focus:ring-[#1e5b4f]/30 focus:border-[#1e5b4f] transition-all shadow-sm outline-none">
-                            <span class="truncate uppercase">{{ $año_seleccionado ?? 'Seleccione Año' }}</span>
-                            <svg class="w-5 h-5 text-gray-400 group-hover:text-[#1e5b4f] transition-transform duration-200"
-                                :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-
-                        <div x-show="open" x-transition:enter="transition ease-out duration-100"
-                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                            x-transition:leave="transition ease-in duration-75"
-                            x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-xl overflow-hidden origin-top"
-                            style="display: none;">
-                            <div class="max-h-60 overflow-y-auto p-1.5 space-y-1">
-                                @foreach($años as $año)
-                                <div @click="$wire.set('año_seleccionado', '{{ $año }}'); open = false"
-                                    class="px-3 py-2.5 rounded-xl cursor-pointer text-sm font-black uppercase transition-all flex items-center justify-between {{ $año_seleccionado == $año ? 'bg-[#1e5b4f] text-[#e6d194]' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-[#1e5b4f]' }}">
-                                    <span>{{ $año }}</span>
-                                    @if($año_seleccionado == $año)
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
-                                            d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                    @endif
-                                </div>
-                                @endforeach
-                            </div>
+                </button>
+                <div x-show="openYear"
+                    class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden"
+                    style="display: none;">
+                    <div class="max-h-60 overflow-y-auto p-1.5 space-y-1">
+                        @foreach($años as $año)
+                        <div wire:click="$set('año_seleccionado', '{{ $año }}')" @click="openYear = false"
+                            class="px-3 py-2 rounded-lg cursor-pointer text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-700 {{ $año_seleccionado == $año ? 'bg-oro/10 text-oro' : '' }}">
+                            {{ $año }}
                         </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
 
             {{-- Quincena --}}
-            <div class="flex items-center gap-4 p-4">
-                <div
-                    class="w-12 h-12 rounded-xl bg-white dark:bg-gray-900 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 shrink-0">
-                    <svg class="w-6 h-6 text-[#1e5b4f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Quincena
-                        Evaluada</label>
+            <div class="relative w-full lg:w-[220px]" @click.away="openQna = false">
+                <button @click="openQna = !openQna" type="button"
+                    class="flex items-center justify-between w-full py-2.5 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200">
                     @php
-                    $qLabel = 'Seleccione Quincena';
-                    foreach($quincenas as $q) {
-                    if($q['value'] == $quincena_seleccionada) {
-                    $qLabel = $q['label']; break;
-                    }
-                    }
+                    $qLabel = 'Quincena';
+                    foreach($quincenas as $q) if($q['value'] == $quincena_seleccionada) $qLabel = $q['label'];
                     @endphp
-                    <div x-data="{ open: false }" @click.away="open = false" class="relative group">
-                        <button @click="open = !open" type="button"
-                            class="flex items-center justify-between w-full py-2 pl-3 pr-3 bg-gray-50 hover:bg-gray-100 dark:bg-gray-900/50 dark:hover:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl text-lg font-black text-gray-900 dark:text-white focus:ring-2 focus:ring-[#1e5b4f]/30 focus:border-[#1e5b4f] transition-all shadow-sm outline-none">
-                            <span class="truncate uppercase">{{ $qLabel }}</span>
-                            <svg class="w-5 h-5 text-gray-400 group-hover:text-[#1e5b4f] transition-transform duration-200"
-                                :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-
-                        <div x-show="open" x-transition:enter="transition ease-out duration-100"
-                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                            x-transition:leave="transition ease-in duration-75"
-                            x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-xl overflow-hidden origin-top"
-                            style="display: none;">
-                            <div class="max-h-60 overflow-y-auto p-1.5 space-y-1">
-                                @foreach($quincenas as $q)
-                                <div @click="$wire.set('quincena_seleccionada', '{{ $q['value'] }}'); open = false"
-                                    class="px-3 py-2.5 rounded-xl cursor-pointer text-sm font-black uppercase transition-all flex items-center justify-between {{ $quincena_seleccionada == $q['value'] ? 'bg-[#1e5b4f] text-[#e6d194]' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-[#1e5b4f]' }}">
-                                    <span>{{ $q['label'] }}</span>
-                                    @if($quincena_seleccionada == $q['value'])
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
-                                            d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                    @endif
-                                </div>
-                                @endforeach
-                            </div>
+                    <span class="truncate">{{ $qLabel }}</span>
+                    <svg class="w-4 h-4 text-gray-400 transition-transform" :class="{'rotate-180': openQna}" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="openQna"
+                    class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden"
+                    style="display: none;">
+                    <div class="max-h-60 overflow-y-auto p-1.5 space-y-1">
+                        @foreach($quincenas as $q)
+                        <div wire:click="$set('quincena_seleccionada', '{{ $q['value'] }}')" @click="openQna = false"
+                            class="px-3 py-2 rounded-lg cursor-pointer text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-700 {{ $quincena_seleccionada == $q['value'] ? 'bg-oro/10 text-oro' : '' }}">
+                            {{ $q['label'] }}
                         </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
 
             {{-- Centro de Trabajo --}}
-            <div class="flex items-center gap-4 p-4">
-                <div
-                    class="w-12 h-12 rounded-xl bg-white dark:bg-gray-900 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700 shrink-0">
-                    <svg class="w-6 h-6 text-[#1e5b4f]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <label class="block text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Centro de
-                        Trabajo</label>
+            <div class="relative w-full lg:w-[250px]" @click.away="openDept = false; searchDept = ''">
+                <button @click="openDept = !openDept" type="button"
+                    class="flex items-center justify-between w-full py-2.5 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200">
                     @php
-                    $cLabel = 'Seleccione Centro de Trabajo';
-                    foreach($centros as $c) {
-                    if($c->id == $centro_seleccionado) {
-                    $cLabel = $c->code . ' - ' . $c->description; break;
-                    }
-                    }
+                    $cLabel = 'Centro de Trabajo';
+                    foreach($centros as $c) if($c->id == $centro_seleccionado) $cLabel = $c->code . ' - ' .
+                    $c->description;
                     @endphp
-                    <div x-data="{ open: false, search: '' }" @click.away="open = false; search = ''"
-                        class="relative group">
-                        <button @click="open = !open" type="button"
-                            class="flex items-center justify-between w-full py-2 pl-3 pr-3 bg-gray-50 hover:bg-gray-100 dark:bg-gray-900/50 dark:hover:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-xl text-lg font-black text-gray-900 dark:text-white focus:ring-2 focus:ring-[#1e5b4f]/30 focus:border-[#1e5b4f] transition-all shadow-sm outline-none">
-                            <span class="truncate uppercase text-left">{{ $cLabel }}</span>
-                            <svg class="w-5 h-5 text-gray-400 group-hover:text-[#1e5b4f] transition-transform duration-200 shrink-0 ml-2"
-                                :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
-                                    d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-
-                        <div x-show="open" x-transition:enter="transition ease-out duration-100"
-                            x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                            x-transition:leave="transition ease-in duration-75"
-                            x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-95"
-                            class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-xl overflow-hidden origin-top"
-                            style="display: none;">
-
-                            {{-- Buscador Integrado --}}
-                            <div
-                                class="p-2 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50">
-                                <input type="text" x-model="search" placeholder="BUSCAR CENTRO..."
-                                    class="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl text-xs font-black uppercase text-gray-900 dark:text-white px-3 py-2 focus:ring-2 focus:ring-[#1e5b4f]/30 focus:border-[#1e5b4f] outline-none placeholder-gray-400 transition-all shadow-sm">
-                            </div>
-
-                            <div class="max-h-52 overflow-y-auto p-1.5 space-y-1">
-                                <div @click="$wire.set('centro_seleccionado', ''); open = false; search = ''"
-                                    x-show="'seleccione centro de trabajo'.includes(search.toLowerCase()) || search === ''"
-                                    class="px-3 py-2.5 rounded-xl cursor-pointer text-sm font-black uppercase transition-all flex items-center justify-between {{ empty($centro_seleccionado) ? 'bg-[#1e5b4f] text-[#e6d194]' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-[#1e5b4f]' }}">
-                                    <span>Seleccione Centro</span>
-                                    @if(empty($centro_seleccionado))
-                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
-                                            d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                    @endif
-                                </div>
-                                @foreach($centros as $centro)
-                                <div @click="$wire.set('centro_seleccionado', '{{ $centro->id }}'); open = false; search = ''"
-                                    x-show="'{{ strtolower($centro->code . ' ' . $centro->description) }}'.includes(search.toLowerCase())"
-                                    class="px-3 py-2.5 rounded-xl cursor-pointer text-sm font-black uppercase transition-all flex items-center justify-between {{ $centro_seleccionado == $centro->id ? 'bg-[#1e5b4f] text-[#e6d194]' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-[#1e5b4f]' }}">
-                                    <span class="truncate pr-2 w-full">{{ $centro->code }} - {{ $centro->description
-                                        }}</span>
-                                    @if($centro_seleccionado == $centro->id)
-                                    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
-                                            d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                    @endif
-                                </div>
-                                @endforeach
-                            </div>
+                    <span class="truncate">{{ $cLabel }}</span>
+                    <svg class="w-4 h-4 text-gray-400 transition-transform" :class="{'rotate-180': openDept}"
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="openDept"
+                    class="absolute z-50 w-full lg:w-[350px] right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden"
+                    style="display: none;">
+                    <div class="p-2 border-b border-gray-50 dark:border-gray-700">
+                        <input type="text" x-model="searchDept" placeholder="Buscar centro..."
+                            class="w-full px-3 py-1.5 text-[10px] bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-lg outline-none font-bold uppercase">
+                    </div>
+                    <div class="max-h-60 overflow-y-auto p-1.5 space-y-1">
+                        @foreach($centros as $c)
+                        <div wire:click="$set('centro_seleccionado', '{{ $c->id }}')"
+                            x-show="'{{ strtolower($c->code . ' ' . $c->description) }}'.includes(searchDept.toLowerCase())"
+                            @click="openDept = false"
+                            class="px-3 py-2 rounded-lg cursor-pointer text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-700 {{ $centro_seleccionado == $c->id ? 'bg-oro/10 text-oro' : '' }}">
+                            [{{ $c->code }}] {{ $c->description }}
                         </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
-        </div>
 
-        {{-- Botón de Exportación (Full Width) --}}
-        <button wire:click="exportPdf"
-            class="w-full bg-[#9b2247] hover:bg-[#7a1b38] text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] transition-all shadow-xl shadow-[#9b2247]/20 flex items-center justify-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
-            Exportar Biométrico PDF
-        </button>
+            <button wire:click="exportPdf" wire:loading.attr="disabled"
+                class="h-[42px] px-6 bg-[#9b2247] hover:bg-[#7a1b38] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md transition-all flex items-center gap-2">
+                <span wire:loading.remove wire:target="exportPdf">Exportar PDF</span>
+                <span wire:loading wire:target="exportPdf">...</span>
+            </button>
+        </div>
     </div>
 
     {{-- Vista Previa de Registros --}}
