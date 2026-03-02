@@ -50,6 +50,12 @@ DB_HOST=db
 DB_DATABASE=sistemas
 DB_USERNAME=rishar
 DB_PASSWORD=una_clave_segura_aqui
+
+# Base de Datos de Chat (Secundaria)
+DB_CHATS_HOST=db
+DB_CHATS_DATABASE=sistemas_chats
+DB_CHATS_USERNAME=rishar
+DB_CHATS_PASSWORD="${DB_PASSWORD}"
 ```
 
 ---
@@ -134,9 +140,23 @@ Sigue este orden exacto en tu terminal del servidor:
 *   **Causa:** Una actualización de presencia falló o el caché de la vista es viejo.
 *   **Solución:** Limpia el caché con `docker exec modern_app php artisan view:clear`.
 
-### ❌ Error: "Database connection refused"
+### ❌ Error: "Database connection refused" o "Host db failed"
 *   **Causa:** El contenedor de la DB (`db`) no ha terminado de iniciar cuando Laravel intenta conectar.
 *   **Solución:** Espera 10 segundos y corre `docker exec modern_app php artisan migrate --force`.
+
+### ❌ Error: "SQLSTATE[HY000] [1044] Access denied to database 'sistemas_chats'"
+*   **Causa:** La base de datos de chat no se crea automáticamente si se define fuera de la conexión principal.
+*   **Solución:** Entra a MySQL y créala manualmente con permisos:
+    ```bash
+    docker exec -it modern_db mysql -uroot -proot
+    mysql> CREATE DATABASE IF NOT EXISTS sistemas_chats;
+    mysql> GRANT ALL PRIVILEGES ON sistemas_chats.* TO 'rishar'@'%';
+    mysql> FLUSH PRIVILEGES;
+    ```
+
+### ❌ Error: "Echo is not defined" en la consola del navegador
+*   **Causa:** Alpine.js intenta ejecutarse antes de que el archivo compilado de Vite termine de cargar Echo.
+*   **Solución:** Es un error de tiempo de carga común. Asegúrate de que `npm run build` se ejecutó correctamente. Si el chat funciona después de unos segundos, puedes ignorar el error inicial.
 
 ---
 
