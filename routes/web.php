@@ -62,12 +62,15 @@ Route::middleware('auth')->group(function () {
             }
 
             return response()->json(
-            $query->orderBy('num_empleado')
+            $query->with('department')
+            ->orderBy('num_empleado')
             ->limit(20)
-            ->get(['id', 'num_empleado', 'name', 'father_lastname', 'mother_lastname'])
+            ->get(['id', 'num_empleado', 'name', 'father_lastname', 'mother_lastname', 'deparment_id'])
             ->map(fn($e) => [
             'id' => $e->id,
             'label' => $e->num_empleado . ' - ' . $e->name . ' ' . $e->father_lastname . ' ' . $e->mother_lastname,
+            'department' => $e->department->description ?? 'Sin Departamento',
+            'initials' => strtoupper(substr($e->name, 0, 1) . substr($e->father_lastname, 0, 1)),
             ])
             );
         }

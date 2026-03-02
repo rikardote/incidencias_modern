@@ -25,8 +25,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
         rel="stylesheet">
 
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
     <!-- Scripts -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js'], 'dist')
     @livewireStyles
 
     <!-- Institutional Colors Shim -->
@@ -101,6 +104,8 @@
             Alpine.store('island', {
                 activeStyle: localStorage.getItem('island_style') || 'classic',
                 showFaces: localStorage.getItem('island_show_faces') !== 'false',
+                logCount: 0,
+                logIsOpen: false,
                 setStyle(style) {
                     this.activeStyle = style;
                     localStorage.setItem('island_style', style);
@@ -108,6 +113,16 @@
                 setFaces(show) {
                     this.showFaces = show;
                     localStorage.setItem('island_show_faces', show);
+                },
+                incrementLog() {
+                    if (!this.logIsOpen) this.logCount++;
+                },
+                toggleLog() {
+                    this.logIsOpen = !this.logIsOpen;
+                    if (this.logIsOpen) this.logCount = 0;
+                    window.dispatchEvent(new CustomEvent('toggle-live-log-internal', {
+                        detail: { open: this.logIsOpen }
+                    }));
                 }
             });
         });
@@ -120,12 +135,24 @@
                         console.log('BATCH RECEPTION (LAYOUT):', e);
 
                         // Increment badge in layout's Alpine store
-                        window.dispatchEvent(new CustomEvent('live-log-new'));
+                        if (window.Alpine) {
+                            Alpine.store('island').incrementLog();
+                        }
+
+                        // Dispatch visual notification to Dynamic Island
+                        window.dispatchEvent(new CustomEvent('island-notif', {
+                            detail: { message: 'Nuevas incidencias detectadas', type: 'info' }
+                        }));
 
                         // Trigger internal component refresh if it exists
                         window.dispatchEvent(new CustomEvent('live-log-refresh'));
                     });
             }
+
+            // Global Debug Monitor
+            window.addEventListener('island-notif', (e) => {
+                console.warn('⚡️ EVENT-DEBUG: island-notif arrived at window:', e.detail);
+            });
 
             Livewire.on('swal', (event) => {
                 const data = Array.isArray(event) ? event[0] : event;
@@ -174,36 +201,8 @@
         });
     </script>
 
-    <div x-data="{ 
-         openBitacora: false, 
-         newBitacoraCount: 0 
-     }" x-on:toggle-live-log.window="openBitacora = !openBitacora; newBitacoraCount = 0"
-        x-on:live-log-new.window="if(!openBitacora) newBitacoraCount++">
+    <div x-data x-on:toggle-live-log.window="$store.island.toggleLog()">
 
-        <!-- Toggle Button (Siempre visible) -->
-        <div class="fixed bottom-6 right-24 z-[60]">
-            <button @click="openBitacora = !openBitacora; newBitacoraCount = 0"
-                class="group relative w-12 h-12 bg-[#13322B] hover:bg-[#0a1f1a] text-oro rounded-full shadow-2xl border border-oro/20 flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95">
-
-                <template x-if="newBitacoraCount > 0">
-                    <span class="absolute -top-1 -right-1 flex h-5 w-5">
-                        <span
-                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span
-                            class="relative inline-flex rounded-full h-5 w-5 bg-red-500 text-[10px] text-white font-black flex items-center justify-center"
-                            x-text="newBitacoraCount"></span>
-                    </span>
-                </template>
-
-                <svg class="w-5 h-5 transition-transform duration-500" :class="openBitacora ? 'rotate-90' : ''"
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path x-show="!openBitacora" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    <path x-show="openBitacora" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M6 18L18 6M6 6l12 12" />
-                </svg>
-            </button>
-        </div>
 
         <livewire:admin.live-capture-log />
     </div>

@@ -58,6 +58,11 @@ class Manager extends Component
         }
     }
 
+    public function cambiarEmpleado($id)
+    {
+        return $this->redirect(route('employees.incidencias', ['employeeId' => $id]), navigate: true);
+    }
+
     public function updatedCodigo($value)
     {
         if(!$value) {
