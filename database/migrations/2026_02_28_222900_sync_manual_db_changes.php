@@ -30,7 +30,7 @@ return new class extends Migration {
         if (!Schema::hasTable('comentarios')) {
             Schema::create('comentarios', function (Blueprint $table) {
                 $table->id();
-                $table->unsignedInteger('employee_id');
+                $table->unsignedBigInteger('employee_id');
                 $table->text('comment');
                 $table->timestamps();
 
