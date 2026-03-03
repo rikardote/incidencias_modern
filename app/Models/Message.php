@@ -6,7 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model
 {
-    protected $connection = 'mysql_chats';
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+        $this->connection = app()->environment('testing') ? config('database.default') : 'mysql_chats';
+    }
     protected $guarded = [];
 
     protected $casts = [

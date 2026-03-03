@@ -10,7 +10,8 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::connection('mysql_chats')->create('conversations', function (Blueprint $table) {
+        $connection = app()->environment('testing') ? config('database.default') : 'mysql_chats';
+        Schema::connection($connection)->create('conversations', function (Blueprint $table) {
             $table->id();
             // Since users are in another DB, we just store their IDs without foreign constraints
             $table->unsignedBigInteger('user_one_id');
@@ -27,6 +28,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::connection('mysql_chats')->dropIfExists('conversations');
+        $connection = app()->environment('testing') ? config('database.default') : 'mysql_chats';
+        Schema::connection($connection)->dropIfExists('conversations');
     }
 };

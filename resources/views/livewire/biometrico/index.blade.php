@@ -13,7 +13,10 @@
             $wire.isModalOpen = true;
             $wire.openCaptureModal(employeeId, numEmpleado, name, date);
         }
-    }">
+    }"
+    x-init="
+        window.isMaintenance = {{ \Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin() ? 'true' : 'false' }};
+    ">
     {{-- Header del Reporte --}}
     <div class="mb-8 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
         <div>
@@ -145,8 +148,8 @@
 
                         {{-- Nombre Amplio y Flexible --}}
                         <div class="min-w-0 flex-1 pt-0.5">
-                            <a href="{{ route('employees.incidencias', ['employeeId' => $registrosEmpleado->first()->employee_id]) }}"
-                                target="_blank" class="group block">
+                            <a @if(\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin()) href="#" onclick="Swal.fire('Mantenimiento', 'La captura está suspendida.', 'error'); return false;" @else href="{{ route('employees.incidencias', ['employeeId' => $registrosEmpleado->first()->employee_id]) }}" target="_blank" @endif
+                                class="group block">
                                 <h3
                                     class="font-black text-gray-900 dark:text-gray-100 text-[11px] leading-tight uppercase group-hover:text-[#9b2247] transition-colors line-clamp-2">
                                     {{ $registrosEmpleado->first()->apellido_paterno }} {{
@@ -191,7 +194,7 @@
                     {{-- Botón de Acción Limpio (Inferior Derecha) --}}
                     <div class="flex-shrink-0 h-8 flex items-end">
                         @if(!$registrosEmpleado->contains(fn($r) => !empty($r->incidencias)))
-                        <button x-data @click.stop="Swal.fire({
+                        <button x-data @click.stop="if(window.isMaintenance) { Swal.fire('Mantenimiento', 'No se puede capturar en este momento.', 'error'); return; } Swal.fire({
                                         title: '¿Marcar sin incidencias?',
                                         text: 'Se capturará el código 77 para toda la quincena.',
                                         icon: 'info',
@@ -341,7 +344,7 @@
                             if ($isWeekend && empty($rowClass)) $rowClass = 'bg-slate-50/40 dark:bg-black/20';
                             @endphp
 
-                            <tr @click="openModal({{ $registro->employee_id }}, {{ $num_empleado }}, '{{ trim(addslashes($registro->apellido_paterno . ' ' . $registro->apellido_materno . ' ' . $registro->nombre)) }}', '{{ $registro->fecha }}', '{{ \Carbon\Carbon::parse($registro->fecha)->translatedFormat('d \d\e F, Y') }}')"
+                            <tr @click="if(window.isMaintenance) { Swal.fire('Mantenimiento', 'Captura suspendida temporalmente.', 'error'); return; } openModal({{ $registro->employee_id }}, {{ $num_empleado }}, '{{ trim(addslashes($registro->apellido_paterno . ' ' . $registro->apellido_materno . ' ' . $registro->nombre)) }}', '{{ $registro->fecha }}', '{{ \Carbon\Carbon::parse($registro->fecha)->translatedFormat('d \d\e F, Y') }}')"
                                 class="{{ $rowClass }} hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors cursor-pointer group">
                                 <td
                                     class="px-3 py-1.5 font-medium text-gray-500 dark:text-gray-300 whitespace-nowrap {{ $isWeekend ? 'opacity-40' : '' }}">
@@ -413,6 +416,24 @@
                                             {{ $inc }}
                                         </button>
                                         @endforeach
+                                    </div>
+                                    @elseif($registro->lactancia && $registro->lactancia_inicio && $registro->lactancia_fin && $registro->fecha >= $registro->lactancia_inicio && $registro->fecha <= $registro->lactancia_fin && !$isWeekend)
+                                    <div class="flex justify-center">
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-100 dark:bg-emerald-400 text-emerald-900 dark:text-emerald-950 border border-emerald-200" title="Periodo de Lactancia">
+                                            92
+                                        </span>
+                                    </div>
+                                    @elseif($registro->estancia && $registro->estancia_inicio && $registro->estancia_fin && $registro->fecha >= $registro->estancia_inicio && $registro->fecha <= $registro->estancia_fin && !$isWeekend)
+                                    <div class="flex justify-center">
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-blue-100 dark:bg-blue-400 text-blue-900 dark:text-blue-950 border border-blue-200" title="Tolerancia de Estancia">
+                                            93
+                                        </span>
+                                    </div>
+                                    @elseif($registro->exento && !$isWeekend)
+                                    <div class="flex justify-center">
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-oro/10 text-oro border border-oro/20" title="Exento de Registro Biométrico">
+                                            94
+                                        </span>
                                     </div>
                                     @endif
                                 </td>
@@ -606,6 +627,11 @@
                     if (event.key === 'biometrico_refresh') {
                         Livewire.dispatch('refreshBiometrico');
                     }
+                });
+
+                // Escuchar cambio de mantenimiento en tiempo real
+                Livewire.on('echo-presence:chat,GlobalMaintenanceEvent', (event) => {
+                    window.isMaintenance = event.maintenance && !{{ auth()->user()->admin() ? 'true' : 'false' }};
                 });
             });
         </script>

@@ -14,6 +14,12 @@
                     <span class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-tight">
                         {{ $employee->fullname }}
                     </span>
+                    @if($employee->exento)
+                    <span
+                        class="px-2 py-0.5 bg-oro/10 text-oro text-[9px] font-black rounded border border-oro/20 uppercase tracking-widest animate-pulse">
+                        Exento de Registro Biométrico (94)
+                    </span>
+                    @endif
                 </div>
             </div>
         </div>
@@ -149,8 +155,20 @@
                                 </span>
                                 @endforeach
                             </div>
+                            @elseif($employee->lactancia && $employee->lactancia_inicio && $employee->lactancia_fin && $c->fecha >= $employee->lactancia_inicio && $c->fecha <= $employee->lactancia_fin && !$esFinDeSemana)
+                            <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-600 text-[9px] font-black rounded uppercase border border-emerald-500/30" title="Periodo de Lactancia">
+                                92
+                            </span>
+                            @elseif($employee->estancia && $employee->estancia_inicio && $employee->estancia_fin && $c->fecha >= $employee->estancia_inicio && $c->fecha <= $employee->estancia_fin && !$esFinDeSemana)
+                            <span class="px-2 py-0.5 bg-blue-500/20 text-blue-600 text-[9px] font-black rounded uppercase border border-blue-500/30" title="Tolerancia de Estancia">
+                                93
+                            </span>
+                            @elseif($employee->exento && !$esFinDeSemana)
+                            <span class="px-2 py-0.5 bg-oro/20 text-oro text-[9px] font-black rounded uppercase border border-oro/30">
+                                94
+                            </span>
                             @elseif(!$c->hora_entrada && !$esFinDeSemana && $fecha->isPast())
-                            <span class="text-[9px] font-black text-red-400 uppercase italic">Falta</span>
+                            <span class="text-[9px] font-black text-red-500 uppercase italic">Falta</span>
                             @else
                             <span class="text-[9px] text-gray-300 uppercase font-black italic">--</span>
                             @endif

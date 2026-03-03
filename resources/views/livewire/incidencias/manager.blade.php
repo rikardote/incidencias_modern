@@ -642,6 +642,57 @@
                                         {{ $employee->jornada->jornada ?? 'N/A' }}
                                     </p>
                                 </div>
+
+                                {{-- Aviso de Periodo de Lactancia --}}
+                                @if($employee->lactancia && $employee->lactancia_inicio && $employee->lactancia_fin)
+                                <div class="mt-3 flex justify-center">
+                                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-100 dark:border-emerald-500/20 rounded-full animate-fadeIn shadow-sm">
+                                        <span class="relative flex h-2 w-2">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                                        </span>
+                                        <span class="text-[10px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
+                                            Periodo de Lactancia: 
+                                            <span class="font-bold text-emerald-600 dark:text-emerald-300">
+                                                {{ \Carbon\Carbon::parse($employee->lactancia_inicio)->format('d/m/Y') }} AL {{ \Carbon\Carbon::parse($employee->lactancia_fin)->format('d/m/Y') }}
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
+                                @endif
+
+                                {{-- Aviso de Tolerancia de Estancia --}}
+                                @if($employee->estancia && $employee->estancia_inicio && $employee->estancia_fin)
+                                <div class="mt-2 flex justify-center">
+                                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-500/10 border border-blue-100 dark:border-blue-500/20 rounded-full animate-fadeIn shadow-sm">
+                                        <span class="relative flex h-2 w-2">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                                        </span>
+                                        <span class="text-[10px] font-black text-blue-700 dark:text-blue-400 uppercase tracking-wider">
+                                            Tolerancia de Estancia: 
+                                            <span class="font-bold text-blue-600 dark:text-blue-300">
+                                                {{ \Carbon\Carbon::parse($employee->estancia_inicio)->format('d/m/Y') }} AL {{ \Carbon\Carbon::parse($employee->estancia_fin)->format('d/m/Y') }}
+                                            </span>
+                                        </span>
+                                    </div>
+                                </div>
+                                @endif
+
+                                {{-- Aviso de Personal Exento --}}
+                                @if($employee->exento)
+                                <div class="mt-2 flex justify-center">
+                                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-oro/10 border border-oro/20 rounded-full animate-fadeIn shadow-sm">
+                                        <span class="relative flex h-2 w-2">
+                                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-oro opacity-75"></span>
+                                            <span class="relative inline-flex rounded-full h-2 w-2 bg-oro"></span>
+                                        </span>
+                                        <span class="text-[10px] font-black text-oro uppercase tracking-wider">
+                                            Personal Exento Biométrico
+                                        </span>
+                                    </div>
+                                </div>
+                                @endif
                             </div>
                         </div>
 

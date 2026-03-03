@@ -8,7 +8,11 @@ use Illuminate\Support\Facades\Log;
 
 class Checada extends Model
 {
-    protected $connection = 'biometrico';
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+        $this->connection = app()->environment('testing') ? config('database.default') : 'biometrico';
+    }
     protected $table = 'checadas';
     protected $fillable = ['num_empleado', 'fecha', 'identificador'];
 
@@ -24,7 +28,7 @@ class Checada extends Model
     {
         $connection = null;
         try {
-            $connection = DB::connection('biometrico');
+            $connection = DB::connection(app()->environment('testing') ? config('database.default') : 'biometrico');
 
             // Limpiar tablas temporales
             $connection->unprepared("
@@ -60,10 +64,13 @@ class Checada extends Model
                     e.father_lastname as apellido_paterno,
                     e.mother_lastname as apellido_materno,
                     e.deparment_id,
+                    e.exento,
                     h.horario,
                     IF(h.horario LIKE '% A %', SUBSTRING_INDEX(h.horario, ' A ', 1), NULL) as horario_entrada,
                     IF(h.horario LIKE '% A %', SUBSTRING_INDEX(h.horario, ' A ', -1), NULL) as horario_salida,
                     e.id as employee_id,
+                    e.lactancia, e.lactancia_inicio, e.lactancia_fin,
+                    e.estancia, e.estancia_inicio, e.estancia_fin,
                     CASE
                         WHEN h.horario LIKE '% A %' AND TIME(SUBSTRING_INDEX(h.horario, ' A ', 1)) >= '12:00:00' THEN 1
                         ELSE 0
@@ -78,7 +85,7 @@ class Checada extends Model
             $resultados = $connection->select("
                 SELECT
                     e.num_empleado, e.employee_id, e.nombre, e.apellido_paterno, e.apellido_materno,
-                    e.deparment_id, e.horario, e.horario_entrada, e.horario_salida, e.es_jornada_vespertina,
+                    e.deparment_id, e.exento, e.lactancia, e.lactancia_inicio, e.lactancia_fin, e.estancia, e.estancia_inicio, e.estancia_fin, e.horario, e.horario_entrada, e.horario_salida, e.es_jornada_vespertina,
                     f.fecha,
                     MIN(c.fecha) as primera_checada,
                     MAX(c.fecha) as ultima_checada,
@@ -110,7 +117,7 @@ class Checada extends Model
                     AND DATE(c.fecha) = f.fecha
                 GROUP BY
                     e.num_empleado, e.nombre, e.apellido_paterno, e.apellido_materno,
-                    e.deparment_id, e.horario, e.horario_entrada, e.horario_salida, e.es_jornada_vespertina,
+                    e.deparment_id, e.exento, e.lactancia, e.lactancia_inicio, e.lactancia_fin, e.estancia, e.estancia_inicio, e.estancia_fin, e.horario, e.horario_entrada, e.horario_salida, e.es_jornada_vespertina,
                     e.employee_id, f.fecha
                 ORDER BY e.num_empleado, f.fecha
             ");
@@ -140,7 +147,7 @@ class Checada extends Model
     {
         $connection = null;
         try {
-            $connection = DB::connection('biometrico');
+            $connection = DB::connection(app()->environment('testing') ? config('database.default') : 'biometrico');
 
             // Limpiar tablas temporales
             $connection->unprepared("
@@ -175,10 +182,13 @@ class Checada extends Model
                     e.father_lastname as apellido_paterno,
                     e.mother_lastname as apellido_materno,
                     e.deparment_id,
+                    e.exento,
                     h.horario,
                     IF(h.horario LIKE '% A %', SUBSTRING_INDEX(h.horario, ' A ', 1), NULL) as horario_entrada,
                     IF(h.horario LIKE '% A %', SUBSTRING_INDEX(h.horario, ' A ', -1), NULL) as horario_salida,
                     e.id as employee_id,
+                    e.lactancia, e.lactancia_inicio, e.lactancia_fin,
+                    e.estancia, e.estancia_inicio, e.estancia_fin,
                     CASE
                         WHEN h.horario LIKE '% A %' AND TIME(SUBSTRING_INDEX(h.horario, ' A ', 1)) >= '12:00:00' THEN 1
                         ELSE 0
@@ -193,7 +203,7 @@ class Checada extends Model
             $resultados = $connection->select("
                 SELECT
                     e.num_empleado, e.employee_id, e.nombre, e.apellido_paterno, e.apellido_materno,
-                    e.deparment_id, e.horario, e.horario_entrada, e.horario_salida, e.es_jornada_vespertina,
+                    e.deparment_id, e.exento, e.lactancia, e.lactancia_inicio, e.lactancia_fin, e.estancia, e.estancia_inicio, e.estancia_fin, e.horario, e.horario_entrada, e.horario_salida, e.es_jornada_vespertina,
                     f.fecha,
                     MIN(c.fecha) as primera_checada,
                     MAX(c.fecha) as ultima_checada,
@@ -221,7 +231,7 @@ class Checada extends Model
                     AND DATE(c.fecha) = f.fecha
                 GROUP BY
                     e.num_empleado, e.nombre, e.apellido_paterno, e.apellido_materno,
-                    e.deparment_id, e.horario, e.horario_entrada, e.horario_salida, e.es_jornada_vespertina,
+                    e.deparment_id, e.exento, e.lactancia, e.lactancia_inicio, e.lactancia_fin, e.estancia, e.estancia_inicio, e.estancia_fin, e.horario, e.horario_entrada, e.horario_salida, e.es_jornada_vespertina,
                     e.employee_id, f.fecha
                 ORDER BY f.fecha
             ");

@@ -105,19 +105,25 @@
                                     }
                                 }
                             @endphp
-                            <td class="{{ $isWeekend ? 'weekend' : '' }}">
+                                <td class="{{ $isWeekend ? 'weekend' : '' }}">
                                 @if($reg)
                                     @if($entradaDisp === 'OMIT')
                                         <span>OMIT</span>
                                     @elseif($entradaDisp)
                                         <span>{{ $entradaDisp }}</span>@if($salidaDisp)-{{ $salidaDisp }}@endif
+                                    @elseif($first->lactancia && $first->lactancia_inicio && $first->lactancia_fin && $fechaStr >= $first->lactancia_inicio && $fechaStr <= $first->lactancia_fin && !$isWeekend)
+                                        <span style="font-weight: bold; color: #10b981;">92</span>
+                                    @elseif($first->estancia && $first->estancia_inicio && $first->estancia_fin && $fechaStr >= $first->estancia_inicio && $fechaStr <= $first->estancia_fin && !$isWeekend)
+                                        <span style="font-weight: bold; color: #3b82f6;">93</span>
+                                    @elseif($first->exento && !$isWeekend)
+                                        <span style="font-weight: bold; color: #d4af37;">94</span>
                                     @else
                                         <span class="empty">--</span>
                                     @endif
                                 @else
                                     <span class="empty">--</span>
                                 @endif
-                            </td>
+                                </td>
                         @endforeach
                     </tr>
                 </tbody>

@@ -17,6 +17,9 @@
                 </div>
             </div>
 
+            {{-- Widgets Reactivos --}}
+            @livewire('dashboard.stats-widgets')
+
             @if(auth()->user()->admin())
             <div class="mb-12">
                 <h4
@@ -86,6 +89,64 @@
                                 <path stroke-linecap="round" stroke-linejoin="round"
                                     d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+                            </svg>
+                        </div>
+                    </a>
+
+                    <!-- Card Periodos -->
+                    <a href="{{ route('catalogos.periodos') }}"
+                        class="md:mt-0 flex items-center justify-between p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 hover:border-oro/30 transition-all group">
+                        <div>
+                            <h5
+                                class="text-lg font-black text-gray-900 dark:text-gray-100 group-hover:text-oro transition-colors">
+                                Periodos</h5>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Vacaciones</p>
+                        </div>
+                        <div
+                            class="w-12 h-12 bg-gray-50 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-oro/10 transition-colors shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                stroke="currentColor"
+                                class="w-6 h-6 text-gray-400 dark:text-gray-500 group-hover:text-oro transition-transform group-hover:scale-110">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                            </svg>
+                        </div>
+                    </a>
+
+                    <!-- Card Horarios -->
+                    <a href="{{ route('catalogos.horarios') }}"
+                        class="md:mt-0 flex items-center justify-between p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 hover:border-oro/30 transition-all group">
+                        <div>
+                            <h5
+                                class="text-lg font-black text-gray-900 dark:text-gray-100 group-hover:text-oro transition-colors">
+                                Horarios</h5>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Entradas/Salidas</p>
+                        </div>
+                        <div
+                            class="w-12 h-12 bg-gray-50 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-oro/10 transition-colors shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                stroke="currentColor"
+                                class="w-6 h-6 text-gray-400 dark:text-gray-500 group-hover:text-oro transition-transform group-hover:scale-110">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                        </div>
+                    </a>
+
+                    <!-- Card Jornadas -->
+                    <a href="{{ route('catalogos.jornadas') }}"
+                        class="md:mt-0 flex items-center justify-between p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 hover:border-oro/30 transition-all group">
+                        <div>
+                            <h5
+                                class="text-lg font-black text-gray-900 dark:text-gray-100 group-hover:text-oro transition-colors">
+                                Jornadas</h5>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Días laborales</p>
+                        </div>
+                        <div
+                            class="w-12 h-12 bg-gray-50 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-oro/10 transition-colors shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                stroke="currentColor"
+                                class="w-6 h-6 text-gray-400 dark:text-gray-500 group-hover:text-oro transition-transform group-hover:scale-110">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 14.15v4.25c0 .596-.404 1.085-1 1.148-1.55.163-3.125.252-4.75.252s-3.2-.089-4.75-.252c-.596-.063-1-.552-1-1.148v-4.25m9 0a1.5 1.5 0 1 0-3 0m-9 0a1.5 1.5 0 1 0-3 0m12 0v-3.192c1.235-.46 2.25-1.509 2.25-2.808 0-1.299-1.015-2.348-2.25-2.808V3.033c0-.422-.43-.703-.832-.575a22.25 22.25 0 0 0-10.836 0c-.402.128-.832.409-.832.575v1.109c-1.235.46-2.25 1.509-2.25 2.808 0 1.299 1.015 2.348 2.25 2.808v3.192m12 0h-12" />
                             </svg>
                         </div>
                     </a>

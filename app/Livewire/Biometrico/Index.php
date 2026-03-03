@@ -19,6 +19,19 @@ class Index extends Component
 {
     use WithPagination;
 
+    #[On('echo-presence:chat,GlobalMaintenanceEvent')]
+    public function onMaintenanceToggle($event)
+    {
+        // El modo mantenimiento cambió. Livewire refrescará el componente.
+        if (!auth()->user()->admin()) {
+            $this->isModalOpen = false;
+            $this->dispatch('toast', [
+                'icon' => $event['maintenance'] ? 'error' : 'success',
+                'title' => $event['maintenance'] ? 'SISTEMA EN MANTENIMIENTO' : 'CAPTURA HABILITADA'
+            ]);
+        }
+    }
+
     #[On('refreshBiometrico')]
     public function refresh()
     {
@@ -158,6 +171,11 @@ class Index extends Component
 
     public function openCaptureModal($employeeId,$num_empleado, $nombre, $fecha)
     {
+        if (\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin()) {
+            $this->dispatch('toast', icon: 'error', title: 'Mantenimiento Administrativo Activo');
+            return;
+        }
+
         $this->selectedEmployeeId = $employeeId;
         $this->selectedEmployeeNumEmpleado = $num_empleado;
         $this->selectedEmployeeName = $nombre;
@@ -177,6 +195,11 @@ class Index extends Component
 
     public function saveIncidencia(IncidenciasService $service)
     {
+        if (\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin()) {
+            $this->dispatch('toast', icon: 'error', title: 'Sistema en mantenimiento.');
+            return;
+        }
+
         $this->validate([
             'incidencia_id' => 'required|exists:codigos_de_incidencias,id',
             'fecha_inicio_inc' => 'required|date',
@@ -203,6 +226,11 @@ class Index extends Component
 
     public function captureSinIncidencias($employeeId, IncidenciasService $service)
     {
+        if (\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin()) {
+            $this->dispatch('toast', icon: 'error', title: 'Mantenimiento activo.');
+            return;
+        }
+
         try {
             $codigo77 = CodigoDeIncidencia::where('code', '77')->first();
             
@@ -228,6 +256,11 @@ class Index extends Component
 
     public function deleteIncidencia($token, IncidenciasService $service)
     {
+        if (\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin()) {
+            $this->dispatch('toast', icon: 'error', title: 'Mantenimiento activo.');
+            return;
+        }
+
         try {
             $service->eliminarPorToken($token);
             $this->dispatch('toast', icon: 'success', title: 'Incidencia Eliminada');

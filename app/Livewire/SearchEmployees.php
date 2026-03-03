@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Models\Employe;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\Attributes\On;
 
 class SearchEmployees extends Component
 {
@@ -13,6 +14,12 @@ class SearchEmployees extends Component
     public $search = '';
     public $listAll = false;
 
+    #[On('echo-presence:chat,GlobalMaintenanceEvent')]
+    public function onMaintenanceToggle()
+    {
+        // Refrescar para actualizar visualmente los botones de incidencia
+    }
+
     // Propiedades para el formulario
     public $showEmployeeModal = false;
     public $editingEmployeeId = null;
@@ -20,8 +27,8 @@ class SearchEmployees extends Component
     public $num_empleado, $name, $father_lastname, $mother_lastname;
     public $deparment_id, $condicion_id, $puesto_id, $horario_id, $jornada_id;
     public $num_plaza, $num_seguro, $fecha_ingreso;
-    public $estancia = false, $comisionado = false, $lactancia = false;
-    public $lactancia_inicio, $lactancia_fin;
+    public $estancia = false, $comisionado = false, $lactancia = false, $exento = false;
+    public $lactancia_inicio, $lactancia_fin, $estancia_inicio, $estancia_fin;
 
     protected function rules()
     {
@@ -38,12 +45,14 @@ class SearchEmployees extends Component
             'fecha_ingreso' => 'required|date',
             'lactancia_inicio' => 'required_if:lactancia,true|nullable|date',
             'lactancia_fin' => 'required_if:lactancia,true|nullable|date',
+            'estancia_inicio' => 'required_if:estancia,true|nullable|date',
+            'estancia_fin' => 'required_if:estancia,true|nullable|date',
         ];
     }
 
     public function create()
     {
-        $this->reset(['editingEmployeeId', 'num_empleado', 'name', 'father_lastname', 'mother_lastname', 'deparment_id', 'condicion_id', 'puesto_id', 'horario_id', 'jornada_id', 'num_plaza', 'num_seguro', 'fecha_ingreso', 'estancia', 'comisionado', 'lactancia', 'lactancia_inicio', 'lactancia_fin']);
+        $this->reset(['editingEmployeeId', 'num_empleado', 'name', 'father_lastname', 'mother_lastname', 'deparment_id', 'condicion_id', 'puesto_id', 'horario_id', 'jornada_id', 'num_plaza', 'num_seguro', 'fecha_ingreso', 'estancia', 'estancia_inicio', 'estancia_fin', 'comisionado', 'lactancia', 'lactancia_inicio', 'lactancia_fin', 'exento']);
         $this->resetValidation();
         $this->showEmployeeModal = true;
     }
@@ -67,10 +76,13 @@ class SearchEmployees extends Component
         $this->num_seguro = $employee->num_seguro;
         $this->fecha_ingreso = $employee->fecha_ingreso;
         $this->estancia = (bool)$employee->estancia;
+        $this->estancia_inicio = $employee->estancia_inicio;
+        $this->estancia_fin = $employee->estancia_fin;
         $this->comisionado = (bool)$employee->comisionado;
         $this->lactancia = (bool)$employee->lactancia;
         $this->lactancia_inicio = $employee->lactancia_inicio;
         $this->lactancia_fin = $employee->lactancia_fin;
+        $this->exento = (bool)$employee->exento;
 
         $this->showEmployeeModal = true;
     }
@@ -93,11 +105,14 @@ class SearchEmployees extends Component
             'num_seguro' => $this->num_seguro,
             'fecha_ingreso' => $this->fecha_ingreso,
             'estancia' => $this->estancia,
+            'estancia_inicio' => $this->estancia ? $this->estancia_inicio : null,
+            'estancia_fin' => $this->estancia ? $this->estancia_fin : null,
             'comisionado' => $this->comisionado,
             'lactancia' => $this->lactancia,
             'lactancia_inicio' => $this->lactancia ? $this->lactancia_inicio : null,
             'lactancia_fin' => $this->lactancia ? $this->lactancia_fin : null,
             'active' => '1',
+            'exento' => $this->exento,
         ];
 
         if ($this->editingEmployeeId) {

@@ -29,7 +29,7 @@ class ReportController extends Controller
         $qna = Qna::findOrFail($qnaId);
         $department = Department::findOrFail($departmentId);
 
-        $incidencias = Incidencia::with(['employee', 'codigo', 'periodo'])
+        $incidenciasDB = Incidencia::with(['employee.horario', 'employee.jornada', 'codigo', 'periodo'])
             ->where('qna_id', $qnaId)
             ->whereHas('employee', function ($q) use ($departmentId) {
             $q->where('deparment_id', $departmentId);
@@ -37,7 +37,94 @@ class ReportController extends Controller
             ->whereNotIn('codigodeincidencia_id', function ($q) {
             $q->select('id')->from('codigos_de_incidencias')->whereIn('code', [902, 903, 904]);
         })
-            ->get()
+            ->get();
+
+        // Lógica para empleados exentos (Clave 94)
+        $mes = ceil($qna->qna / 2);
+        $es_primera = ($qna->qna % 2) != 0;
+        $qna_inicio = Carbon::parse($es_primera 
+            ? "{$qna->year}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-01"
+            : "{$qna->year}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-16");
+        $qna_fin = Carbon::parse($es_primera 
+            ? "{$qna->year}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-15"
+            : "{$qna->year}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-" . date('t', strtotime("{$qna->year}-{$mes}-01")));
+
+        $codigo94 = \App\Models\CodigoDeIncidencia::where('code', '94')->first();
+        $codigo92 = \App\Models\CodigoDeIncidencia::where('code', '92')->first();
+        $codigo93 = \App\Models\CodigoDeIncidencia::where('code', '93')->first();
+
+        // Empleados que podrían tener 94 o 92
+        $targetEmployees = Employe::where('deparment_id', $departmentId)
+            ->where('active', 1)
+            ->where(function ($q) {
+            $q->where('exento', 1)
+                ->orWhere('lactancia', 1)
+                ->orWhere('estancia', 1);
+        })
+            ->get();
+
+        foreach ($targetEmployees as $emp) {
+            // Obtener días ya ocupados por incidencias reales
+            $realIncidencias = $incidenciasDB->where('employee_id', $emp->id);
+            $occupiedDates = [];
+            foreach ($realIncidencias as $ri) {
+                $start = Carbon::parse($ri->fecha_inicio);
+                $end = Carbon::parse($ri->fecha_final);
+                while ($start <= $end) {
+                    $occupiedDates[] = $start->format('Y-m-d');
+                    $start->addDay();
+                }
+            }
+
+            $current = $qna_inicio->copy();
+            $range94Start = null;
+            $range92Start = null;
+            $range93Start = null;
+
+            while ($current <= $qna_fin) {
+                $dateStr = $current->format('Y-m-d');
+                $isOccupied = in_array($dateStr, $occupiedDates);
+                $isWeekend = $current->isWeekend();
+
+                if (!$isOccupied && !$isWeekend) {
+                    $isLactancia = $emp->lactancia && $emp->lactancia_inicio && $emp->lactancia_fin &&
+                        ($dateStr >= $emp->lactancia_inicio && $dateStr <= $emp->lactancia_fin);
+
+                    $isEstancia = $emp->estancia && $emp->estancia_inicio && $emp->estancia_fin &&
+                        ($dateStr >= $emp->estancia_inicio && $dateStr <= $emp->estancia_fin);
+
+                    if ($isLactancia && $codigo92) {
+                        if ($range94Start !== null) { $this->addVirtualIncidencia($incidenciasDB, $emp, $codigo94, $range94Start, $current->copy()->subDay(), $qna, 'v94'); $range94Start = null; }
+                        if ($range93Start !== null) { $this->addVirtualIncidencia($incidenciasDB, $emp, $codigo93, $range93Start, $current->copy()->subDay(), $qna, 'v93'); $range93Start = null; }
+                        if ($range92Start === null) $range92Start = $current->copy();
+                    } elseif ($isEstancia && $codigo93) {
+                        if ($range94Start !== null) { $this->addVirtualIncidencia($incidenciasDB, $emp, $codigo94, $range94Start, $current->copy()->subDay(), $qna, 'v94'); $range94Start = null; }
+                        if ($range92Start !== null) { $this->addVirtualIncidencia($incidenciasDB, $emp, $codigo92, $range92Start, $current->copy()->subDay(), $qna, 'v92'); $range92Start = null; }
+                        if ($range93Start === null) $range93Start = $current->copy();
+                    } elseif ($emp->exento && $codigo94) {
+                        if ($range92Start !== null) { $this->addVirtualIncidencia($incidenciasDB, $emp, $codigo92, $range92Start, $current->copy()->subDay(), $qna, 'v92'); $range92Start = null; }
+                        if ($range93Start !== null) { $this->addVirtualIncidencia($incidenciasDB, $emp, $codigo93, $range93Start, $current->copy()->subDay(), $qna, 'v93'); $range93Start = null; }
+                        if ($range94Start === null) $range94Start = $current->copy();
+                    } else {
+                        if ($range92Start !== null) { $this->addVirtualIncidencia($incidenciasDB, $emp, $codigo92, $range92Start, $current->copy()->subDay(), $qna, 'v92'); $range92Start = null; }
+                        if ($range93Start !== null) { $this->addVirtualIncidencia($incidenciasDB, $emp, $codigo93, $range93Start, $current->copy()->subDay(), $qna, 'v93'); $range93Start = null; }
+                        if ($range94Start !== null) { $this->addVirtualIncidencia($incidenciasDB, $emp, $codigo94, $range94Start, $current->copy()->subDay(), $qna, 'v94'); $range94Start = null; }
+                    }
+                } else {
+                    if ($range92Start !== null) { $this->addVirtualIncidencia($incidenciasDB, $emp, $codigo92, $range92Start, $current->copy()->subDay(), $qna, 'v92'); $range92Start = null; }
+                    if ($range93Start !== null) { $this->addVirtualIncidencia($incidenciasDB, $emp, $codigo93, $range93Start, $current->copy()->subDay(), $qna, 'v93'); $range93Start = null; }
+                    if ($range94Start !== null) { $this->addVirtualIncidencia($incidenciasDB, $emp, $codigo94, $range94Start, $current->copy()->subDay(), $qna, 'v94'); $range94Start = null; }
+                }
+                $current->addDay();
+            }
+
+            // Close trailing ranges
+            if ($range92Start !== null) $this->addVirtualIncidencia($incidenciasDB, $emp, $codigo92, $range92Start, $qna_fin, $qna, 'v92');
+            if ($range93Start !== null) $this->addVirtualIncidencia($incidenciasDB, $emp, $codigo93, $range93Start, $qna_fin, $qna, 'v93');
+            if ($range94Start !== null) $this->addVirtualIncidencia($incidenciasDB, $emp, $codigo94, $range94Start, $qna_fin, $qna, 'v94');
+        }
+
+        $incidencias = $incidenciasDB
             ->groupBy('token') // Usar token para agrupar como en el legacy
             ->sortBy(function ($group) {
             return $group->first()->employee->num_empleado;
@@ -537,6 +624,20 @@ class ReportController extends Controller
             .tag-incidencia { padding: 3px 5px; background-color: #9b2247; color: white; border-radius: 3px; font-size: 8.5pt; font-weight: bold; }
         ';
 
+        $statusNotice = '';
+        if ($employee->exento || $employee->lactancia || $employee->estancia) {
+            $statusNotice = '<div style="margin-top: 5px;">';
+            if ($employee->lactancia) {
+                $statusNotice .= '<span style="background-color: #10b981; color: white; padding: 3px 6px; border-radius: 3px; font-size: 7.5pt; margin-right: 5px; font-weight: bold;">(C92) LACTANCIA: ' . Carbon::parse($employee->lactancia_inicio)->format('d/m/y') . ' - ' . Carbon::parse($employee->lactancia_fin)->format('d/m/y') . '</span>';
+            }
+            if ($employee->estancia) {
+                $statusNotice .= '<span style="background-color: #3b82f6; color: white; padding: 3px 6px; border-radius: 3px; font-size: 7.5pt; margin-right: 5px; font-weight: bold;">(C93) ESTANCIA: ' . Carbon::parse($employee->estancia_inicio)->format('d/m/y') . ' - ' . Carbon::parse($employee->estancia_fin)->format('d/m/y') . '</span>';
+            }
+            if ($employee->exento) {
+                $statusNotice .= '<span style="background-color: #d4af37; color: white; padding: 3px 6px; border-radius: 3px; font-size: 7.5pt; font-weight: bold;">(C94) PERSONAL EXENTO</span>';
+            }
+            $statusNotice .= '</div>';
+        }
         $headerHtml = '
             <div class="header-container">
                 <table style="width: 100%;">
@@ -555,7 +656,10 @@ class ReportController extends Controller
             <div class="banner">REPORTE INDIVIDUAL DE ASISTENCIA BIOMÉTRICA</div>
             <table class="info-table">
                 <tr>
-                    <td style="width: 60%;"><span class="label">EMPLEADO: </span><span class="value">' . $employee->fullname . ' (#' . $employee->num_empleado . ')</span></td>
+                    <td style="width: 60%;">
+                        <span class="label">EMPLEADO: </span><span class="value">' . $employee->fullname . ' (#' . $employee->num_empleado . ')</span>
+                        ' . $statusNotice . '
+                    </td>
                     <td style="width: 40%; text-align: right;"><span class="label">PERIODO: </span><span class="value">' . $periodoStr . '</span></td>
                 </tr>
                 <tr>
@@ -598,7 +702,7 @@ class ReportController extends Controller
             $obs = '';
             if ($c->incidencias) {
                 foreach (explode(',', $c->incidencias) as $code) {
-                    $obs .= '<span class="tag-incidencia">' . $code . '</span> ';
+                    $obs .= '<span class="tag-incidencia">' . trim($code) . '</span> ';
                 }
             }
             elseif (!$c->hora_entrada && !$esFDS && $fecha->isPast()) {
@@ -625,5 +729,23 @@ class ReportController extends Controller
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'inline; filename="' . $pdfFileName . '"'
         ]);
+    }
+
+    private function addVirtualIncidencia($collection, $employee, $codigo, $start, $end, $qna, $prefix = 'v94')
+    {
+        $virtual = new \App\Models\Incidencia();
+        $virtual->employee_id = $employee->id;
+        $virtual->codigodeincidencia_id = $codigo->id;
+        $virtual->fecha_inicio = $start->format('Y-m-d');
+        $virtual->fecha_final = $end->format('Y-m-d');
+        $virtual->total_dias = $start->diffInDays($end) + 1;
+        $virtual->qna_id = $qna->id;
+        $virtual->token = $prefix . '_' . $employee->id . '_' . $start->format('Ymd');
+        
+        $virtual->setRelation('employee', $employee);
+        $virtual->setRelation('codigo', $codigo);
+        $virtual->setRelation('periodo', $qna);
+        
+        $collection->push($virtual);
     }
 }

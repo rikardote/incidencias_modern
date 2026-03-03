@@ -4,11 +4,21 @@ namespace App\Livewire\System;
 
 use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
+use Livewire\Attributes\On;
 
 class MaintenanceToggle extends Component
 {
     public $isMaintenanceMode = false;
     public $islandStyle = 'classic';
+
+    #[On('echo-presence:chat,GlobalMaintenanceEvent')]
+    public function onMaintenanceToggle($event)
+    {
+        // El modo mantenimiento cambió por otro admin. Actualizar localmente.
+        if($event['sender_id'] !== auth()->id()){
+             $this->isMaintenanceMode = $event['maintenance'];
+        }
+    }
 
     public function mount(\App\Services\System\IslandWidgetService $service)
     {

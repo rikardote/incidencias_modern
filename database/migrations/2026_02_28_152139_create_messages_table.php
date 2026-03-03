@@ -10,7 +10,8 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::connection('mysql_chats')->create('messages', function (Blueprint $table) {
+        $connection = app()->environment('testing') ? config('database.default') : 'mysql_chats';
+        Schema::connection($connection)->create('messages', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('conversation_id')->index(); // No FK because we are on a different schema
             $table->unsignedBigInteger('sender_id')->index();
@@ -25,6 +26,7 @@ return new class extends Migration {
      */
     public function down(): void
     {
-        Schema::connection('mysql_chats')->dropIfExists('messages');
+        $connection = app()->environment('testing') ? config('database.default') : 'mysql_chats';
+        Schema::connection($connection)->dropIfExists('messages');
     }
 };

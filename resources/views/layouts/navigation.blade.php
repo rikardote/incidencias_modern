@@ -155,6 +155,7 @@
                             </x-slot>
                         </x-dropdown>
                     </div>
+
                 </div>
             </div>
 
@@ -414,6 +415,7 @@
                 wire:navigate>
                 <span class="ps-4">{{ __('Asistencia Biométrica') }}</span>
             </x-responsive-nav-link>
+
         </div>
 
         <!-- Mobile User Info -->

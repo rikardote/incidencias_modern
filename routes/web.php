@@ -40,6 +40,11 @@ Route::middleware('auth')->group(function () {
     // Códigos de Incidencias (solo admins, logic in component)
     Route::get('/codigos-incidencia', \App\Livewire\CodigosIncidencia\Index::class)->name('codigos-incidencia.index');
 
+    // Catálogos (solo admins, logic in component)
+    Route::get('/catalogos/periodos', \App\Livewire\Catalogos\Periodos::class)->name('catalogos.periodos');
+    Route::get('/catalogos/horarios', \App\Livewire\Catalogos\Horarios::class)->name('catalogos.horarios');
+    Route::get('/catalogos/jornadas', \App\Livewire\Catalogos\Jornadas::class)->name('catalogos.jornadas');
+
     // Búsqueda de empleados para el switcher de incidencias
     Route::get('/api/employees/search', function (\Illuminate\Http\Request $request) {
             $q = trim($request->get('q', ''));

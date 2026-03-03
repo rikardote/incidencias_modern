@@ -42,19 +42,19 @@ return new class extends Migration {
 
         Schema::create('horarios', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable();
+            $table->string('horario')->nullable();
             $table->timestamps();
         });
 
         Schema::create('jornadas', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable();
+            $table->string('jornada')->nullable();
             $table->timestamps();
         });
 
         Schema::create('condiciones', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable();
+            $table->string('condicion')->nullable();
             $table->timestamps();
         });
 

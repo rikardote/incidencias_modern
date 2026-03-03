@@ -38,6 +38,17 @@ class Manager extends Component
     // Propiedades para optimización (No se envían al cliente en cada request si son pesadas)
     protected $medicos = [];
 
+    #[On('echo-presence:chat,GlobalMaintenanceEvent')]
+    public function onMaintenanceToggle($event)
+    {
+        // El modo mantenimiento cambió. Livewire refrescará el componente solo con recibir el evento.
+        // Pero añadimos un toast para informar al usuario inmediatamente.
+        $this->dispatch('toast', [
+            'icon' => $event['maintenance'] ? 'error' : 'success',
+            'title' => $event['maintenance'] ? 'SISTEMA EN MANTENIMIENTO' : 'CAPTURA HABILITADA'
+        ]);
+    }
+
     #[On('refreshIncidencias')]
     public function refresh()
     {
@@ -50,6 +61,13 @@ class Manager extends Component
         $this->employee = Employe::with(['department', 'puesto', 'horario', 'jornada'])->findOrFail($employeeId);
 
         $user = auth()->user();
+        
+        // Bloqueo por mantenimiento (excepto admins)
+        if (Cache::get('capture_maintenance', false) && !$user->admin()) {
+            // No abortamos para permitir ver el historial, pero el render se encargará de ocultar el form.
+            // Solo notificamos si es navegación directa por si acaso.
+        }
+
         if (!$user->admin()) {
             $hasAccess = $user->departments()->wherePivot('deparment_id', $this->employee->deparment_id)->exists();
             if (!$hasAccess) {
@@ -139,6 +157,14 @@ class Manager extends Component
 
             // NOTIFICACIÓN TIEMPO REAL
             broadcast(new NewIncidenciaBatchCreated())->toOthers();
+
+            if (session()->has('incapacidad_warning')) {
+                $this->dispatch('swal', [
+                    'icon' => 'warning',
+                    'title' => 'Aviso de Exceso',
+                    'text' => session('incapacidad_warning'),
+                ]);
+            }
 
             $this->dispatch('toast', ['icon' => 'success', 'title' => 'Incidencia Capturada']);
             $this->dispatch('reset-calendar');

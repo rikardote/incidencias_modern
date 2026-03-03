@@ -37,9 +37,18 @@ class LiveCaptureLog extends Component
     {
         try {
             // Paso 1: Obtener los tokens más recientes de forma optimizada
-            $latestTokens = DB::table('incidencias')
-                ->whereNull('deleted_at')
-                ->orderBy('created_at', 'desc')
+            $user = auth()->user();
+            $latestTokensQuery = DB::table('incidencias')
+                ->join('employees', 'incidencias.employee_id', '=', 'employees.id')
+                ->whereNull('incidencias.deleted_at');
+
+            if (!$user->admin()) {
+                $deptIds = $user->departments()->pluck('deparment_id');
+                $latestTokensQuery->whereIn('employees.deparment_id', $deptIds);
+            }
+
+            $latestTokens = $latestTokensQuery
+                ->orderBy('incidencias.created_at', 'desc')
                 ->take(100) 
                 ->pluck('token')
                 ->unique()

@@ -83,7 +83,26 @@
                 {{-- Acciones --}}
                 <div
                     class="shrink-0 flex flex-wrap items-center justify-around sm:justify-end gap-1 w-full xl:w-auto border-t xl:border-t-0 border-gray-100 dark:border-gray-700 pt-3 xl:pt-0">
+                    @php
+                        $isMaintenance = \Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin();
+                    @endphp
                     {{-- Incidencias --}}
+                    @if($isMaintenance)
+                    <button type="button" 
+                        onclick="window.Swal.fire({ 
+                            icon: 'error', 
+                            title: 'Mantenimiento Activo', 
+                            text: 'La captura de incidencias está suspendida temporalmente por administración.',
+                            confirmButtonColor: '#9b2247'
+                        })"
+                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-gray-300 dark:text-gray-600 cursor-not-allowed opacity-50 grayscale transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                        </svg>
+                        <span class="text-[8px] font-black uppercase tracking-tighter">Mantenimiento</span>
+                    </button>
+                    @else
                     <a href="{{ route('employees.incidencias', $employee->id) }}" wire:navigate
                         class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-[#9b2247] dark:text-[#e6d194] hover:bg-[#9b2247]/10 transition-colors">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -92,6 +111,7 @@
                         </svg>
                         <span class="text-[8px] font-black uppercase tracking-tighter">Incidencias</span>
                     </a>
+                    @endif
 
                     <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
 
@@ -387,11 +407,28 @@
 
                                 <div
                                     class="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg border dark:border-gray-700 space-y-3">
-                                    <div class="flex items-center justify-between">
-                                        <label
-                                            class="text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase">Estancia</label>
-                                        <input type="checkbox" wire:model="estancia"
-                                            class="rounded text-[#13322B] focus:ring-[#13322B]">
+                                    <div class="space-y-2">
+                                        <div class="flex items-center justify-between">
+                                            <label
+                                                class="text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase">Estancia</label>
+                                            <input type="checkbox" wire:model.live="estancia"
+                                                class="rounded text-[#13322B] focus:ring-[#13322B]">
+                                        </div>
+                                        @if($estancia)
+                                        <div class="grid grid-cols-2 gap-2 animate-fadeIn mb-2">
+                                            <div class="space-y-1">
+                                                <label
+                                                    class="text-[9px] font-bold text-gray-400 uppercase">Inicio</label>
+                                                <input type="date" wire:model="estancia_inicio"
+                                                    class="w-full text-[10px] p-1 border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded">
+                                            </div>
+                                            <div class="space-y-1">
+                                                <label class="text-[9px] font-bold text-gray-400 uppercase">Fin</label>
+                                                <input type="date" wire:model="estancia_fin"
+                                                    class="w-full text-[10px] p-1 border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded">
+                                            </div>
+                                        </div>
+                                        @endif
                                     </div>
                                     <div class="flex items-center justify-between">
                                         <label
@@ -421,6 +458,12 @@
                                             </div>
                                         </div>
                                         @endif
+                                    </div>
+                                    <div class="flex items-center justify-between pt-2 border-t dark:border-gray-700">
+                                        <label
+                                            class="text-[11px] font-bold text-oro uppercase">Exento Biométrico</label>
+                                        <input type="checkbox" wire:model="exento"
+                                            class="rounded text-oro focus:ring-oro">
                                     </div>
                                 </div>
                             </div>
