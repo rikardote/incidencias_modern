@@ -58,10 +58,8 @@ class ReportController extends Controller
         // Auto-calculate margins to prevent header/footer overlap
         $mpdf->setAutoTopMargin = 'stretch';
         $mpdf->setAutoBottomMargin = 'stretch';
-
-        if (!file_exists(storage_path('app/mpdf'))) {
-            mkdir(storage_path('app/mpdf'), 0777, true);
-        }
+        $mpdf->simpleTables = false;
+        $mpdf->packTableData = true;
 
         $css = '
             body { font-family: "Helvetica", "Arial", sans-serif; color: #333; font-size: 9pt; }
@@ -90,7 +88,7 @@ class ReportController extends Controller
             
             .divider { border-top: 1.5pt solid #9ca3af; margin-top: 2px; margin-bottom: 8px; }
 
-            .content-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+            .content-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; table-layout: fixed; }
             .content-table thead tr { background-color: #f3f4f6; }
             .content-table th { 
                 color: #374151; 
@@ -106,6 +104,7 @@ class ReportController extends Controller
                 padding: 4px 4px; 
                 vertical-align: top; 
                 color: #111;
+                word-wrap: break-word;
             }
             
             .text-center { text-align: center; }
@@ -129,15 +128,50 @@ class ReportController extends Controller
         ';
 
         $headerHtml = view('reports.pdf.rh5-header', compact('department', 'qna'))->render();
-        $contentHtml = view('reports.pdf.rh5-content', compact('incidencias'))->render();
 
         $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
         $mpdf->setHTMLHeader($headerHtml);
         $mpdf->SetFooter('Página {PAGENO} de {nb}');
 
-        // Removed simpleTables = true so CSS borders are fully respected in table cells
+        // Optimización: Escribir la tabla por partes para evitar límites de PCRE backtrack
+        $tableHeader = '
+        <table class="content-table" style="overflow: wrap;">
+            <thead>
+                <tr>
+                    <th style="width: 10%;">Num Empleado</th>
+                    <th style="width: 35%;">Empleado</th>
+                    <th style="width: 8%;">Codigo</th>
+                    <th style="width: 12%;">Fecha Inicial</th>
+                    <th style="width: 12%;">Fecha Final</th>
+                    <th style="width: 13%;">Periodo</th>
+                    <th style="width: 10%; text-align: center;">Total</th>
+                </tr>
+            </thead>
+            <tbody>';
+        
+        $mpdf->WriteHTML($tableHeader);
 
-        $mpdf->WriteHTML($contentHtml, \Mpdf\HTMLParserMode::HTML_BODY);
+        $lastEmp = null;
+        // Convertimos a array para asegurar que el chunking mantenga la estructura sin problemas de índices
+        $incidenciasArray = $incidencias->all(); 
+        $chunks = array_chunk($incidenciasArray, 50, true); 
+        
+        foreach ($chunks as $chunk) {
+            $chunkHtml = view('reports.pdf.rh5-rows', [
+                'incidencias' => $chunk,
+                'lastEmp' => $lastEmp
+            ])->render();
+            
+            $mpdf->WriteHTML($chunkHtml);
+            
+            // Actualizar lastEmp para el siguiente bloque con seguridad
+            $lastGroup = end($chunk);
+            if ($lastGroup && $lastGroup->first() && $lastGroup->first()->employee) {
+                $lastEmp = $lastGroup->first()->employee->num_empleado;
+            }
+        }
+
+        $mpdf->WriteHTML('</tbody></table>');
 
         $pdfFileName = 'RH5-' . str_pad($qna->qna, 2, '0', STR_PAD_LEFT) . '-' . $qna->year . '-' . str_replace(' ', '_', $department->description) . '.pdf';
 

@@ -50,9 +50,22 @@ class ChatWidget extends Component
             $this->markAsRead($this->activeConversationId);
         }
     }
-
     public function openConversation($userId)
     {
+        $isAllToAll = \App\Models\Configuration::get('chat_all_to_all', false);
+        $targetUser = User::find($userId);
+
+        // Si no es admin y el chat global está desactivado, solo puede hablar con admins
+        if (!auth()->user()->admin() && !$isAllToAll) {
+            if (!$targetUser || $targetUser->type !== 'admin') {
+                $this->dispatch('toast', [
+                    'icon' => 'error',
+                    'title' => 'No tienes permiso para contactar a este usuario.'
+                ]);
+                return;
+            }
+        }
+
         $conversation = Conversation::where(function ($query) use ($userId) {
             $query->where('user_one_id', auth()->id())->where('user_two_id', $userId);
         })->orWhere(function ($query) use ($userId) {
@@ -115,11 +128,18 @@ class ChatWidget extends Component
         $unreadCountsByUser = [];
 
         if (!$this->activeConversationId && $this->isOpen) {
+            $isAllToAll = \App\Models\Configuration::get('chat_all_to_all', false);
+
             $query = User::where('id', '!=', auth()->id())
                 ->where('active', true)
                 ->when($this->searchQuery, function ($q) {
                 $q->where('name', 'like', '%' . $this->searchQuery . '%');
             });
+
+            // Si no es admin y el chat global está desactivado, solo mostrar admins
+            if (!auth()->user()->admin() && !$isAllToAll) {
+                $query->where('type', 'admin');
+            }
 
             if (!empty($this->onlineUsers)) {
                 $ids = implode(',', array_map('intval', $this->onlineUsers));

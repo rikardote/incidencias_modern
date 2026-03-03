@@ -155,6 +155,11 @@
                     <div class="md:col-span-1">
                         @livewire('system.maintenance-toggle')
                     </div>
+
+                    <!-- Configuración de Chat -->
+                    <div class="md:col-span-1">
+                        @livewire('system.chat-configuration')
+                    </div>
                 </div>
 
             </div>
