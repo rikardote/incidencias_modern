@@ -497,7 +497,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function biometricoIndividualPdf($employeeId, $year, $quincena)
+    public function biometricoIndividualPdf($employeeId, $year, $quincena, $quincenaFin = null)
     {
         $user = auth()->user();
         $employee = Employe::with(['department', 'puesto', 'horario'])->findOrFail($employeeId);
@@ -509,26 +509,15 @@ class ReportController extends Controller
             }
         }
 
-        $mes = ceil($quincena / 2);
-        $es_primera = ($quincena % 2) != 0;
+        $startQna = (int)$quincena;
+        $endQna = $quincenaFin ? (int)$quincenaFin : $startQna;
 
-        $mesesEspanol = [
-            1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril', 5 => 'Mayo', 6 => 'Junio',
-            7 => 'Julio', 8 => 'Agosto', 9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
-        ];
-
-        $inicio = $es_primera
-            ? "{$year}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-01"
-            : "{$year}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-16";
-
-        $fin = $es_primera
-            ? "{$year}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-15"
-            : "{$year}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-" . date('t', strtotime("{$year}-{$mes}-01"));
-
-        $checadaModel = new \App\Models\Checada();
-        $checadas = $checadaModel->obtenerRegistrosPorEmpleado($employee->id, $inicio, $fin);
-
-        $periodoStr = "QNA " . str_pad($quincena, 2, '0', STR_PAD_LEFT) . " (" . ($es_primera ? '1RA' : '2DA') . " " . mb_strtoupper($mesesEspanol[$mes]) . ") - " . $year;
+        // Ensure range is valid
+        if ($endQna < $startQna) {
+            $temp = $startQna;
+            $startQna = $endQna;
+            $endQna = $temp;
+        }
 
         $mpdf = new Mpdf([
             'mode' => 'utf-8',
@@ -571,6 +560,13 @@ class ReportController extends Controller
             .tag-incidencia { padding: 3px 5px; background-color: #9b2247; color: white; border-radius: 3px; font-size: 8.5pt; font-weight: bold; }
         ';
 
+        $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
+
+        $mesesEspanol = [
+            1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril', 5 => 'Mayo', 6 => 'Junio',
+            7 => 'Julio', 8 => 'Agosto', 9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+        ];
+
         $statusNotice = '';
         if ($employee->exento || $employee->lactancia || $employee->estancia) {
             $statusNotice = '<div style="margin-top: 5px;">';
@@ -585,92 +581,117 @@ class ReportController extends Controller
             }
             $statusNotice .= '</div>';
         }
-        $headerHtml = '
-            <div class="header-container">
-                <table style="width: 100%;">
+
+        $checadaModel = new \App\Models\Checada();
+
+        for ($q = $startQna; $q <= $endQna; $q++) {
+            $currentQna = $q;
+            $mes = ceil($currentQna / 2);
+            $es_primera = ($currentQna % 2) != 0;
+
+            $inicio = $es_primera
+                ? "{$year}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-01"
+                : "{$year}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-16";
+
+            $fin = $es_primera
+                ? "{$year}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-15"
+                : "{$year}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-" . date('t', strtotime("{$year}-{$mes}-01"));
+
+            $checadas = $checadaModel->obtenerRegistrosPorEmpleado($employee->id, $inicio, $fin);
+            $periodoStr = "QNA " . str_pad($currentQna, 2, '0', STR_PAD_LEFT) . " (" . ($es_primera ? '1RA' : '2DA') . " " . mb_strtoupper($mesesEspanol[$mes]) . ") - " . $year;
+
+            $headerHtml = '
+                <div class="header-container">
+                    <table style="width: 100%;">
+                        <tr>
+                            <td class="logo-box"><img src="' . public_path('images/60issste.png') . '" class="logo-img"></td>
+                            <td class="title-box">
+                                <div class="title-main">
+                                    REPRESENTACION ESTATAL BAJA CALIFORNIA<br>
+                                    SUBDELEGACION DE ADMINISTRACION<br>
+                                    DEPARTAMENTO DE RECURSOS HUMANOS
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="banner">REPORTE INDIVIDUAL DE ASISTENCIA BIOMÉTRICA</div>
+                <table class="info-table">
                     <tr>
-                        <td class="logo-box"><img src="' . public_path('images/60issste.png') . '" class="logo-img"></td>
-                        <td class="title-box">
-                            <div class="title-main">
-                                REPRESENTACION ESTATAL BAJA CALIFORNIA<br>
-                                SUBDELEGACION DE ADMINISTRACION<br>
-                                DEPARTAMENTO DE RECURSOS HUMANOS
-                            </div>
+                        <td style="width: 60%;">
+                            <span class="label">EMPLEADO: </span><span class="value">' . $employee->fullname . ' (#' . $employee->num_empleado . ')</span>
+                            ' . $statusNotice . '
                         </td>
+                        <td style="width: 40%; text-align: right;"><span class="label">PERIODO: </span><span class="value">' . $periodoStr . '</span></td>
+                    </tr>
+                    <tr>
+                        <td style="width: 60%;"><span class="label">ADSCRIPCIÓN: </span><span class="value">' . ($employee->department->description ?? '--') . '</span></td>
+                        <td style="width: 40%; text-align: right;"><span class="label">HORARIO: </span><span class="value">' . ($employee->horario->horario ?? '--') . '</span></td>
                     </tr>
                 </table>
-            </div>
-            <div class="banner">REPORTE INDIVIDUAL DE ASISTENCIA BIOMÉTRICA</div>
-            <table class="info-table">
-                <tr>
-                    <td style="width: 60%;">
-                        <span class="label">EMPLEADO: </span><span class="value">' . $employee->fullname . ' (#' . $employee->num_empleado . ')</span>
-                        ' . $statusNotice . '
-                    </td>
-                    <td style="width: 40%; text-align: right;"><span class="label">PERIODO: </span><span class="value">' . $periodoStr . '</span></td>
-                </tr>
-                <tr>
-                    <td style="width: 60%;"><span class="label">ADSCRIPCIÓN: </span><span class="value">' . ($employee->department->description ?? '--') . '</span></td>
-                    <td style="width: 40%; text-align: right;"><span class="label">HORARIO: </span><span class="value">' . ($employee->horario->horario ?? '--') . '</span></td>
-                </tr>
-            </table>
-            <div class="divider"></div>
-        ';
+                <div class="divider"></div>
+            ';
 
-        $contentHtml = '
-            <table class="content-table">
-                <thead>
-                    <tr>
-                        <th style="width: 25%;">DÍA / FECHA</th>
-                        <th style="width: 20%; text-align: center;">ENTRADA</th>
-                        <th style="width: 20%; text-align: center;">SALIDA</th>
-                        <th style="width: 35%;">INCIDENCIA / OBSERVACIONES</th>
-                    </tr>
-                </thead>
-                <tbody>';
+            $contentHtml = '
+                <table class="content-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">DÍA / FECHA</th>
+                            <th style="width: 20%; text-align: center;">ENTRADA</th>
+                            <th style="width: 20%; text-align: center;">SALIDA</th>
+                            <th style="width: 35%;">INCIDENCIA / OBSERVACIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
 
-        foreach ($checadas as $c) {
-            $fecha = \Carbon\Carbon::parse($c->fecha);
-            $esFDS = $fecha->isWeekend();
-            $rowStyle = $esFDS ? ' class="bg-weekend"' : '';
+            foreach ($checadas as $c) {
+                $fecha = \Carbon\Carbon::parse($c->fecha);
+                $esFDS = $fecha->isWeekend();
+                $rowStyle = $esFDS ? ' class="bg-weekend"' : '';
 
-            $contentHtml .= '<tr' . $rowStyle . '>';
-            $dayAbbr = mb_strtoupper(str_replace('.', '', $fecha->translatedFormat('D')));
-            $monthAbbr = mb_strtoupper(str_replace('.', '', $fecha->translatedFormat('M')));
-            $dateFormatted = $dayAbbr . '. ' . $fecha->format('d') . ' ' . $monthAbbr . '. ' . $fecha->format('Y');
-            $contentHtml .= '<td class="font-mono">' . $dateFormatted . '</td>';
+                $contentHtml .= '<tr' . $rowStyle . '>';
+                $dayAbbr = mb_strtoupper(str_replace('.', '', $fecha->translatedFormat('D')));
+                $monthAbbr = mb_strtoupper(str_replace('.', '', $fecha->translatedFormat('M')));
+                $dateFormatted = $dayAbbr . '. ' . $fecha->format('d') . ' ' . $monthAbbr . '. ' . $fecha->format('Y');
+                $contentHtml .= '<td class="font-mono">' . $dateFormatted . '</td>';
 
-            $entrada = $c->hora_entrada ? date('H:i', strtotime($c->primera_checada)) : '--:--';
-            $contentHtml .= '<td class="text-center font-mono">' . $entrada . '</td>';
+                $entrada = $c->hora_entrada ? date('H:i', strtotime($c->primera_checada)) : '--:--';
+                $contentHtml .= '<td class="text-center font-mono">' . $entrada . '</td>';
 
-            $salida = ($c->num_checadas > 1) ? date('H:i', strtotime($c->ultima_checada)) : '--:--';
-            $contentHtml .= '<td class="text-center font-mono">' . $salida . '</td>';
+                $salida = ($c->num_checadas > 1) ? date('H:i', strtotime($c->ultima_checada)) : '--:--';
+                $contentHtml .= '<td class="text-center font-mono">' . $salida . '</td>';
 
-            $obs = '';
-            if ($c->incidencias) {
-                foreach (explode(',', $c->incidencias) as $code) {
-                    $obs .= '<span class="tag-incidencia">' . trim($code) . '</span> ';
+                $obs = '';
+                if ($c->incidencias) {
+                    foreach (explode(',', $c->incidencias) as $code) {
+                        $obs .= '<span class="tag-incidencia">' . trim($code) . '</span> ';
+                    }
                 }
-            }
-            elseif (!$c->hora_entrada && !$esFDS && $fecha->isPast()) {
-                $obs = '<span style="color: #9b2247; font-size: 8pt; font-weight: bold;">SIN REGISTRO</span>';
-            }
-            else {
-                $obs = '<span style="color: #9ca3af; font-size: 8pt;">--</span>';
+                elseif (!$c->hora_entrada && !$esFDS && $fecha->isPast()) {
+                    $obs = '<span style="color: #9b2247; font-size: 8pt; font-weight: bold;">SIN REGISTRO</span>';
+                }
+                else {
+                    $obs = '<span style="color: #9ca3af; font-size: 8pt;">--</span>';
+                }
+
+                $contentHtml .= '<td>' . $obs . '</td>';
+                $contentHtml .= '</tr>';
             }
 
-            $contentHtml .= '<td>' . $obs . '</td>';
-            $contentHtml .= '</tr>';
+            $contentHtml .= '</tbody></table>';
+
+            // ESTABLECER EL HEADER ANTES DE AGREGAR LA PÁGINA O ESCRIBIR EL CONTENIDO
+            $mpdf->setHTMLHeader($headerHtml);
+
+            if ($q > $startQna) {
+                $mpdf->AddPage();
+            }
+
+            $mpdf->SetFooter('ISSSTE BAJA CALIFORNIA | ' . $employee->fullname . ' | Página {PAGENO} de {nb}');
+            $mpdf->WriteHTML($contentHtml, \Mpdf\HTMLParserMode::HTML_BODY);
         }
 
-        $contentHtml .= '</tbody></table>';
-
-        $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
-        $mpdf->setHTMLHeader($headerHtml);
-        $mpdf->SetFooter('ISSSTE BAJA CALIFORNIA | ' . $employee->fullname . ' | Página {PAGENO} de {nb}');
-        $mpdf->WriteHTML($contentHtml, \Mpdf\HTMLParserMode::HTML_BODY);
-
-        $pdfFileName = 'ASISTENCIA_' . $employee->num_empleado . '_' . $year . '_Q' . str_pad($quincena, 2, '0', STR_PAD_LEFT) . '.pdf';
+        $pdfFileName = 'ASISTENCIA_' . $employee->num_empleado . '_' . $year . '_RANGO_Q' . str_pad($startQna, 2, '0', STR_PAD_LEFT) . '_Q' . str_pad($endQna, 2, '0', STR_PAD_LEFT) . '.pdf';
 
         return response($mpdf->Output($pdfFileName, 'I'), 200, [
             'Content-Type' => 'application/pdf',

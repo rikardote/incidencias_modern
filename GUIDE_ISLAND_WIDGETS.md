@@ -1,7 +1,7 @@
 # 🏝️ Guía: Creación de Widgets para Dynamic Island
 
 Esta guía contiene la **especificación técnica exacta** para que cualquier modelo de IA (ChatGPT, Claude, etc.) te genere widgets perfectos para tu sistema sin cometer errores de PHP o dimensiones.
-
+docker exec -t modern_app npm run build
 ---
 
 ## 1. 🚀 PROMPT MAESTRO (Copiar y Pegar)

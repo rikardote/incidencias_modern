@@ -81,7 +81,7 @@
                                 </button>
                             </x-slot>
                             <x-slot name="content">
-                                <x-dropdown-link :href="route('reports.general')" wire:navigate
+                                <x-dropdown-link :href="route('reports.rh5')" wire:navigate
                                     class="hover:bg-gray-100 dark:hover:bg-white/5 py-3 border-b border-gray-100 dark:border-white/5">
                                     <div class="flex items-center gap-3">
                                         <svg class="w-4 h-4 text-[#e6d194]" fill="none" stroke="currentColor"
@@ -90,7 +90,7 @@
                                                 d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                                             </path>
                                         </svg>
-                                        {{ __('General (RH5)') }}
+                                        {{ __('Reporte RH5') }}
                                     </div>
                                 </x-dropdown-link>
                                 <x-dropdown-link :href="route('reports.sinderecho')" wire:navigate
@@ -391,9 +391,9 @@
             <div class="px-4 py-2 mt-2">
                 <div class="font-medium text-[10px] text-gray-500 uppercase tracking-[0.2em]">Reportes</div>
             </div>
-            <x-responsive-nav-link :href="route('reports.general')" :active="request()->routeIs('reports.general')"
+            <x-responsive-nav-link :href="route('reports.rh5')" :active="request()->routeIs('reports.rh5')"
                 wire:navigate>
-                <span class="ps-4">{{ __('General (RH5)') }}</span>
+                <span class="ps-4">{{ __('Reporte RH5') }}</span>
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('reports.sinderecho')"
                 :active="request()->routeIs('reports.sinderecho')" wire:navigate>

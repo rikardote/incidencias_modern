@@ -186,3 +186,12 @@ ALTER TABLE incidencias ADD INDEX idx_employee (employee_id);
 ALTER TABLE incidencias ADD INDEX idx_token (token);
 ALTER TABLE incidencias ADD INDEX idx_created (created_at);
 ALTER TABLE incidencias ADD INDEX idx_deleted_created (deleted_at, created_at);
+
+
+UPDATE employees
+SET active = 0
+WHERE deparment_id = 33;
+
+UPDATE employees
+SET active = 1
+WHERE active = 2;

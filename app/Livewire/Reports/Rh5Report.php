@@ -7,7 +7,7 @@ use App\Models\Qna;
 use App\Models\Incidencia;
 use Livewire\Component;
 
-class GeneralReport extends Component
+class Rh5Report extends Component
 {
     public $year;
     public $qnaId;
@@ -105,7 +105,7 @@ class GeneralReport extends Component
         $years = Qna::select('year')->distinct()->orderBy('year', 'desc')->pluck('year');
         $qnas = Qna::where('year', $this->year)->orderBy('qna', 'desc')->get();
 
-        return view('livewire.reports.general-report', [
+        return view('livewire.reports.rh5-report', [
             'years' => $years,
             'qnas' => $qnas,
             'departments' => $departments,

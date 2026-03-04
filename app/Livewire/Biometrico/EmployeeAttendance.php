@@ -11,6 +11,7 @@ class EmployeeAttendance extends Component
 {
     public $employee;
     public $quincena;
+    public $quincenaFin;
     public $año;
     public $checadas = [];
 
@@ -23,29 +24,36 @@ class EmployeeAttendance extends Component
         $day = (int)date('d');
         $month = (int)date('n');
         $this->quincena = ($day <= 15) ? ($month * 2 - 1) : ($month * 2);
+        $this->quincenaFin = $this->quincena;
 
         $this->loadChecadas();
     }
 
     public function updated($propertyName)
     {
-        if (in_array($propertyName, ['quincena', 'año'])) {
+        if (in_array($propertyName, ['quincena', 'quincenaFin', 'año'])) {
             $this->loadChecadas();
         }
     }
 
     public function loadChecadas()
     {
-        $mes = ceil($this->quincena / 2);
-        $es_primera = ($this->quincena % 2) != 0;
+        $qStart = (int)min($this->quincena, $this->quincenaFin);
+        $qEnd = (int)max($this->quincena, $this->quincenaFin);
 
-        $inicio = $es_primera
-            ? "{$this->año}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-01"
-            : "{$this->año}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-16";
+        $mesStart = ceil($qStart / 2);
+        $es_primera_start = ($qStart % 2) != 0;
 
-        $fin = $es_primera
-            ? "{$this->año}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-15"
-            : "{$this->año}-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-" . date('t', strtotime("{$this->año}-{$mes}-01"));
+        $inicio = $es_primera_start
+            ? "{$this->año}-" . str_pad($mesStart, 2, '0', STR_PAD_LEFT) . "-01"
+            : "{$this->año}-" . str_pad($mesStart, 2, '0', STR_PAD_LEFT) . "-16";
+
+        $mesEnd = ceil($qEnd / 2);
+        $es_primera_end = ($qEnd % 2) != 0;
+
+        $fin = $es_primera_end
+            ? "{$this->año}-" . str_pad($mesEnd, 2, '0', STR_PAD_LEFT) . "-15"
+            : "{$this->año}-" . str_pad($mesEnd, 2, '0', STR_PAD_LEFT) . "-" . date('t', strtotime("{$this->año}-{$mesEnd}-01"));
 
         $checadaModel = new Checada();
         $this->checadas = $checadaModel->obtenerRegistrosPorEmpleado($this->employee->id, $inicio, $fin);

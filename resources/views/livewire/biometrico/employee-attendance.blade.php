@@ -50,12 +50,12 @@
                 </div>
             </div>
 
-            {{-- Quincena --}}
+            {{-- Quincena Inicio --}}
             <div class="relative w-full lg:w-[220px]" x-data="{ open: false }">
                 <button @click="open = !open" @click.away="open = false" type="button"
                     class="flex items-center justify-between w-full py-2.5 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200">
                     @php
-                    $qLabel = 'Quincena';
+                    $qLabel = 'Desde';
                     foreach($quincenas as $q) if($q['value'] == $quincena) $qLabel = $q['label'];
                     @endphp
                     <span class="truncate text-left">{{ $qLabel }}</span>
@@ -78,8 +78,36 @@
                 </div>
             </div>
 
+            {{-- Quincena Fin --}}
+            <div class="relative w-full lg:w-[220px]" x-data="{ open: false }">
+                <button @click="open = !open" @click.away="open = false" type="button"
+                    class="flex items-center justify-between w-full py-2.5 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200">
+                    @php
+                    $qFinLabel = 'Hasta';
+                    foreach($quincenas as $q) if($q['value'] == $quincenaFin) $qFinLabel = $q['label'];
+                    @endphp
+                    <span class="truncate text-left">{{ $qFinLabel }}</span>
+                    <svg class="w-4 h-4 text-gray-400 transition-transform" :class="{'rotate-180': open}" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+                <div x-show="open"
+                    class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden"
+                    style="display: none;">
+                    <div class="max-h-60 overflow-y-auto p-1.5 space-y-1">
+                        @foreach($quincenas as $q)
+                        <div wire:click="$set('quincenaFin', '{{ $q['value'] }}')" @click="open = false"
+                            class="px-3 py-2 rounded-lg cursor-pointer text-xs font-bold hover:bg-gray-50 dark:hover:bg-gray-700 {{ $quincenaFin == $q['value'] ? 'bg-oro/10 text-oro' : '' }}">
+                            {{ $q['label'] }}
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+
             <div class="flex items-center gap-2">
-                <a href="{{ route('biometrico.individual.pdf', ['employeeId' => $employee->id, 'year' => $año, 'quincena' => $quincena]) }}"
+                <a href="{{ route('biometrico.individual.pdf', ['employeeId' => $employee->id, 'year' => $año, 'quincena' => $quincena, 'quincenaFin' => $quincenaFin]) }}"
                     target="_blank"
                     class="h-[42px] px-5 bg-[#9b2247] hover:bg-[#7a1b38] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md transition-all flex items-center justify-center gap-2">
                     PDF

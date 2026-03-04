@@ -184,7 +184,7 @@
                 </a>
 
                 <!-- Card Reportes -->
-                <a href="{{ route('reports.general') }}"
+                <a href="{{ route('reports.rh5') }}"
                     class="mt-4 md:mt-0 md:col-span-2 flex items-center justify-between p-6 bg-[#9b2247] dark:bg-gray-800 rounded-xl shadow-sm border border-[#611232] dark:border-gray-700 hover:shadow-lg hover:-translate-y-1 transition-all group relative overflow-hidden">
                     <div class="absolute right-0 top-0 -mr-6 -mt-6">
                         <svg class="w-24 h-24 text-white opacity-10" fill="currentColor" viewBox="0 0 20 20">
