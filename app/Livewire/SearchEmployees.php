@@ -27,6 +27,7 @@ class SearchEmployees extends Component
     public $num_empleado, $name, $father_lastname, $mother_lastname;
     public $deparment_id, $condicion_id, $puesto_id, $horario_id, $jornada_id;
     public $num_plaza, $num_seguro, $fecha_ingreso;
+    public $curp, $rfc;
     public $estancia = false, $comisionado = false, $lactancia = false, $exento = false;
     public $lactancia_inicio, $lactancia_fin, $estancia_inicio, $estancia_fin;
 
@@ -43,6 +44,8 @@ class SearchEmployees extends Component
             'jornada_id' => 'required|exists:jornadas,id',
             'condicion_id' => 'required|exists:condiciones,id',
             'fecha_ingreso' => 'required|date',
+            'curp' => 'nullable|min:18|max:18',
+            'rfc' => 'nullable|min:12|max:13',
             'lactancia_inicio' => 'required_if:lactancia,true|nullable|date',
             'lactancia_fin' => 'required_if:lactancia,true|nullable|date',
             'estancia_inicio' => 'required_if:estancia,true|nullable|date',
@@ -52,7 +55,7 @@ class SearchEmployees extends Component
 
     public function create()
     {
-        $this->reset(['editingEmployeeId', 'num_empleado', 'name', 'father_lastname', 'mother_lastname', 'deparment_id', 'condicion_id', 'puesto_id', 'horario_id', 'jornada_id', 'num_plaza', 'num_seguro', 'fecha_ingreso', 'estancia', 'estancia_inicio', 'estancia_fin', 'comisionado', 'lactancia', 'lactancia_inicio', 'lactancia_fin', 'exento']);
+        $this->reset(['editingEmployeeId', 'num_empleado', 'name', 'father_lastname', 'mother_lastname', 'curp', 'rfc', 'deparment_id', 'condicion_id', 'puesto_id', 'horario_id', 'jornada_id', 'num_plaza', 'num_seguro', 'fecha_ingreso', 'estancia', 'estancia_inicio', 'estancia_fin', 'comisionado', 'lactancia', 'lactancia_inicio', 'lactancia_fin', 'exento']);
         $this->resetValidation();
         $this->showEmployeeModal = true;
     }
@@ -67,6 +70,8 @@ class SearchEmployees extends Component
         $this->name = $employee->name;
         $this->father_lastname = $employee->father_lastname;
         $this->mother_lastname = $employee->mother_lastname;
+        $this->curp = $employee->curp;
+        $this->rfc = $employee->rfc;
         $this->deparment_id = $employee->deparment_id;
         $this->condicion_id = $employee->condicion_id;
         $this->puesto_id = $employee->puesto_id;
@@ -96,6 +101,8 @@ class SearchEmployees extends Component
             'name' => strtoupper($this->name),
             'father_lastname' => strtoupper($this->father_lastname),
             'mother_lastname' => strtoupper($this->mother_lastname),
+            'curp' => $this->curp,
+            'rfc' => $this->rfc,
             'deparment_id' => $this->deparment_id,
             'condicion_id' => $this->condicion_id,
             'puesto_id' => $this->puesto_id,

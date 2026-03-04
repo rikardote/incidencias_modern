@@ -14,11 +14,22 @@ class Employe extends Model
 
     protected $fillable = [
         "num_empleado", "name", "father_lastname", "mother_lastname",
+        "curp", "rfc",
         "deparment_id", "condicion_id", "puesto_id", "horario_id",
         "num_plaza", "num_seguro", "jornada_id", "lactancia",
         "lactancia_inicio", "lactancia_fin", "comisionado", "estancia",
         "estancia_inicio", "estancia_fin", "active", "exento"
     ];
+
+    public function setCurpAttribute($v)
+    {
+        $this->attributes['curp'] = $v ? mb_strtoupper(trim($v)) : null;
+    }
+
+    public function setRfcAttribute($v)
+    {
+        $this->attributes['rfc'] = $v ? mb_strtoupper(trim($v)) : null;
+    }
 
     public function department(): BelongsTo
     {
@@ -48,6 +59,21 @@ class Employe extends Model
     public function getNumEmpleadoAttribute($value): string
     {
         return str_pad($value, 5, "0", STR_PAD_LEFT);
+    }
+
+    public function getGenderAttribute(): string
+    {
+        if (!$this->curp || strlen($this->curp) < 11) {
+            return 'No definido';
+        }
+
+        $genderChar = strtoupper($this->curp[10]); // El índice 10 es el carácter 11
+
+        return match($genderChar) {
+            'H' => 'Masculino',
+            'M' => 'Femenino',
+            default => 'No definido'
+        };
     }
 
     public function scopeActive($query)

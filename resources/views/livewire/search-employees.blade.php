@@ -294,6 +294,23 @@
                                     @error('mother_lastname') <span class="text-red-500 text-[10px]">{{ $message
                                         }}</span> @enderror
                                 </div>
+
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div class="space-y-1">
+                                        <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">CURP</label>
+                                        <input type="text" wire:model="curp"
+                                            class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md focus:ring-[#13322B] focus:border-[#13322B]"
+                                            maxlength="18">
+                                        @error('curp') <span class="text-red-500 text-[10px]">{{ $message }}</span> @enderror
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">RFC</label>
+                                        <input type="text" wire:model="rfc"
+                                            class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md focus:ring-[#13322B] focus:border-[#13322B]"
+                                            maxlength="13">
+                                        @error('rfc') <span class="text-red-500 text-[10px]">{{ $message }}</span> @enderror
+                                    </div>
+                                </div>
                             </div>
 
                             {{-- SECCION 2: Laboral --}}

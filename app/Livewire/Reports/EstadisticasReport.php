@@ -14,6 +14,7 @@ class EstadisticasReport extends Component
     public $loading = true;
     public $selectedDepartment = null;
     public $selectedCode = null;
+    public $selectedGender = null;
     public $fechaInicio;
     public $fechaFinal;
 
@@ -95,6 +96,14 @@ class EstadisticasReport extends Component
             $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
             $query->whereHas('employee', function ($q) use ($departmentIds) {
                 $q->whereIn('deparment_id', $departmentIds);
+            });
+        }
+
+        if ($user->admin() && $this->selectedGender) {
+            $genderChar = $this->selectedGender;
+            $query->whereHas('employee', function ($q) use ($genderChar) {
+                // En MySQL el índice es 1-based, así que 11 es el carácter correcto
+                $q->whereRaw("SUBSTRING(curp, 11, 1) = ?", [$genderChar]);
             });
         }
 

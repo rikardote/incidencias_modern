@@ -62,7 +62,7 @@
                     $selectedDepartmentName = $deptFound ? '[' . $deptFound->code . '] ' . $deptFound->description :
                     'Todos los departamentos';
                     @endphp
-                    <button @click="openDept = !openDept; openCode = false" type="button"
+                    <button @click="openDept = !openDept; openCode = false; openGender = false" type="button"
                         class="flex items-center justify-between w-full py-2.5 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-[#13322B] transition-all">
                         <span class="truncate">{{ $selectedDepartmentName }}</span>
                         <svg class="w-4 h-4 text-gray-400 transition-transform" :class="{'rotate-180': openDept}"
@@ -88,6 +88,43 @@
                         </div>
                     </div>
                 </div>
+
+                @if(auth()->user()->admin())
+                <!-- Gender Selector -->
+                <div class="relative w-full xl:w-[150px]" x-data="{ openGender: false }" @click.away="openGender = false">
+                    @php
+                    $genderNames = ['H' => 'Masculino', 'M' => 'Femenino'];
+                    $selectedGenderName = $selectedGender ? $genderNames[$selectedGender] : 'Género (Todos)';
+                    @endphp
+                    <button @click="openGender = !openGender; openCode = false; openDept = false" type="button"
+                        class="flex items-center justify-between w-full py-2.5 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-[#13322B] transition-all">
+                        <span class="truncate">{{ $selectedGenderName }}</span>
+                        <svg class="w-4 h-4 text-gray-400 transition-transform" :class="{'rotate-180': openGender}"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <!-- Dropdown -->
+                    <div x-show="openGender" x-transition.opacity
+                        class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden"
+                        style="display: none;">
+                        <div class="p-1.5 space-y-1">
+                            <div wire:click="$set('selectedGender', '')" @click="openGender = false"
+                                class="px-3 py-2 rounded-lg cursor-pointer text-xs font-bold {{ !$selectedGender ? 'bg-[#13322B]/10 text-[#13322B] dark:bg-oro/20 dark:text-oro' : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700' }}">
+                                Todos
+                            </div>
+                            <div wire:click="$set('selectedGender', 'H')" @click="openGender = false"
+                                class="px-3 py-2 rounded-lg cursor-pointer text-xs font-bold {{ $selectedGender == 'H' ? 'bg-[#13322B]/10 text-[#13322B] dark:bg-oro/20 dark:text-oro' : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700' }}">
+                                Masculino
+                            </div>
+                            <div wire:click="$set('selectedGender', 'M')" @click="openGender = false"
+                                class="px-3 py-2 rounded-lg cursor-pointer text-xs font-bold {{ $selectedGender == 'M' ? 'bg-[#13322B]/10 text-[#13322B] dark:bg-oro/20 dark:text-oro' : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700' }}">
+                                Femenino
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
 
                 <!-- Date Pickers -->
                 <div class="flex items-center gap-2">

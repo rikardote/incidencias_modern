@@ -36,7 +36,7 @@
             <!-- Sidebar: Personal Profile -->
             <div class="space-y-6">
                 <div
-                    class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transform hover:scale-[1.01] transition-transform duration-300">
+                    class="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                     <div class="h-24 bg-gradient-to-br from-[#13322B] to-[#0a1b17] relative">
                         <div class="absolute -bottom-8 left-8">
                             <div
@@ -88,11 +88,35 @@
                                     <span class="text-xs font-bold text-gray-700 dark:text-gray-300 font-mono">{{
                                         $this->employee->num_seguro ?? 'N/A' }}</span>
                                 </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-black text-gray-400 uppercase">CURP</span>
+                                    <span class="text-xs font-bold text-[#9b2247] dark:text-oro font-mono">{{
+                                        $this->employee->curp ?? 'N/A' }}</span>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-black text-gray-400 uppercase">RFC</span>
+                                    <span class="text-xs font-bold text-[#9b2247] dark:text-oro font-mono">{{
+                                        $this->employee->rfc ?? 'N/A' }}</span>
+                                </div>
                             </div>
                         </div>
 
                         <div class="pt-6 border-t border-gray-50 dark:border-gray-700/50">
-                            <div class="flex items-center gap-3">
+                            <div class="flex flex-wrap items-center gap-3">
+                                @if($this->employee->gender !== 'No definido')
+                                <span
+                                    class="px-2 py-1 {{ $this->employee->gender === 'Femenino' ? 'bg-pink-100 text-pink-600 dark:bg-pink-900/30 dark:text-pink-400' : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' }} text-[10px] font-black uppercase rounded shadow-sm scale-95 origin-left flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        @if($this->employee->gender === 'Femenino')
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18V6l-3 3m3-3l3 3M12 11h-1" />
+                                            <circle cx="12" cy="14" r="3" stroke="currentColor" stroke-width="2"/>
+                                        @else
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        @endif
+                                    </svg>
+                                    {{ $this->employee->gender }}
+                                </span>
+                                @endif
                                 @if($this->employee->comisionado)
                                 <span
                                     class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[10px] font-black uppercase rounded shadow-sm scale-95 origin-left">Comisionado</span>
