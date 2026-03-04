@@ -60,24 +60,27 @@ class Employe extends Model
     {
         return str_pad($value, 5, "0", STR_PAD_LEFT);
     }
-
     public function getGenderAttribute(): string
     {
         if (!$this->curp || strlen($this->curp) < 11) {
             return 'No definido';
         }
 
-        $genderChar = strtoupper($this->curp[10]); // El índice 10 es el carácter 11
+        $genderChar = strtoupper($this->curp[10]);
 
-        return match($genderChar) {
-            'H' => 'Masculino',
-            'M' => 'Femenino',
-            default => 'No definido'
-        };
+        switch ($genderChar) {
+            case 'H':
+                return 'Masculino';
+            case 'M':
+                return 'Femenino';
+            default:
+                return 'No definido';
+        }
     }
+
 
     public function scopeActive($query)
     {
-        return $query->where('active', '1');
+        return $query->where('active', 1);
     }
 }

@@ -12,6 +12,8 @@ class SearchEmployees extends Component
     use WithPagination;
 
     public $search = '';
+    public $selectedDepartment = '';
+    public $showInactive = false;
     public $listAll = false;
 
     #[On('echo-presence:chat,GlobalMaintenanceEvent')]
@@ -28,8 +30,24 @@ class SearchEmployees extends Component
     public $deparment_id, $condicion_id, $puesto_id, $horario_id, $jornada_id;
     public $num_plaza, $num_seguro, $fecha_ingreso;
     public $curp, $rfc;
-    public $estancia = false, $comisionado = false, $lactancia = false, $exento = false;
+    public $active = true, $estancia = false, $comisionado = false, $lactancia = false, $exento = false;
     public $lactancia_inicio, $lactancia_fin, $estancia_inicio, $estancia_fin;
+
+    public function getGender()
+    {
+        if (!$this->curp || strlen($this->curp) < 11) {
+            return 'No definido';
+        }
+
+        $genderChar = strtoupper($this->curp[10]);
+
+        switch ($genderChar) {
+            case 'H': return 'Masculino';
+            case 'M': return 'Femenino';
+            default: return 'No definido';
+        }
+    }
+
 
     protected function rules()
     {
@@ -50,12 +68,13 @@ class SearchEmployees extends Component
             'lactancia_fin' => 'required_if:lactancia,true|nullable|date',
             'estancia_inicio' => 'required_if:estancia,true|nullable|date',
             'estancia_fin' => 'required_if:estancia,true|nullable|date',
+            'active' => 'required|boolean',
         ];
     }
 
     public function create()
     {
-        $this->reset(['editingEmployeeId', 'num_empleado', 'name', 'father_lastname', 'mother_lastname', 'curp', 'rfc', 'deparment_id', 'condicion_id', 'puesto_id', 'horario_id', 'jornada_id', 'num_plaza', 'num_seguro', 'fecha_ingreso', 'estancia', 'estancia_inicio', 'estancia_fin', 'comisionado', 'lactancia', 'lactancia_inicio', 'lactancia_fin', 'exento']);
+        $this->reset(['editingEmployeeId', 'num_empleado', 'name', 'father_lastname', 'mother_lastname', 'curp', 'rfc', 'deparment_id', 'condicion_id', 'puesto_id', 'horario_id', 'jornada_id', 'num_plaza', 'num_seguro', 'fecha_ingreso', 'estancia', 'estancia_inicio', 'estancia_fin', 'comisionado', 'lactancia', 'lactancia_inicio', 'lactancia_fin', 'exento', 'active']);
         $this->resetValidation();
         $this->showEmployeeModal = true;
     }
@@ -64,8 +83,13 @@ class SearchEmployees extends Component
     {
         $this->resetValidation();
         $this->editingEmployeeId = $id;
-        $employee = \App\Models\Employe::findOrFail($id);
+        $employee = \App\Models\Employe::withTrashed()->findOrFail($id);
+        $this->populateForm($employee);
+        $this->showEmployeeModal = true;
+    }
 
+    private function populateForm($employee)
+    {
         $this->num_empleado = $employee->num_empleado;
         $this->name = $employee->name;
         $this->father_lastname = $employee->father_lastname;
@@ -88,8 +112,7 @@ class SearchEmployees extends Component
         $this->lactancia_inicio = $employee->lactancia_inicio;
         $this->lactancia_fin = $employee->lactancia_fin;
         $this->exento = (bool)$employee->exento;
-
-        $this->showEmployeeModal = true;
+        $this->active = (bool)$employee->active;
     }
 
     public function save()
@@ -118,7 +141,7 @@ class SearchEmployees extends Component
             'lactancia' => $this->lactancia,
             'lactancia_inicio' => $this->lactancia ? $this->lactancia_inicio : null,
             'lactancia_fin' => $this->lactancia ? $this->lactancia_fin : null,
-            'active' => '1',
+            'active' => $this->active ? 1 : 0,
             'exento' => $this->exento,
         ];
 
@@ -139,10 +162,43 @@ class SearchEmployees extends Component
         ]);
     }
 
+    public function updatedNumEmpleado($value)
+    {
+        if (!$this->editingEmployeeId && !empty($value)) {
+            $existing = \App\Models\Employe::withTrashed()->where('num_empleado', $value)->first();
+            
+            if ($existing) {
+                // Rellenar campos automáticamente
+                $this->editingEmployeeId = $existing->id;
+                $this->populateForm($existing);
+                
+                // Forzar reactivación
+                $this->active = true;
+
+                $this->dispatch('swal', [
+                    'title' => '¡Registro localizado!',
+                    'text' => "Se encontró a {$existing->fullname} con este número. Los campos han sido rellenados automáticamente. Por favor, ACTUALICE TODA LA INFORMACIÓN necesaria (Departamento, Puesto, Horarios, etc.) antes de guardar para reactivar al empleado.",
+                    'icon' => 'info',
+                    'timer' => 10000
+                ]);
+            }
+        }
+    }
+
     public function updatingSearch()
     {
         $this->resetPage();
         $this->listAll = false;
+    }
+
+    public function updatingSelectedDepartment()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingShowInactive()
+    {
+        $this->resetPage();
     }
 
     public function toggleListAll()
@@ -150,6 +206,7 @@ class SearchEmployees extends Component
         $this->listAll = !$this->listAll;
         if ($this->listAll) {
             $this->search = '';
+            $this->selectedDepartment = '';
         }
     }
 
@@ -157,11 +214,19 @@ class SearchEmployees extends Component
     {
         $user = auth()->user();
 
-        // Si no hay búsqueda y no se ha pedido listar todo, devolvemos una vista vacía
-        if (empty($this->search) && !$this->listAll) {
+        // Obtener departamentos según acceso
+        $deptQuery = \App\Models\Department::orderBy('code');
+        if (!$user->admin()) {
+            $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
+            $deptQuery->whereIn('id', $departmentIds);
+        }
+        $availableDepartments = $deptQuery->get();
+
+        // Si no hay búsqueda, ni depto, ni inactivos, ni listar todo, devolvemos vista vacía
+        if (empty($this->search) && empty($this->selectedDepartment) && !$this->showInactive && !$this->listAll) {
             return view('livewire.search-employees', [
                 'employees' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20),
-                'departments' => \App\Models\Department::orderBy('code')->get(),
+                'departments' => $availableDepartments,
                 'puestos' => \App\Models\Puesto::orderBy('puesto')->get(),
                 'horarios' => \App\Models\Horario::orderBy('horario')->get(),
                 'jornadas' => \App\Models\Jornada::orderBy('jornada')->get(),
@@ -169,32 +234,50 @@ class SearchEmployees extends Component
             ]);
         }
 
-        $query = Employe::with(['department', 'puesto'])
-            ->active()
-            ->whereDoesntHave('department', function ($q) {
-            $q->where('code', '99999');
-        });
+        if ($this->showInactive) {
+            // MODO BAJAS: Ver todo (inactivos, borrados y depto 99999)
+            $query = Employe::withTrashed()->with(['department', 'puesto'])
+                ->where(function($q) {
+                    $q->where('active', 0)->orWhere('active', '0')->orWhere('active', false);
+                });
+        } else {
+            // MODO NORMAL (Activos): Sin borrados y sin depto 99999
+            $query = Employe::with(['department', 'puesto'])
+                ->where(function($q) {
+                    $q->where('active', 1)->orWhere('active', '1')->orWhere('active', true);
+                })
+                ->whereDoesntHave('department', function ($q) {
+                    $q->where('code', '99999');
+                });
+        }
 
+        // Filtro de seguridad (Solo deptos autorizados)
         if (!$user->admin()) {
             $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
             $query->whereIn('deparment_id', $departmentIds);
         }
 
-        $employees = $query->when($this->search, function ($q, $search) {
-            return $q->where(function ($subQ) use ($search) {
-                    $subQ->where('num_empleado', 'LIKE', "%{$search}%")
-                        ->orWhere('name', 'LIKE', "%{$search}%")
-                        ->orWhere('father_lastname', 'LIKE', "%{$search}%")
-                        ->orWhere('mother_lastname', 'LIKE', "%{$search}%");
-                }
-                );
-            })
-            ->orderBy('num_empleado', 'ASC')
-            ->paginate(20);
+        // Filtro por selección de departamento
+        if (!empty($this->selectedDepartment)) {
+            $query->where('deparment_id', $this->selectedDepartment);
+        }
+
+        // Filtro por texto de búsqueda
+        $employees = $query->when($this->search, function ($q) {
+            $term = "%{$this->search}%";
+            return $q->where(function ($subQ) use ($term) {
+                $subQ->where('num_empleado', 'LIKE', $term)
+                    ->orWhere('name', 'LIKE', $term)
+                    ->orWhere('father_lastname', 'LIKE', $term)
+                    ->orWhere('mother_lastname', 'LIKE', $term);
+            });
+        })
+        ->orderBy('num_empleado', 'ASC')
+        ->paginate(20);
 
         return view('livewire.search-employees', [
             'employees' => $employees,
-            'departments' => \App\Models\Department::orderBy('code')->get(),
+            'departments' => $availableDepartments,
             'puestos' => \App\Models\Puesto::orderBy('puesto')->get(),
             'horarios' => \App\Models\Horario::orderBy('horario')->get(),
             'jornadas' => \App\Models\Jornada::orderBy('jornada')->get(),

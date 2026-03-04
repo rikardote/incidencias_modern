@@ -1,184 +1,94 @@
 <div>
     {{-- Barra de búsqueda y acciones --}}
-    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-        <div class="w-full md:w-1/2">
-            <div class="relative">
+    <div class="flex flex-col xl:flex-row justify-between items-center mb-8 gap-4">
+        <div class="flex flex-col md:flex-row flex-1 gap-4 w-full">
+            {{-- Buscador --}}
+            <div class="relative flex-1">
                 <input type="text" wire:model.live.debounce.300ms="search"
                     placeholder="Buscar por número de empleado o nombre..."
-                    class="w-full pl-10 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-[#13322B] focus:border-[#13322B] text-sm shadow-sm transition"
+                    class="w-full pl-10 pr-10 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#13322B]/10 focus:border-[#13322B] text-sm shadow-sm transition-all"
                     autocomplete="off">
-                <div class="absolute left-3 top-2.5 text-oro">
-                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="absolute left-3.5 top-3 text-oro">
+                    <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </div>
             </div>
-        </div>
-        @if(!empty($search) || $listAll)
-        <p class="text-xs text-gray-400 dark:text-gray-500">
-            {{ $employees->total() }} empleado(s) encontrado(s)
-        </p>
-        @endif
-        <button wire:click="toggleListAll"
-            class="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold uppercase transition-all {{ $listAll ? 'bg-oro text-[#13322B]' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600' }}">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-            </svg>
-            {{ $listAll ? 'Ocultar Lista' : 'Mostrar Todos' }}
-        </button>
-        <button wire:click="create"
-            class="bg-[#13322B] hover:bg-[#13322B]/90 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition shadow-sm">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
-            </svg>
-            Nuevo Empleado
-        </button>
-    </div>
 
-    {{-- Lista de empleados (Cards) --}}
-    <div wire:loading.class="opacity-50" wire:target="search"
-        class="transition-opacity duration-200 flex flex-col gap-3">
-        @forelse($employees as $employee)
-        <div wire:key="emp-{{ $employee->id }}"
-            class="group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md hover:border-[#13322B]/30 dark:hover:border-[#e6d194]/20 transition-all duration-200 overflow-hidden">
-
-            <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 px-4 py-3">
-                <div class="flex items-center gap-4 min-w-0 w-full xl:w-auto">
-                    {{-- Avatar --}}
-                    <div
-                        class="shrink-0 w-10 h-10 rounded-full bg-[#13322B]/10 dark:bg-[#13322B]/40 flex items-center justify-center">
-                        <span class="text-sm font-black text-[#13322B] dark:text-[#e6d194] leading-none">
-                            {{ strtoupper(mb_substr($employee->name, 0, 1)) }}{{
-                            strtoupper(mb_substr($employee->father_lastname, 0, 1)) }}
-                        </span>
-                    </div>
-
-                    {{-- Info --}}
-                    <div class="flex-1 min-w-0">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="font-mono text-xs font-bold text-[#9b2247] dark:text-[#e6d194] shrink-0">
-                                {{ $employee->num_empleado }}
-                            </span>
-                            <span class="text-gray-200 dark:text-gray-600 text-xs">|</span>
-                            <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase">
-                                {{ $employee->fullname }}
-                            </span>
-                        </div>
-                        <div class="flex items-center gap-2 mt-0.5 flex-wrap">
-                            <span class="text-[11px] text-gray-500 dark:text-gray-400">
-                                {{ $employee->department->description ?? 'Sin depto.' }}
-                            </span>
-                            @if($employee->puesto)
-                            <span class="text-gray-200 dark:text-gray-600 text-xs">·</span>
-                            <span class="text-[11px] text-[#13322B]/60 dark:text-[#e6d194]/60">
-                                {{ $employee->puesto->puesto }}
-                            </span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Acciones --}}
+            {{-- Selector de Departamento --}}
+            <div class="w-full md:w-72 relative group">
                 <div
-                    class="shrink-0 flex flex-wrap items-center justify-around sm:justify-end gap-1 w-full xl:w-auto border-t xl:border-t-0 border-gray-100 dark:border-gray-700 pt-3 xl:pt-0">
-                    @php
-                        $isMaintenance = \Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin();
-                    @endphp
-                    {{-- Incidencias --}}
-                    @if($isMaintenance)
-                    <button type="button" 
-                        onclick="window.Swal.fire({ 
-                            icon: 'error', 
-                            title: 'Mantenimiento Activo', 
-                            text: 'La captura de incidencias está suspendida temporalmente por administración.',
-                            confirmButtonColor: '#9b2247'
-                        })"
-                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-gray-300 dark:text-gray-600 cursor-not-allowed opacity-50 grayscale transition-all">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                        </svg>
-                        <span class="text-[8px] font-black uppercase tracking-tighter">Mantenimiento</span>
-                    </button>
-                    @else
-                    <a href="{{ route('employees.incidencias', $employee->id) }}" wire:navigate
-                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-[#9b2247] dark:text-[#e6d194] hover:bg-[#9b2247]/10 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                        <span class="text-[8px] font-black uppercase tracking-tighter">Incidencias</span>
-                    </a>
-                    @endif
-
-                    <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
-
-                    {{-- Biométrico --}}
-                    <a href="{{ route('employees.biometrico', $employee->id) }}" wire:navigate
-                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-gray-400 hover:text-[#13322B] dark:hover:text-[#e6d194] hover:bg-[#13322B]/5 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
-                        </svg>
-                        <span class="text-[8px] font-black uppercase tracking-tighter">Biométrico</span>
-                    </a>
-
-                    <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
-
-                    {{-- Vacaciones --}}
-                    <a href="{{ route('employees.vacaciones', $employee->id) }}" wire:navigate
-                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-oro hover:bg-oro/10 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span class="text-[8px] font-black uppercase tracking-tighter">Vacaciones</span>
-                    </a>
-
-                    <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
-
-                    {{-- Kardex --}}
-                    <a href="{{ route('employees.kardex', $employee->id) }}" wire:navigate
-                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-[#13322B] dark:text-[#e6d194] hover:bg-[#13322B]/10 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
-                        <span class="text-[8px] font-black uppercase tracking-tighter">Kardex</span>
-                    </a>
-
-                    <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
-
-                    {{-- Estadística --}}
-                    <a href="{{ route('employees.estadisticas', $employee->id) }}" wire:navigate
-                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                        </svg>
-                        <span class="text-[8px] font-black uppercase tracking-tighter">Estadística</span>
-                    </a>
-
-                    <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
-
-                    {{-- Información (Editar) --}}
-                    <button wire:click="edit({{ $employee->id }})"
-                        class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 transition-colors">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                        </svg>
-                        <span class="text-[8px] font-black uppercase tracking-tighter text-gray-400">Información</span>
-                    </button>
+                    class="absolute left-3.5 top-3 text-gray-400 group-hover:text-[#13322B] transition-colors pointer-events-none">
+                    <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </div>
+                <select wire:model.live="selectedDepartment"
+                    class="w-full pl-10 pr-10 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#13322B]/10 focus:border-[#13322B] text-sm shadow-sm transition-all appearance-none cursor-pointer">
+                    <option value="">Todos los Departamentos</option>
+                    @foreach($departments as $dept)
+                    <option value="{{ $dept->id }}">{{ $dept->code }} - {{ $dept->description }}</option>
+                    @endforeach
+                </select>
+                <div class="absolute right-3.5 top-3.5 text-gray-400 pointer-events-none">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" />
+                    </svg>
                 </div>
             </div>
         </div>
+
+        <div class="flex items-center gap-3 w-full xl:w-auto justify-end">
+            @if(!empty($search) || !empty($selectedDepartment) || $listAll)
+            <span
+                class="text-[10px] font-black uppercase tracking-tighter text-gray-400 dark:text-gray-500 mr-2 whitespace-nowrap">
+                {{ $employees->total() }} registros
+            </span>
+            @endif
+
+            <button wire:click="toggleListAll"
+                class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all {{ $listAll ? 'bg-oro text-[#13322B] shadow-lg shadow-oro/20' : 'bg-gray-50 dark:bg-gray-800 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700' }}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                </svg>
+                <span class="hidden sm:inline">{{ $listAll ? 'Ocultar' : 'Mostrar Todos' }}</span>
+            </button>
+
+            {{-- Toggle Inactivos --}}
+            <div class="flex items-center gap-2 px-4 py-2 bg-gray-50 dark:bg-gray-800 rounded-xl border border-transparent hover:border-red-200 transition-all cursor-pointer select-none"
+                wire:click="$set('showInactive', {{ $showInactive ? 'false' : 'true' }})">
+                <div
+                    class="relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none {{ $showInactive ? 'bg-red-500' : 'bg-gray-200 dark:bg-gray-700' }}">
+                    <span
+                        class="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out {{ $showInactive ? 'translate-x-4' : 'translate-x-0' }}"></span>
+                </div>
+                <span
+                    class="text-[10px] font-black uppercase tracking-widest {{ $showInactive ? 'text-red-600' : 'text-gray-400' }}">Ver
+                    Bajas</span>
+            </div>
+
+            <button wire:click="create"
+                class="bg-[#13322B] hover:bg-[#1a4038] text-white px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-lg shadow-[#13322B]/20 whitespace-nowrap">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>Nuevo</span>
+            </button>
+        </div>
+    </div>
+
+    {{-- Lista de empleados (Cards) --}}
+    <div wire:loading.class="opacity-50" wire:target="search, selectedDepartment"
+        class="transition-opacity duration-200 flex flex-col gap-3">
+        @forelse($employees as $employee)
+        <x-employee-card :employee="$employee" />
         @empty
         <div
             class="text-center py-20 bg-gray-50/50 dark:bg-gray-900/20 rounded-2xl border-2 border-dashed border-gray-100 dark:border-gray-800">
-            @if(empty($search) && !$listAll)
+            @if(empty($search) && empty($selectedDepartment) && !$listAll)
             <div class="flex flex-col items-center gap-3">
                 <div
                     class="w-16 h-16 bg-white dark:bg-gray-800 rounded-2xl shadow-sm flex items-center justify-center text-oro">
@@ -188,8 +98,7 @@
                     </svg>
                 </div>
                 <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-tight">Buscador de
-                    Personal
-                </h3>
+                    Personal</h3>
                 <p class="text-xs text-gray-400 max-w-xs mx-auto leading-relaxed">
                     Ingresa un número de empleado o nombre para comenzar, o utiliza la opción <span
                         class="text-oro font-bold">"Mostrar Todos"</span>.
@@ -202,8 +111,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9.172 9.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <p class="text-sm text-gray-400 italic">No se encontraron empleados que coincidan con "{{ $search }}".
-                </p>
+                <p class="text-sm text-gray-400 italic">No se encontraron empleados que coincidan con los criterios.</p>
             </div>
             @endif
         </div>
@@ -214,292 +122,40 @@
 
     {{-- MODAL DE REGISTRO / EDICION --}}
     @if($showEmployeeModal)
-    <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div x-data="{ tab: 'personal' }" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title"
+        role="dialog" aria-modal="true">
         <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 transition-opacity bg-black/40 backdrop-blur-sm" aria-hidden="true"
+            <div class="fixed inset-0 transition-opacity bg-[#13322B]/40 backdrop-blur-md" aria-hidden="true"
                 wire:click="$set('showEmployeeModal', false)"></div>
-
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
             <div
-                class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-800 rounded-2xl shadow-2xl sm:my-8 sm:align-middle sm:max-w-6xl sm:w-full border border-white/20">
-                <div
-                    class="px-6 py-5 bg-gradient-to-r from-[#13322B] to-[#1e463d] text-white flex justify-between items-center relative overflow-hidden">
-                    <div class="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
-                    <div class="relative z-10 flex items-center gap-3">
-                        <div class="p-2 bg-white/10 rounded-lg backdrop-blur-md">
-                            <svg class="w-5 h-5 text-[#e6d194]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                        </div>
-                        <h3 class="text-lg font-black uppercase tracking-widest">
-                            {{ $editingEmployeeId ? 'Ficha de Empleado' : 'Registro de Personal' }}
-                        </h3>
-                    </div>
-                    <button wire:click="$set('showEmployeeModal', false)"
-                        class="relative z-10 text-white opacity-60 hover:opacity-100 hover:rotate-90 transition-all duration-300">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
+                class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-900 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-gray-100 dark:border-gray-800 animate-fadeInScale">
+
+                <x-employee-modal.header :editingEmployeeId="$editingEmployeeId" :name="$name"
+                    :father_lastname="$father_lastname" :num_empleado="$num_empleado" :curp="$curp"
+                    :gender="$this->getGender()" />
+
+                <div class="flex border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 px-8">
+                    <button type="button" @click="tab = 'personal'"
+                        :class="tab === 'personal' ? 'border-[#13322B] text-[#13322B] dark:border-[#e6d194] dark:text-[#e6d194]' : 'border-transparent text-gray-400 hover:text-gray-600'"
+                        class="px-6 py-4 border-b-2 text-[11px] font-black uppercase tracking-widest transition-all">Identidad</button>
+                    <button type="button" @click="tab = 'laboral'"
+                        :class="tab === 'laboral' ? 'border-[#13322B] text-[#13322B] dark:border-[#e6d194] dark:text-[#e6d194]' : 'border-transparent text-gray-400 hover:text-gray-600'"
+                        class="px-6 py-4 border-b-2 text-[11px] font-black uppercase tracking-widest transition-all">Estructura</button>
+                    <button type="button" @click="tab = 'seguridad'"
+                        :class="tab === 'seguridad' ? 'border-[#13322B] text-[#13322B] dark:border-[#e6d194] dark:text-[#e6d194]' : 'border-transparent text-gray-400 hover:text-gray-600'"
+                        class="px-6 py-4 border-b-2 text-[11px] font-black uppercase tracking-widest transition-all">Admin
+                        y Bio</button>
                 </div>
 
                 <form wire:submit.prevent="save">
-                    <div class="p-6">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-                            {{-- SECCION 1: Identificación --}}
-                            <div class="space-y-4">
-                                <h4
-                                    class="text-[10px] font-black uppercase text-[#9b2247] dark:text-[#e6d194] flex items-center gap-2">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#9b2247] dark:bg-[#e6d194]"></span>
-                                    Identificación Básica
-                                </h4>
-
-                                <div class="space-y-1">
-                                    <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">No. de
-                                        Empleado</label>
-                                    <input type="text" wire:model="num_empleado"
-                                        class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md focus:ring-[#13322B] focus:border-[#13322B]"
-                                        maxlength="6">
-                                    @error('num_empleado') <span class="text-red-500 text-[10px]">{{ $message }}</span>
-                                    @enderror
-                                </div>
-
-                                <div class="space-y-1">
-                                    <label
-                                        class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Nombre(s)</label>
-                                    <input type="text" wire:model="name"
-                                        class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md focus:ring-[#13322B] focus:border-[#13322B]">
-                                    @error('name') <span class="text-red-500 text-[10px]">{{ $message }}</span>
-                                    @enderror
-                                </div>
-
-                                <div class="space-y-1">
-                                    <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Apellido
-                                        Paterno</label>
-                                    <input type="text" wire:model="father_lastname"
-                                        class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md focus:ring-[#13322B] focus:border-[#13322B]">
-                                    @error('father_lastname') <span class="text-red-500 text-[10px]">{{ $message
-                                        }}</span> @enderror
-                                </div>
-
-                                <div class="space-y-1">
-                                    <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Apellido
-                                        Materno</label>
-                                    <input type="text" wire:model="mother_lastname"
-                                        class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md focus:ring-[#13322B] focus:border-[#13322B]">
-                                    @error('mother_lastname') <span class="text-red-500 text-[10px]">{{ $message
-                                        }}</span> @enderror
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div class="space-y-1">
-                                        <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">CURP</label>
-                                        <input type="text" wire:model="curp"
-                                            class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md focus:ring-[#13322B] focus:border-[#13322B]"
-                                            maxlength="18">
-                                        @error('curp') <span class="text-red-500 text-[10px]">{{ $message }}</span> @enderror
-                                    </div>
-                                    <div class="space-y-1">
-                                        <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">RFC</label>
-                                        <input type="text" wire:model="rfc"
-                                            class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md focus:ring-[#13322B] focus:border-[#13322B]"
-                                            maxlength="13">
-                                        @error('rfc') <span class="text-red-500 text-[10px]">{{ $message }}</span> @enderror
-                                    </div>
-                                </div>
-                            </div>
-
-                            {{-- SECCION 2: Laboral --}}
-                            <div class="space-y-4">
-                                <h4
-                                    class="text-[10px] font-black uppercase text-[#9b2247] dark:text-[#e6d194] flex items-center gap-2">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#9b2247] dark:bg-[#e6d194]"></span>
-                                    Ubicación y Perfil
-                                </h4>
-
-                                <div class="space-y-1">
-                                    <label
-                                        class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Departamento</label>
-                                    <select wire:model="deparment_id"
-                                        class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md">
-                                        <option value="">-- Seleccionar --</option>
-                                        @foreach($departments as $d) <option value="{{ $d->id }}">{{ $d->code }} - {{
-                                            $d->description }}</option> @endforeach
-                                    </select>
-                                    @error('deparment_id') <span class="text-red-500 text-[10px]">{{ $message }}</span>
-                                    @enderror
-                                </div>
-
-                                <div class="space-y-1">
-                                    <label
-                                        class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Puesto</label>
-                                    <select wire:model="puesto_id"
-                                        class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md">
-                                        <option value="">-- Seleccionar --</option>
-                                        @foreach($puestos as $p) <option value="{{ $p->id }}">{{ $p->puesto }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('puesto_id') <span class="text-red-500 text-[10px]">{{ $message }}</span>
-                                    @enderror
-                                </div>
-
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div class="space-y-1">
-                                        <label
-                                            class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Jornada</label>
-                                        <select wire:model="jornada_id"
-                                            class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md text-[11px]">
-                                            <option value="">-- Sel --</option>
-                                            @foreach($jornadas as $j) <option value="{{ $j->id }}">{{ $j->jornada }}
-                                            </option> @endforeach
-                                        </select>
-                                        @error('jornada_id') <span class="text-red-500 text-[10px]">{{ $message
-                                            }}</span> @enderror
-                                    </div>
-                                    <div class="space-y-1">
-                                        <label
-                                            class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Horario</label>
-                                        <select wire:model="horario_id"
-                                            class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md text-[11px]">
-                                            <option value="">-- Sel --</option>
-                                            @foreach($horarios as $h) <option value="{{ $h->id }}">{{ $h->horario }}
-                                            </option> @endforeach
-                                        </select>
-                                        @error('horario_id') <span class="text-red-500 text-[10px]">{{ $message
-                                            }}</span> @enderror
-                                    </div>
-                                </div>
-
-                                <div class="space-y-1">
-                                    <label
-                                        class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Condición
-                                        Lab.</label>
-                                    <select wire:model="condicion_id"
-                                        class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md">
-                                        <option value="">-- Seleccionar --</option>
-                                        @foreach($condiciones as $c) <option value="{{ $c->id }}">{{ $c->condicion }}
-                                        </option> @endforeach
-                                    </select>
-                                    @error('condicion_id') <span class="text-red-500 text-[10px]">{{ $message }}</span>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            {{-- SECCION 3: Otros --}}
-                            <div class="space-y-4">
-                                <h4
-                                    class="text-[10px] font-black uppercase text-[#9b2247] dark:text-[#e6d194] flex items-center gap-2">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-[#9b2247] dark:bg-[#e6d194]"></span>
-                                    Control y Fechas
-                                </h4>
-
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div class="space-y-1">
-                                        <label
-                                            class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Fecha
-                                            Ingreso</label>
-                                        <input type="date" wire:model="fecha_ingreso"
-                                            class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md">
-                                        @error('fecha_ingreso') <span class="text-red-500 text-[10px]">{{ $message
-                                            }}</span> @enderror
-                                    </div>
-                                    <div class="space-y-1">
-                                        <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">No.
-                                            de Plaza</label>
-                                        <input type="text" wire:model="num_plaza"
-                                            class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md">
-                                    </div>
-                                </div>
-
-                                <div class="space-y-1">
-                                    <label class="text-[11px] font-bold text-gray-500 uppercase tracking-wider">No.
-                                        Seguro Social</label>
-                                    <input type="text" wire:model="num_seguro"
-                                        class="w-full text-sm border-gray-300 dark:border-gray-600 dark:bg-gray-900 rounded-md">
-                                </div>
-
-                                <div
-                                    class="bg-gray-50 dark:bg-gray-900/50 p-3 rounded-lg border dark:border-gray-700 space-y-3">
-                                    <div class="space-y-2">
-                                        <div class="flex items-center justify-between">
-                                            <label
-                                                class="text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase">Estancia</label>
-                                            <input type="checkbox" wire:model.live="estancia"
-                                                class="rounded text-[#13322B] focus:ring-[#13322B]">
-                                        </div>
-                                        @if($estancia)
-                                        <div class="grid grid-cols-2 gap-2 animate-fadeIn mb-2">
-                                            <div class="space-y-1">
-                                                <label
-                                                    class="text-[9px] font-bold text-gray-400 uppercase">Inicio</label>
-                                                <input type="date" wire:model="estancia_inicio"
-                                                    class="w-full text-[10px] p-1 border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded">
-                                            </div>
-                                            <div class="space-y-1">
-                                                <label class="text-[9px] font-bold text-gray-400 uppercase">Fin</label>
-                                                <input type="date" wire:model="estancia_fin"
-                                                    class="w-full text-[10px] p-1 border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded">
-                                            </div>
-                                        </div>
-                                        @endif
-                                    </div>
-                                    <div class="flex items-center justify-between">
-                                        <label
-                                            class="text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase">Comisionado</label>
-                                        <input type="checkbox" wire:model="comisionado"
-                                            class="rounded text-[#13322B] focus:ring-[#13322B]">
-                                    </div>
-                                    <div class="space-y-2 pt-1 border-t dark:border-gray-700">
-                                        <div class="flex items-center justify-between">
-                                            <label
-                                                class="text-[11px] font-bold text-gray-600 dark:text-gray-400 uppercase">Lactancia</label>
-                                            <input type="checkbox" wire:model.live="lactancia"
-                                                class="rounded text-[#13322B] focus:ring-[#13322B]">
-                                        </div>
-                                        @if($lactancia)
-                                        <div class="grid grid-cols-2 gap-2 animate-fadeIn">
-                                            <div class="space-y-1">
-                                                <label
-                                                    class="text-[9px] font-bold text-gray-400 uppercase">Inicio</label>
-                                                <input type="date" wire:model="lactancia_inicio"
-                                                    class="w-full text-[10px] p-1 border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded">
-                                            </div>
-                                            <div class="space-y-1">
-                                                <label class="text-[9px] font-bold text-gray-400 uppercase">Fin</label>
-                                                <input type="date" wire:model="lactancia_fin"
-                                                    class="w-full text-[10px] p-1 border-gray-300 dark:border-gray-600 dark:bg-gray-800 rounded">
-                                            </div>
-                                        </div>
-                                        @endif
-                                    </div>
-                                    <div class="flex items-center justify-between pt-2 border-t dark:border-gray-700">
-                                        <label
-                                            class="text-[11px] font-bold text-oro uppercase">Exento Biométrico</label>
-                                        <input type="checkbox" wire:model="exento"
-                                            class="rounded text-oro focus:ring-oro">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="p-10 min-h-[400px]">
+                        <x-employee-modal.tab-personal />
+                        <x-employee-modal.tab-laboral :departments="$departments" :puestos="$puestos"
+                            :horarios="$horarios" :jornadas="$jornadas" :condiciones="$condiciones" />
+                        <x-employee-modal.tab-seguridad />
                     </div>
-
-                    <div
-                        class="bg-gray-50 dark:bg-gray-900/80 px-8 py-5 flex justify-end gap-4 rounded-b-2xl border-t dark:border-gray-700 backdrop-blur-md">
-                        <button type="button" wire:click="$set('showEmployeeModal', false)"
-                            class="px-5 py-2 text-xs font-black text-gray-500 uppercase tracking-widest hover:text-gray-800 dark:hover:text-gray-300 transition-colors">Cancelar</button>
-                        <button type="submit"
-                            class="relative group bg-gradient-to-r from-[#13322B] to-[#1e463d] hover:from-[#1a4038] hover:to-[#245348] text-white px-10 py-2.5 rounded-xl text-xs font-black uppercase tracking-[0.2em] shadow-xl shadow-[#13322B]/20 hover:shadow-[#13322B]/40 transition-all duration-300 transform hover:-translate-y-1 active:translate-y-0 overflow-hidden">
-                            <div
-                                class="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
-                            </div>
-                            <span class="relative z-10">{{ $editingEmployeeId ? 'Actualizar Ficha' : 'Dar de Alta'
-                                }}</span>
-                        </button>
-                    </div>
+                    <x-employee-modal.footer :editingEmployeeId="$editingEmployeeId" />
                 </form>
             </div>
         </div>

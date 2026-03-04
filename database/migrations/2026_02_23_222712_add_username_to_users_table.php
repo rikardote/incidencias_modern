@@ -4,17 +4,22 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     /**
      * Run the migrations.
      */
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('username')->unique()->after('name');
-            $table->string('type')->default('user')->after('password');
-            $table->boolean('active')->default(true)->after('type');
+            if (!Schema::hasColumn('users', 'username')) {
+                $table->string('username')->unique()->after('name');
+            }
+            if (!Schema::hasColumn('users', 'type')) {
+                $table->string('type')->default('user')->after('password');
+            }
+            if (!Schema::hasColumn('users', 'active')) {
+                $table->boolean('active')->default(true)->after('type');
+            }
         });
     }
 
