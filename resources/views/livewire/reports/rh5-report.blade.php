@@ -1,11 +1,19 @@
 <div class="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen"
     x-data="{ openYear: false, openQna: false, openDept: false, searchDept: '' }">
     {{-- Header del Reporte --}}
-    <div class="mb-8 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
-        <div>
-            <h1 class="text-3xl font-extrabold text-[#13322B] dark:text-gray-100 uppercase tracking-tight">Reporte <span
-                    class="text-oro">RH5</span></h1>
-            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Concentrado quincenal por centro de trabajo.</p>
+    <div class="mb-8 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">
+        <div class="flex items-center gap-4">
+            <a href="{{ route('employees.index') }}" wire:navigate
+                class="w-12 h-12 bg-white dark:bg-gray-800 text-gray-400 hover:text-[#13322B] dark:hover:text-[#e6d194] rounded-full shadow-sm border border-gray-100 dark:border-gray-700 transition-all flex items-center justify-center shrink-0 group">
+                <svg class="w-6 h-6 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+            </a>
+            <div>
+                <h1 class="text-3xl font-extrabold text-[#13322B] dark:text-gray-100 uppercase tracking-tight">Reporte <span
+                        class="text-oro">RH5</span></h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400 font-medium">Concentrado quincenal por centro de trabajo.</p>
+            </div>
         </div>
 
         <div
