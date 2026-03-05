@@ -34,7 +34,7 @@ class EmployeeFieldsAndImportTest extends TestCase
     public function employee_model_mutates_curp_and_rfc_to_uppercase()
     {
         $employee = Employe::create([
-            'num_empleado' => '12345',
+            'num_empleado' => '012345',
             'name' => 'John',
             'father_lastname' => 'Doe',
             'mother_lastname' => 'Smith',
@@ -56,7 +56,7 @@ class EmployeeFieldsAndImportTest extends TestCase
     {
         // Crear un empleado previo
         $employee = Employe::create([
-            'num_empleado' => '99999',
+            'num_empleado' => '099999',
             'name' => 'TEST',
             'father_lastname' => 'USER',
             'mother_lastname' => 'IMPORT',
@@ -68,7 +68,7 @@ class EmployeeFieldsAndImportTest extends TestCase
         ]);
 
         // Crear un archivo CSV temporal
-        $csvContent = "num_empleado,curp,rfc\n99999,VECJ880101HDFRRR01,VECJ880101ABC";
+        $csvContent = "num_empleado,curp,rfc\n099999,VECJ880101HDFRRR01,VECJ880101ABC";
         $filePath = tempnam(sys_get_temp_dir(), 'test_import') . '.csv';
         file_put_contents($filePath, $csvContent);
 
@@ -108,7 +108,7 @@ class EmployeeFieldsAndImportTest extends TestCase
             ->call('save');
 
         $this->assertDatabaseHas('employees', [
-            'num_empleado' => '55555',
+            'num_empleado' => '055555',
             'curp' => 'MARG900101HQRXYZ01',
             'rfc' => 'MARG900101ABC'
         ]);
