@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Checada;
 use Illuminate\Console\Command;
-use Rats\Zkteco\Lib\ZKTeco;
+use Jmrashed\Zkteco\Lib\ZKTeco;
 use Illuminate\Support\Facades\Log;
 
 class SyncBiometrico extends Command
@@ -16,14 +16,12 @@ class SyncBiometrico extends Command
     {
         $this->info('Iniciando sincronización biométrica...' . PHP_EOL);
 
-        $dispositivos = [
-            ['ip' => '192.160.141.37', 'location' => 'Delegación Principal'],
-            ['ip' => '192.160.169.230', 'location' => 'Almacén'],
-            ['ip' => '192.165.240.253', 'location' => 'San Felipe'],
-            ['ip' => '192.165.232.253', 'location' => 'Los Algodones'],
-            ['ip' => '192.165.171.253', 'location' => 'Tecate'],
-            ['ip' => '192.161.192.253', 'location' => 'EBDI 60']
-        ];
+        $dispositivos = \App\Models\Equipo::all();
+
+        if ($dispositivos->isEmpty()) {
+            $this->warn('No hay equipos registrados en la base de datos.');
+            return;
+        }
 
         foreach ($dispositivos as $dispositivo) {
             $this->info("Conectando a {$dispositivo['location']} ({$dispositivo['ip']})...");

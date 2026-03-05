@@ -30,6 +30,7 @@ Route::middleware('auth')->group(function () {
 
     // Biométrico
     Route::get('/biometrico', [\App\Http\Controllers\BiometricoController::class , 'index'])->name('biometrico.index');
+    Route::get('/biometrico/sync', \App\Livewire\Biometrico\Manager::class)->name('biometrico.sync');
     Route::get('/biometrico/exportar', [\App\Http\Controllers\BiometricoController::class , 'exportar'])->name('biometrico.exportar');
     Route::get('/employees/{employeeId}/biometrico', \App\Livewire\Biometrico\EmployeeAttendance::class)->name('employees.biometrico');
     Route::get('/employees/{employeeId}/biometrico/pdf/{year}/{quincena}/{quincenaFin?}', [\App\Http\Controllers\ReportController::class , 'biometricoIndividualPdf'])->name('biometrico.individual.pdf');

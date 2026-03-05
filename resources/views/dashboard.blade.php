@@ -151,6 +151,25 @@
                         </div>
                     </a>
 
+                    <!-- Card Biometrico -->
+                    <a href="{{ route('biometrico.sync') }}"
+                        class="md:mt-0 flex items-center justify-between p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 hover:border-oro/30 transition-all group">
+                        <div>
+                            <h5
+                                class="text-lg font-black text-gray-900 dark:text-gray-100 group-hover:text-oro transition-colors">
+                                Biométrico</h5>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Sincronización</p>
+                        </div>
+                        <div
+                            class="w-12 h-12 bg-gray-50 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-oro/10 transition-colors shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                stroke="currentColor"
+                                class="w-6 h-6 text-gray-400 dark:text-gray-500 group-hover:text-oro transition-transform group-hover:scale-110">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z" />
+                            </svg>
+                        </div>
+                    </a>
+
                     <!-- Mantenimiento -->
                     <div class="md:col-span-1">
                         @livewire('system.maintenance-toggle')
@@ -160,7 +179,6 @@
                     <div class="md:col-span-1">
                         @livewire('system.chat-configuration')
                     </div>
-                </div>
 
             </div>
             @endif
