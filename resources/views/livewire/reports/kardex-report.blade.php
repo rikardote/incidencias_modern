@@ -17,6 +17,29 @@
                         {{ $employee->fullname }}
                     </span>
                 </div>
+                {{-- Status indicators --}}
+                <div class="flex items-center gap-2 mt-2 flex-wrap">
+                    @if($employee->lactancia)
+                    <span class="px-2 py-0.5 bg-green-500/10 text-green-600 dark:text-green-400 text-[10px] font-black rounded-md border border-green-500/20 uppercase">
+                        C92 LACTANCIA ({{ \Carbon\Carbon::parse($employee->lactancia_inicio)->format('d/m/y') }} - {{ \Carbon\Carbon::parse($employee->lactancia_fin)->format('d/m/y') }})
+                    </span>
+                    @endif
+                    @if($employee->estancia)
+                    <span class="px-2 py-0.5 bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[10px] font-black rounded-md border border-blue-500/20 uppercase">
+                        C93 ESTANCIA ({{ \Carbon\Carbon::parse($employee->estancia_inicio)->format('d/m/y') }} - {{ \Carbon\Carbon::parse($employee->estancia_fin)->format('d/m/y') }})
+                    </span>
+                    @endif
+                    @if($employee->exento)
+                    <span class="px-2 py-0.5 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[10px] font-black rounded-md border border-amber-500/20 uppercase">
+                        C94 PERSONAL EXENTO
+                    </span>
+                    @endif
+                    @if($employee->comisionado)
+                    <span class="px-2 py-0.5 bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[10px] font-black rounded-md border border-purple-500/20 uppercase">
+                        COMISIONADO
+                    </span>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
@@ -60,6 +83,9 @@
                                 if(selectedDates.length > 0) { $wire.set('fecha_inicio', instance.formatDate(selectedDates[0], 'Y-m-d')) }
                             } 
                         }); 
+                        this.$watch('$wire.fecha_inicio', (val) => {
+                            this.flatpickrInstance.setDate(val, false, 'Y-m-d');
+                        });
                     } 
                 }">
                 <input type="text" x-ref="input"
@@ -77,6 +103,9 @@
                                 if(selectedDates.length > 0) { $wire.set('fecha_final', instance.formatDate(selectedDates[0], 'Y-m-d')) }
                             } 
                         }); 
+                        this.$watch('$wire.fecha_final', (val) => {
+                            this.flatpickrInstance.setDate(val, false, 'Y-m-d');
+                        });
                     } 
                 }">
                 <input type="text" x-ref="input"
@@ -112,7 +141,6 @@
             </a>
         </div>
     </div>
-</div>
 
 {{-- Resultados del Kardex --}}
 @if($results !== null)

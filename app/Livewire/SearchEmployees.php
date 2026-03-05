@@ -120,7 +120,7 @@ class SearchEmployees extends Component
         $this->validate();
 
         $data = [
-            'num_empleado' => $this->num_empleado,
+            'num_empleado' => str_pad($this->num_empleado, 6, '0', STR_PAD_LEFT),
             'name' => strtoupper($this->name),
             'father_lastname' => strtoupper($this->father_lastname),
             'mother_lastname' => strtoupper($this->mother_lastname),

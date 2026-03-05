@@ -44,7 +44,14 @@
     </tr>
     <tr>
         <td colspan="2" style="text-align: right; padding-top: 10px;">
-            <span class="label">RANGO DE FECHAS: </span><span class="value">{{ \Carbon\Carbon::parse($fecha_inicio)->format('d/m/Y') }} AL {{ \Carbon\Carbon::parse($fecha_final)->format('d/m/Y') }}</span>
+            <span class="label">RANGO DE FECHAS: </span>
+            <span class="value">
+                @if(isset($isFullHistory) && $isFullHistory)
+                    TODO EL HISTORIAL
+                @else
+                    {{ \Carbon\Carbon::parse($fecha_inicio)->format('d/m/Y') }} AL {{ \Carbon\Carbon::parse($fecha_final)->format('d/m/Y') }}
+                @endif
+            </span>
         </td>
     </tr>
 </table>

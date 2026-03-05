@@ -364,7 +364,7 @@ class ReportController extends Controller
     {
         $user = auth()->user();
         $empleado = Employe::with(['department', 'puesto', 'horario', 'jornada'])
-            ->where('num_empleado', str_pad($num_empleado, 5, '0', STR_PAD_LEFT))
+            ->where('num_empleado', str_pad($num_empleado, 6, '0', STR_PAD_LEFT))
             ->firstOrFail();
 
         if (!$user->admin()) {
@@ -378,6 +378,9 @@ class ReportController extends Controller
             ->where('employee_id', $empleado->id)
             ->whereBetween('fecha_inicio', [$fecha_inicio, $fecha_final])
             ->get();
+
+        $minDate = Incidencia::where('employee_id', $empleado->id)->min('fecha_inicio');
+        $isFullHistory = ($minDate && $fecha_inicio <= $minDate);
 
         $results = $incidenciasDB->groupBy(function ($inc) {
             return empty($inc->token) ? 'id_' . $inc->id : $inc->token;
@@ -396,7 +399,8 @@ class ReportController extends Controller
             'cobertura_txt' => $first->cobertura_txt,
             ];
         })->sortBy(function ($item) {
-            return $item->codigo->code . $item->fecha_inicio;
+            $code = $item->codigo->code ?? 'ZZ';
+            return $code . $item->fecha_inicio;
         })->values();
 
         $mpdf = new Mpdf([
@@ -480,7 +484,7 @@ class ReportController extends Controller
             }
         ';
 
-        $headerHtml = view('reports.pdf.kardex-header', compact('empleado', 'fecha_inicio', 'fecha_final'))->render();
+        $headerHtml = view('reports.pdf.kardex-header', compact('empleado', 'fecha_inicio', 'fecha_final', 'isFullHistory'))->render();
         $contentHtml = view('reports.pdf.kardex-content', compact('results'))->render();
 
         $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);

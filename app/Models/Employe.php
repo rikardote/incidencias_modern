@@ -58,7 +58,7 @@ class Employe extends Model
 
     public function getNumEmpleadoAttribute($value): string
     {
-        return str_pad($value, 5, "0", STR_PAD_LEFT);
+        return str_pad($value, 6, "0", STR_PAD_LEFT);
     }
     public function getGenderAttribute(): string
     {

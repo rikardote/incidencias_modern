@@ -32,7 +32,8 @@ class KardexReport extends Component
         $this->employee = Employe::with(['department', 'puesto', 'horario', 'jornada'])->find($employeeId);
         if ($this->employee) {
             $this->num_empleado = $this->employee->num_empleado;
-        // No generamos nada automáticamente, dejamos que el usuario elija
+            // Generar automáticamente al entrar o cambiar
+            $this->generate();
         }
         else {
             $this->num_empleado = '';
@@ -41,11 +42,12 @@ class KardexReport extends Component
 
     public function cambiarEmpleadoByNum()
     {
-        $emp = Employe::where('num_empleado', $this->num_empleado)->value('id');
+        $num = str_pad($this->num_empleado, 6, '0', STR_PAD_LEFT);
+        $emp = Employe::where('num_empleado', $num)->value('id');
         if ($emp) {
             $this->cambiarEmpleado($emp);
         } else {
-            $this->addError('num_empleado', 'Empleado no encontrado.');
+            $this->addError('num_empleado', 'Empleado no encontrado. Intente con 6 dígitos.');
         }
     }
 
@@ -66,8 +68,11 @@ class KardexReport extends Component
             return;
         }
 
-        $this->fecha_inicio = '1970-01-01';
-        $this->fecha_final = date('Y-12-31', strtotime('+100 years'));
+        // Buscar la fecha de la primera incidencia capturada
+        $minDate = Incidencia::where('employee_id', $this->employee->id)->min('fecha_inicio');
+
+        $this->fecha_inicio = $minDate ?: date('Y') . '-01-01';
+        $this->fecha_final = date('Y-m-d');
 
         $this->generate();
     }
@@ -105,13 +110,13 @@ class KardexReport extends Component
             return $code . $item->fecha_inicio;
         })->values();
 
-        $this->results = $grouped;
+        $this->results = $grouped->toArray();
 
         // Notificar a la Isla Dinámica que hemos terminado
         $this->dispatch('island-progress-update', progress: 100);
         
         $this->dispatch('island-notif', 
-            message: 'Reporte Listo', 
+            message: 'Reporte listo', 
             type: 'success'
         );
     }
