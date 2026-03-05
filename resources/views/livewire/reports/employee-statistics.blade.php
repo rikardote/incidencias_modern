@@ -20,7 +20,7 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <a href="{{ route('employees.incidencias', $this->employee->id) }}" wire:navigate
+                <a href="{{ route('employees.index', ['search' => $this->employee->num_empleado]) }}" wire:navigate
                     class="h-[42px] px-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-xl shadow-sm transition-all flex items-center justify-center">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
