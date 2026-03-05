@@ -132,6 +132,15 @@
                 class="h-[42px] px-5 bg-oro hover:bg-[#a57f2c] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md transition-all">
                 Todo
             </button>
+            @if($employee)
+            <a href="{{ route('employees.incidencias', $employee->id) }}" wire:navigate
+                class="h-[42px] px-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-xl shadow-sm transition-all flex items-center justify-center">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+            </a>
+            @else
             <a href="{{ route('employees.index') }}" wire:navigate
                 class="h-[42px] px-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 rounded-xl shadow-sm transition-all flex items-center justify-center">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -139,6 +148,7 @@
                         d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
             </a>
+            @endif
         </div>
     </div>
 
