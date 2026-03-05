@@ -448,7 +448,7 @@
     <script>
         document.addEventListener('livewire:init', () => {
             Livewire.hook('commit', ({ component, succeed }) => {
-                if (component.name === 'chat-widget') return;
+                if (component.name === 'chat-widget' || component.name === 'dashboard.stats-widgets') return;
                 window.dispatchEvent(new CustomEvent('topbar-start'));
                 succeed(({ snapshot }) => {
                     let hasError = false;

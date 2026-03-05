@@ -1,4 +1,4 @@
-<div wire:poll.15s="refreshStats" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div wire:poll.15s="refreshStats" noprogress wire:ignore.self class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
     {{-- Widget Empleados Activos --}}
     <div class="relative group overflow-hidden bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col justify-between transition-all hover:shadow-2xl hover:-translate-y-1">
         <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
