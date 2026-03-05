@@ -20,12 +20,6 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <a href="{{ route('employees.index', ['search' => $this->employee->num_empleado]) }}" wire:navigate
-                    class="w-10 h-10 bg-white dark:bg-gray-800 text-gray-400 hover:text-[#9b2247] dark:hover:text-[#e6d194] rounded-full shadow-sm border border-gray-100 dark:border-gray-700 transition-all flex items-center justify-center shrink-0 group">
-                    <svg class="w-5 h-5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                    </svg>
-                </a>
                 <a href="{{ route('employees.kardex', $this->employee->id) }}" wire:navigate
                     class="h-[42px] px-5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-black uppercase tracking-widest border border-gray-100 dark:border-gray-700 hover:border-oro transition-all shadow-sm flex items-center justify-center">
                     Ver Kárdex

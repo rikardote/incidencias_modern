@@ -6,16 +6,13 @@ use App\Models\Employe;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\On;
-use Livewire\Attributes\Url;
 
 class SearchEmployees extends Component
 {
     use WithPagination;
 
-    #[Url]
     public $search = '';
 
-    #[Url]
     public $selectedDepartment = '';
 
     public $showInactive = false;
