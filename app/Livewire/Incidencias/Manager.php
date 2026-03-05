@@ -109,7 +109,14 @@ class Manager extends Component
 
     public function store(IncidenciasService $service)
     {
-        if (Cache::get('capture_maintenance', false) && !auth()->user()->admin()) {
+        $user = auth()->user();
+
+        if (!$user->canCapture()) {
+            $this->dispatch('toast', ['icon' => 'error', 'title' => 'No tienes permisos de captura.']);
+            return;
+        }
+
+        if (Cache::get('capture_maintenance', false) && !$user->admin()) {
             $this->dispatch('toast', ['icon' => 'error', 'title' => 'Sistema en mantenimiento.']);
             return;
         }
@@ -176,7 +183,14 @@ class Manager extends Component
 
     public function delete($token, IncidenciasService $service)
     {
-        if (Cache::get('capture_maintenance', false) && !auth()->user()->admin()) {
+        $user = auth()->user();
+
+        if (!$user->canCapture()) {
+            $this->dispatch('toast', ['icon' => 'error', 'title' => 'No tienes permisos para eliminar.']);
+            return;
+        }
+
+        if (Cache::get('capture_maintenance', false) && !$user->admin()) {
             $this->dispatch('toast', ['icon' => 'error', 'title' => 'Mantenimiento activo.']);
             return;
         }

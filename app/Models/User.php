@@ -89,4 +89,23 @@ class User extends Authenticatable
     {
         return $this->type === 'admin';
     }
+
+    public function isMember(): bool
+    {
+        return $this->type === 'member';
+    }
+
+    public function isConsulta(): bool
+    {
+        return $this->type === 'consulta';
+    }
+
+    /**
+     * Determina si el usuario tiene permisos de escritura/captura.
+     * Solo admin y member pueden capturar.
+     */
+    public function canCapture(): bool
+    {
+        return in_array($this->type, ['admin', 'member']);
+    }
 }

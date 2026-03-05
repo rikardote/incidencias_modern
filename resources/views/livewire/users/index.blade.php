@@ -65,8 +65,13 @@
                                         </div>
                                         <div class="flex items-center gap-2 mt-0.5 flex-wrap">
                                             <span class="text-[11px] text-gray-500 dark:text-gray-400">
-                                                {{ $user->type === 'admin' ? 'Administrador del Sistema' : 'Usuario de
-                                                Captura' }}
+                                                @if($user->type === 'admin')
+                                                Administrador del Sistema
+                                                @elseif($user->type === 'member')
+                                                Usuario de Captura
+                                                @else
+                                                Solo Consulta
+                                                @endif
                                             </span>
                                             <span class="text-gray-200 dark:text-gray-600 text-xs">·</span>
                                             <button wire:click="toggleActive({{ $user->id }})"
@@ -226,8 +231,9 @@
                                     de Acceso</label>
                                 <select wire:model="type" id="type"
                                     class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro sm:text-sm">
-                                    <option value="user">Usuario Básico</option>
-                                    <option value="admin">Administrador</option>
+                                    <option value="member">Capturista (Member)</option>
+                                    <option value="admin">Administrador (Admin)</option>
+                                    <option value="consulta">Solo Lectura (Consulta)</option>
                                 </select>
                                 @error('type') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
                             </div>

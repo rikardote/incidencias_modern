@@ -128,7 +128,24 @@
                             $periodoFound->year) : '-- Elija el Periodo --';
                             @endphp
 
-                            @if(\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) &&
+                                @if(!auth()->user()->canCapture())
+                            <div
+                                class="bg-gray-50 dark:bg-gray-900/40 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 text-center my-4 shadow-inner">
+                                <svg class="w-10 h-10 text-gray-400 mx-auto mb-3 opacity-60" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                                <h3 class="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                                    SOLO CONSULTA</h3>
+                                <p class="text-[11px] font-bold text-gray-400 dark:text-gray-500 mt-2 italic">
+                                    Usted tiene permisos de lectura para este centro.<br>
+                                    La captura está deshabilitada.
+                                </p>
+                            </div>
+                            @elseif(\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) &&
                             !auth()->user()->admin())
                             <div
                                 class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-center my-4">
@@ -781,12 +798,13 @@
                                         </td>
                                         <td class="px-4 py-4 text-right">
                                             @php
+                                            $user = auth()->user();
                                             $isMaintenance =
                                             \Illuminate\Support\Facades\Cache::get('capture_maintenance', false) &&
-                                            !auth()->user()->admin();
+                                            !$user->admin();
                                             $qnaActiva = $incidencia->qna && $incidencia->qna->active == '1';
-                                            $tienePermiso = $qnaActiva || (!$isMaintenance &&
-                                            auth()->user()->canCaptureInClosedQna($incidencia->qna_id));
+                                            $tienePermiso = $user->canCapture() && ($qnaActiva || (!$isMaintenance &&
+                                            $user->canCaptureInClosedQna($incidencia->qna_id)));
                                             @endphp
                                             @if($tienePermiso && !$isMaintenance)
                                             <button

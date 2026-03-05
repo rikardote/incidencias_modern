@@ -25,7 +25,7 @@ class Index extends Component
     public $username;
     public $email;
     public $password;
-    public $type = 'user';
+    public $type = 'member';
     public $active = true;
     public $selectedDepartments = [];
 
@@ -87,7 +87,7 @@ class Index extends Component
             'name' => 'required|string|max:255',
             'username' => 'required|string|max:255|unique:users,username,' . $this->userId,
             'email' => 'required|string|email|max:255|unique:users,email,' . $this->userId,
-            'type' => 'required|in:admin,user',
+            'type' => 'required|in:admin,member,consulta',
             'selectedDepartments' => 'array',
         ];
 
@@ -246,7 +246,7 @@ class Index extends Component
         $this->username = '';
         $this->email = '';
         $this->password = '';
-        $this->type = 'user';
+        $this->type = 'member';
         $this->active = true;
         $this->selectedDepartments = [];
     }
