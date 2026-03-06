@@ -3,10 +3,10 @@
 namespace App\Livewire\Biometrico;
 
 use App\Models\Checada;
+use App\Services\Biometrico\ChecadaService;
 use Livewire\Component;
 use Jmrashed\Zkteco\Lib\ZKTeco;
 use Illuminate\Support\Facades\Log;
-use App\Events\ChecadaCreated;
 
 class Manager extends Component
 {
@@ -16,6 +16,7 @@ class Manager extends Component
     public $currentDevice = '';
     public $results = [];
     public $progress = 0;
+    public $deviceTimes = [];
 
     // Modal para nuevo/editar equipo
     public $isCreateModalOpen = false;
@@ -116,6 +117,7 @@ class Manager extends Component
         $this->results = [];
         $this->progress = 0;
 
+        $service = app(ChecadaService::class);
         $devicesToSync = \App\Models\Equipo::whereIn('id', $this->selectedIds)->get();
         $total = $devicesToSync->count();
         $count = 0;
@@ -126,11 +128,13 @@ class Manager extends Component
             try {
                 $zk = new ZKTeco($dispositivo->ip);
                 
+                socket_set_option($zk->_zkclient, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 1, 'usec' => 500000]);
+                
                 if ($zk->connect()) {
                     $checadas = $zk->getAttendance();
                     
                     if (!empty($checadas)) {
-                        $nuevos = $this->procesarChecadas($checadas, $dispositivo->location);
+                        $nuevos = $service->procesarRegistros($checadas, $dispositivo->location);
                         $this->results[$dispositivo->id] = [
                             'location' => $dispositivo->location,
                             'status' => 'success',
@@ -174,35 +178,107 @@ class Manager extends Component
         $this->dispatch('refreshBiometrico');
     }
 
-    private function procesarChecadas($checadas, $location)
+    /**
+     * Consulta la hora actual de cada equipo biométrico vía UDP.
+     * Timeout corto para no bloquear la interfaz.
+     */
+    public function fetchDeviceTimes()
     {
-        $nuevos = 0;
-        foreach (array_chunk($checadas, 200) as $chunk) {
-            foreach ($chunk as $checada) {
-                $timestamp = strtotime($checada['timestamp']);
-                $fecha = date("Y-m-d H:i:s", $timestamp);
-                $id = $checada['id'];
-                
-                if ($timestamp > strtotime('+1 day')) {
-                    continue;
-                }
-                
-                $identificador = "{$id}_" . date("YmdHi", $timestamp) . "_" . str_replace(' ', '', $location);
+        $this->deviceTimes = [];
 
-                if (!Checada::where('identificador', $identificador)->exists()) {
-                    $newChecada = Checada::create([
-                        'num_empleado' => $id,
-                        'fecha' => $fecha,
-                        'identificador' => $identificador
-                    ]);
-                    
-                    event(new ChecadaCreated($newChecada, $location));
-                    
-                    $nuevos++;
+        foreach ($this->dispositivos as $disp) {
+            if (!in_array($disp['id'], $this->selectedIds)) {
+                continue;
+            }
+
+            try {
+                $zk = new ZKTeco($disp['ip']);
+                
+                // Reducir el timeout de 60 segundos (por defecto) a 1.5 segundos
+                // para evitar que la interfaz se quede colgada si el dispositivo está offline
+                socket_set_option($zk->_zkclient, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 1, 'usec' => 500000]);
+
+                if ($zk->connect()) {
+                    $time = $zk->getTime();
+                    $formattedTime = $time ? date('d/m/Y H:i:s', strtotime($time)) : null;
+                    $this->deviceTimes[$disp['id']] = [
+                        'time' => $formattedTime ?: 'Sin respuesta',
+                        'status' => $formattedTime ? 'online' : 'error',
+                    ];
+                    $zk->disconnect();
+                } else {
+                    $this->deviceTimes[$disp['id']] = [
+                        'time' => 'Sin conexión',
+                        'status' => 'offline',
+                    ];
                 }
+            } catch (\Exception $e) {
+                $this->deviceTimes[$disp['id']] = [
+                    'time' => 'Error',
+                    'status' => 'offline',
+                ];
             }
         }
-        return $nuevos;
+    }
+
+    /**
+     * Sincroniza la hora de un equipo específico con la hora del huso horario del Pacífico (America/Tijuana)
+     */
+    public function syncDeviceTime($id)
+    {
+        $equipo = \App\Models\Equipo::findOrFail($id);
+        
+        try {
+            $zk = new ZKTeco($equipo->ip);
+            socket_set_option($zk->_zkclient, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 3, 'usec' => 0]);
+
+            $connected = false;
+            // Intentar conectar hasta 3 veces (UDP falla a veces)
+            for ($i = 0; $i < 3; $i++) {
+                if ($zk->connect()) {
+                    $connected = true;
+                    break;
+                }
+                usleep(500000); // medio segundo
+            }
+
+            if ($connected) {
+                $now = now()->timezone('America/Tijuana')->format('Y-m-d H:i:s');
+                $success = $zk->setTime($now);
+                
+                // setTime returns false on error, or potentially an empty string on success (which is falsey)
+                if ($success !== false) {
+                    $this->dispatch('toast', [
+                        'icon' => 'success',
+                        'title' => "Hora actualizada en {$equipo->location}"
+                    ]);
+                    
+                    // Actualizar el valor en la UI (obteniendo de nuevo)
+                    $time = $zk->getTime();
+                    $formattedTime = $time ? date('d/m/Y H:i:s', strtotime($time)) : null;
+                    $this->deviceTimes[$id] = [
+                        'time' => $formattedTime ?: 'Sin respuesta',
+                        'status' => $formattedTime ? 'online' : 'error',
+                    ];
+                } else {
+                    $this->dispatch('toast', [
+                        'icon' => 'error',
+                        'title' => 'No se pudo actualizar la hora'
+                    ]);
+                }
+                $zk->disconnect();
+            } else {
+                $this->dispatch('toast', [
+                    'icon' => 'error',
+                    'title' => 'No se pudo conectar al equipo'
+                ]);
+            }
+        } catch (\Exception $e) {
+            $this->dispatch('toast', [
+                'icon' => 'error',
+                'title' => 'Error al conectar'
+            ]);
+        }
     }
 
     public function render()

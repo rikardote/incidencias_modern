@@ -2,9 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\Events\ChecadaCreated;
-use App\Models\Checada;
 use App\Models\Equipo;
+use App\Services\Biometrico\ChecadaService;
 use Illuminate\Console\Command;
 use Jmrashed\Zkteco\Lib\ZKTeco;
 use Illuminate\Support\Facades\Log;
@@ -26,12 +25,15 @@ class BiometricoMonitorDaemon extends Command
     protected $description = 'Monitorea en tiempo real los eventos de los dispositivos biométricos mediante sondeo rápido';
 
     private $pids = [];
+    private ChecadaService $checadaService;
 
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(ChecadaService $checadaService)
     {
+        $this->checadaService = $checadaService;
+
         $deviceId = $this->argument('device_id');
 
         if ($deviceId) {
@@ -151,8 +153,11 @@ class BiometricoMonitorDaemon extends Command
 
             $nuevos = 0;
 
+            // Para el daemon, procesamos uno por uno para tener eventos en tiempo real
             foreach ($recent as $record) {
-                if ($this->processRecord($record, $device)) {
+                $checada = $this->checadaService->procesarRegistroIndividual($record, $device->location);
+                if ($checada) {
+                    $this->info("[{$device->location}] 🕒 NUEVO REGISTRO EN VIVO: Empleado {$checada->num_empleado} a las {$checada->fecha}");
                     $nuevos++;
                 }
             }
@@ -165,44 +170,5 @@ class BiometricoMonitorDaemon extends Command
             $this->error("[{$device->location}] Error en sondeo: " . $e->getMessage());
             throw $e;
         }
-    }
-
-    private function processRecord($record, $device)
-    {
-        $timestamp = strtotime($record['timestamp']);
-        $fecha = date("Y-m-d H:i:s", $timestamp);
-        $num_empleado = (string)$record['id'];
-
-        if (empty($num_empleado) || $num_empleado === "0") {
-             return false;
-        }
-
-        // Protección contra fechas futuras
-        if ($timestamp > strtotime('+1 day')) {
-            return false;
-        }
-
-        $identificador = "{$num_empleado}_" . date("YmdHi", $timestamp) . "_" . str_replace(' ', '', $device->location);
-
-        if (!Checada::where('identificador', $identificador)->exists()) {
-            $checada = Checada::create([
-                'num_empleado' => $num_empleado,
-                'fecha' => $fecha,
-                'identificador' => $identificador
-            ]);
-            
-            $this->info("[{$device->location}] 🕒 NUEVO REGISTRO EN VIVO: Empleado $num_empleado a las $fecha");
-
-            // Notificar a la UI
-            try {
-                event(new ChecadaCreated($checada, $device->location));
-                $this->info("[{$device->location}] Evento disparado (Reverb).");
-            } catch (\Exception $e) {
-                $this->error("[{$device->location}] Error al disparar evento: " . $e->getMessage());
-            }
-            return true;
-        }
-
-        return false;
     }
 }

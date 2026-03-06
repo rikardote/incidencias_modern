@@ -2,11 +2,10 @@
 
 namespace App\Livewire\System;
 
-use App\Models\Checada;
+use App\Services\Biometrico\ChecadaService;
 use Livewire\Component;
 use Jmrashed\Zkteco\Lib\ZKTeco;
 use Illuminate\Support\Facades\Log;
-use App\Events\ChecadaCreated;
 
 class BiometricoSync extends Component
 {
@@ -22,6 +21,7 @@ class BiometricoSync extends Component
         $this->results = [];
         $this->progress = 0;
 
+        $service = app(ChecadaService::class);
         $dispositivos = \App\Models\Equipo::all();
 
         $total = $dispositivos->count();
@@ -37,12 +37,14 @@ class BiometricoSync extends Component
             
             try {
                 $zk = new ZKTeco($dispositivo['ip']);
+                // Reducir la espera para conexiones UDP que no responden
+                socket_set_option($zk->_zkclient, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 1, 'usec' => 500000]);
                 
                 if ($zk->connect()) {
                     $checadas = $zk->getAttendance();
                     
                     if (!empty($checadas)) {
-                        $nuevos = $this->procesarChecadas($checadas, $dispositivo['location']);
+                        $nuevos = $service->procesarRegistros($checadas, $dispositivo['location']);
                         $this->results[] = [
                             'location' => $dispositivo['location'],
                             'status' => 'success',
@@ -85,39 +87,6 @@ class BiometricoSync extends Component
         
         // Disparar evento para que otros componentes (como el reporte biométrico) se actualicen
         $this->dispatch('refreshBiometrico');
-    }
-
-    private function procesarChecadas($checadas, $location)
-    {
-        $nuevos = 0;
-        foreach (array_chunk($checadas, 200) as $chunk) {
-            foreach ($chunk as $checada) {
-                $timestamp = strtotime($checada['timestamp']);
-                $fecha = date("Y-m-d H:i:s", $timestamp);
-                $id = $checada['id'];
-                
-                // Ignorar registros con fechas irreales en el futuro
-                if ($timestamp > strtotime('+1 day')) {
-                    continue;
-                }
-                
-                // Generar identificador único para evitar duplicados
-                $identificador = "{$id}_" . date("YmdHi", $timestamp) . "_" . str_replace(' ', '', $location);
-
-                if (!Checada::where('identificador', $identificador)->exists()) {
-                    $newChecada = Checada::create([
-                        'num_empleado' => $id,
-                        'fecha' => $fecha,
-                        'identificador' => $identificador
-                    ]);
-                    
-                    event(new ChecadaCreated($newChecada, $location));
-                    
-                    $nuevos++;
-                }
-            }
-        }
-        return $nuevos;
     }
 
     public function render()

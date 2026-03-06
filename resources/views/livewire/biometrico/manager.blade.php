@@ -14,6 +14,14 @@
                 </svg>
                 Agregar Equipo
             </button>
+            <button wire:click="fetchDeviceTimes" wire:loading.attr="disabled" wire:target="fetchDeviceTimes"
+                class="px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-black uppercase tracking-widest border border-gray-100 dark:border-gray-700 hover:border-emerald-400 hover:text-emerald-600 transition-all shadow-sm flex items-center gap-2">
+                <svg class="w-4 h-4" wire:loading.class="animate-spin" wire:target="fetchDeviceTimes" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span wire:loading.remove wire:target="fetchDeviceTimes">Hora Equipos</span>
+                <span wire:loading wire:target="fetchDeviceTimes">Consultando...</span>
+            </button>
             <button wire:click="toggleAll" 
                 class="px-4 py-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-black uppercase tracking-widest border border-gray-100 dark:border-gray-700 hover:border-oro transition-all shadow-sm">
                 {{ count($selectedIds) === count($dispositivos) ? 'Desmarcar Todos' : 'Marcar Todos' }}
@@ -51,6 +59,30 @@
                                 <div>
                                     <h3 class="text-sm font-black text-gray-900 dark:text-gray-100 uppercase tracking-wider">{{ $disp['location'] }}</h3>
                                     <p class="text-[10px] font-bold text-gray-500 dark:text-gray-400 tracking-widest mt-0.5">{{ $disp['ip'] }}</p>
+                                    @if(isset($deviceTimes[$disp['id']]))
+                                        <div class="flex items-center gap-1.5 mt-2">
+                                            <span class="w-2 h-2 rounded-full {{ $deviceTimes[$disp['id']]['status'] === 'online' ? 'bg-emerald-500' : 'bg-rose-400' }} inline-block"></span>
+                                            <svg class="w-4 h-4 {{ $deviceTimes[$disp['id']]['status'] === 'online' ? 'text-emerald-600' : 'text-rose-400' }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span class="text-xs font-black tracking-wider {{ $deviceTimes[$disp['id']]['status'] === 'online' ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-500' }}">
+                                                {{ $deviceTimes[$disp['id']]['time'] }}
+                                            </span>
+                                            
+                                            @if($deviceTimes[$disp['id']]['status'] === 'online')
+                                                <button wire:click.stop="syncDeviceTime({{ $disp['id'] }})" 
+                                                    class="ml-2 text-gray-500 hover:text-[#9b2247] hover:bg-[#9b2247]/10 p-1.5 rounded-lg transition-all opacity-0 group-hover:opacity-100 flex items-center justify-center relative group/btn"
+                                                    title="Sincronizar hora del equipo con servidor central">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                    </svg>
+                                                    <span class="absolute -top-7 left-1/2 -translate-x-1/2 min-w-max bg-gray-900 text-white text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded shadow-lg opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none">
+                                                        Sync Hora
+                                                    </span>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                             

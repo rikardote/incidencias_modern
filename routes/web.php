@@ -97,6 +97,19 @@ Route::get('/debug-auth', function () {
     ];
 });
 
+// ─── ADMS: Servidor Push para equipos ZKTeco ─────────────────────────
+// El equipo se conecta a estos endpoints para enviar datos en tiempo real.
+// No requiere autenticación ni CSRF (el equipo no maneja cookies/tokens).
+// Esto NO reemplaza la sincronización UDP existente, es un método alternativo.
+Route::prefix('iclock')->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])->group(function () {
+    Route::get('/cdata', [\App\Http\Controllers\AdmsController::class, 'handshake']);
+    Route::post('/cdata', [\App\Http\Controllers\AdmsController::class, 'receiveData']);
+    Route::get('/getrequest', [\App\Http\Controllers\AdmsController::class, 'getRequest']);
+    // Algunos equipos usan estas variantes
+    Route::get('/devicecmd', [\App\Http\Controllers\AdmsController::class, 'getRequest']);
+    Route::post('/devicecmd', [\App\Http\Controllers\AdmsController::class, 'getRequest']);
+});
+
 require __DIR__ . '/auth.php';
 Route::get('/test-config', function () {
     return config('database.connections.biometrico');

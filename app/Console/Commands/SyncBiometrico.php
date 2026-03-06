@@ -2,18 +2,17 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Checada;
+use App\Services\Biometrico\ChecadaService;
 use Illuminate\Console\Command;
 use Jmrashed\Zkteco\Lib\ZKTeco;
 use Illuminate\Support\Facades\Log;
-use App\Events\ChecadaCreated;
 
 class SyncBiometrico extends Command
 {
     protected $signature = 'biometrico:sync';
     protected $description = 'Descarga checadas de los dispositivos biométricos';
 
-    public function handle()
+    public function handle(ChecadaService $service)
     {
         $this->info('Iniciando sincronización biométrica...' . PHP_EOL);
 
@@ -35,7 +34,9 @@ class SyncBiometrico extends Command
                     $checadas = $zk->getAttendance();
                     
                     if (!empty($checadas)) {
-                        $this->procesarChecadas($checadas, $dispositivo['location']);
+                        $this->info("Se descargaron " . count($checadas) . " registros del equipo. Procesando...");
+                        $nuevos = $service->procesarRegistros($checadas, $dispositivo['location']);
+                        $this->info("Se insertaron {$nuevos} registros nuevos de {$dispositivo['location']}.");
                     } else {
                         $this->warn("No se encontraron registros.");
                     }
@@ -53,45 +54,5 @@ class SyncBiometrico extends Command
         }
 
         $this->info('Sincronización finalizada.');
-    }
-
-    private function procesarChecadas($checadas, $location)
-    {
-        $bar = $this->output->createProgressBar(count($checadas));
-        $bar->start();
-
-        $nuevos = 0;
-        foreach (array_chunk($checadas, 200) as $chunk) {
-            foreach ($chunk as $checada) {
-                $timestamp = strtotime($checada['timestamp']);
-                $fecha = date("Y-m-d H:i:s", $timestamp);
-                $id = $checada['id'];
-                
-                // Ignorar registros con fechas muy lejanas en el futuro (error de reloj del equipo)
-                if ($timestamp > strtotime('+1 day')) {
-                    $bar->advance();
-                    continue;
-                }
-                
-                // Generar identificador único para evitar duplicados
-                $identificador = "{$id}_" . date("YmdHi", $timestamp) . "_" . str_replace(' ', '', $location);
-
-                if (!Checada::where('identificador', $identificador)->exists()) {
-                    $newChecada = Checada::create([
-                        'num_empleado' => $id,
-                        'fecha' => $fecha,
-                        'identificador' => $identificador
-                    ]);
-                    
-                    event(new ChecadaCreated($newChecada, $location));
-                    
-                    $nuevos++;
-                }
-                $bar->advance();
-            }
-        }
-
-        $bar->finish();
-        $this->info(PHP_EOL . "Se insertaron {$nuevos} registros nuevos de {$location}.");
     }
 }
