@@ -96,6 +96,7 @@ class Monitor extends Component
             'fecha' => $checada['fecha'],
             'hora' => date('H:i:s', strtotime($checada['fecha'])),
             'location' => $event['location'] ?? 'Desconocido',
+            'chip' => $checadaModel ? $checadaModel->identificador : 'Desconocido',
         ];
 
         array_unshift($this->recentChecadas, $newChecada);
