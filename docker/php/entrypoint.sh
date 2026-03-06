@@ -11,8 +11,9 @@ echo "Iniciando Reverb..."
 php artisan reverb:start --host=0.0.0.0 --port=8080 > storage/logs/reverb.log 2>&1 &
 
 # Iniciar Monitor de Biométricos en segundo plano
-echo "Iniciando Monitor de Biométricos (Real-time)..."
-php artisan biometrico:monitor > storage/logs/biometrico_monitor.log 2>&1 &
+# (DESHABILITADO) Para habilitarlo nuevamente, descomenta la siguiente línea y reinicia el contenedor
+echo "Iniciando Monitor de Biométricos (Real-time)... [MODO MANUAL: DESACTIVADO]"
+# php artisan biometrico:monitor > storage/logs/biometrico_monitor.log 2>&1 &
 
 # Iniciar el proceso principal (PHP-FPM)
 echo "Iniciando PHP-FPM..."

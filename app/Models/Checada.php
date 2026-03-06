@@ -8,13 +8,21 @@ use Illuminate\Support\Facades\Log;
 
 class Checada extends Model
 {
+    protected $connection = 'biometrico';
+    protected $table = 'checadas';
+    protected $fillable = ['num_empleado', 'fecha', 'identificador'];
+
+    /**
+     * Permite usar config() para cambiar en testing si se necesita, 
+     * aunque para un Model es mejor la variable protegida por defecto.
+     */
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-        $this->connection = app()->environment('testing') ? config('database.default') : 'biometrico';
+        if (app()->environment('testing')) {
+            $this->connection = config('database.default');
+        }
     }
-    protected $table = 'checadas';
-    protected $fillable = ['num_empleado', 'fecha', 'identificador'];
 
     public function employee()
     {
