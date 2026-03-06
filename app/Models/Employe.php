@@ -10,7 +10,7 @@ class Employe extends Model
 {
     use SoftDeletes;
 
-    protected $table = "employees";
+    protected $table = "sistemas.employees";
 
     protected $fillable = [
         "num_empleado", "name", "father_lastname", "mother_lastname",

@@ -141,7 +141,7 @@
                                     </div>
                                 </x-dropdown-link>
                                 <x-dropdown-link :href="route('biometrico.index')" wire:navigate
-                                    class="hover:bg-gray-100 dark:hover:bg-white/5 py-3">
+                                    class="hover:bg-gray-100 dark:hover:bg-white/5 py-3 border-b border-gray-100 dark:border-white/5">
                                     <div class="flex items-center gap-3">
                                         <svg class="w-4 h-4 text-[#e6d194]" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
@@ -150,6 +150,17 @@
                                             </path>
                                         </svg>
                                         {{ __('Asistencia Biométrica') }}
+                                    </div>
+                                </x-dropdown-link>
+                                <x-dropdown-link :href="route('biometrico.monitor')" wire:navigate
+                                    class="hover:bg-gray-100 dark:hover:bg-white/5 py-3">
+                                    <div class="flex items-center gap-3">
+                                        <svg class="w-4 h-4 text-[#e6d194]" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M9.375 9L12 11.625 14.625 9M12 11.625V21m-1.652-2.348A9 9 0 105.261 7.087C13.9 12.063 12.428 12.063 21 16.038" />
+                                        </svg>
+                                        {{ __('Monitoreo en Vivo') }}
                                     </div>
                                 </x-dropdown-link>
                             </x-slot>
@@ -414,6 +425,10 @@
             <x-responsive-nav-link :href="route('biometrico.index')" :active="request()->routeIs('biometrico.index')"
                 wire:navigate>
                 <span class="ps-4">{{ __('Asistencia Biométrica') }}</span>
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('biometrico.monitor')" :active="request()->routeIs('biometrico.monitor')"
+                wire:navigate>
+                <span class="ps-4">{{ __('Monitoreo en Vivo') }}</span>
             </x-responsive-nav-link>
 
         </div>

@@ -6,6 +6,7 @@ use App\Models\Checada;
 use Livewire\Component;
 use Jmrashed\Zkteco\Lib\ZKTeco;
 use Illuminate\Support\Facades\Log;
+use App\Events\ChecadaCreated;
 
 class BiometricoSync extends Component
 {
@@ -91,18 +92,27 @@ class BiometricoSync extends Component
         $nuevos = 0;
         foreach (array_chunk($checadas, 200) as $chunk) {
             foreach ($chunk as $checada) {
-                $fecha = date("Y-m-d H:i:s", strtotime($checada['timestamp']));
+                $timestamp = strtotime($checada['timestamp']);
+                $fecha = date("Y-m-d H:i:s", $timestamp);
                 $id = $checada['id'];
                 
+                // Ignorar registros con fechas irreales en el futuro
+                if ($timestamp > strtotime('+1 day')) {
+                    continue;
+                }
+                
                 // Generar identificador único para evitar duplicados
-                $identificador = "{$id}_" . date("YmdHi", strtotime($checada['timestamp'])) . "_" . str_replace(' ', '', $location);
+                $identificador = "{$id}_" . date("YmdHi", $timestamp) . "_" . str_replace(' ', '', $location);
 
                 if (!Checada::where('identificador', $identificador)->exists()) {
-                    Checada::create([
+                    $newChecada = Checada::create([
                         'num_empleado' => $id,
                         'fecha' => $fecha,
                         'identificador' => $identificador
                     ]);
+                    
+                    event(new ChecadaCreated($newChecada, $location));
+                    
                     $nuevos++;
                 }
             }
