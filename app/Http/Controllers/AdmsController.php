@@ -45,24 +45,32 @@ class AdmsController extends Controller
         // Registrar o actualizar el equipo
         $this->registrarEquipo($sn, $request->ip());
 
+        // Hora local de Tijuana para sincronizar el equipo
+        $localTime = now()->timezone('America/Tijuana')->format('Y-m-d H:i:s');
+
         // Responder con configuraciones para el equipo
-        // Estos parámetros le dicen al equipo cada cuánto enviar datos
         $config = [
             'GET OPTION FROM: ' . $sn,
-            'ATTLOGStamp=0',      // Enviar todos los registros de asistencia
-            'OPERLOGStamp=0',     // Enviar todos los registros de operación
-            'ATTPHOTOStamp=0',    // Enviar fotos de asistencia
-            'ErrorDelay=60',      // Reintentar cada 60s si hay error
-            'Delay=5',            // Intervalo de ping cada 5s
-            'TransTimes=00:00;14:05', // Horarios de transferencia
-            'TransInterval=1',    // Intervalo de transferencia en minutos
+            'ATTLOGStamp=0',
+            'OPERLOGStamp=0',
+            'ATTPHOTOStamp=0',
+            'ErrorDelay=60',
+            'Delay=5',
+            'TransTimes=00:00;14:05',
+            'TransInterval=1',
             'TransFlag=TransData AttLog\tOpLog\tEnrollUser\tChgUser\tEnrollFP\tChgFP\tFACE',
-            'Realtime=1',         // Habilitar envío en tiempo real
-            'Encrypt=0',          // Sin encriptación
+            'Realtime=1',
+            'Encrypt=0',
+            'DuplicateCheck=0',
+            'TimeZone=' . (now()->timezone('America/Tijuana')->getOffset() / 60), // Dinámico (-480 o -420)
+            'ServerTime=' . now()->timezone('America/Tijuana')->subHours(16)->format('Y-m-d H:i:s'),
         ];
 
+        Log::channel('daily')->info("[ADMS] Enviando handshake con ServerTime (Tijuana -16h) a SN: {$sn}");
+
         return response(implode("\n", $config), 200)
-            ->header('Content-Type', 'text/plain');
+            ->header('Content-Type', 'text/plain')
+            ->header('Date', now()->timezone('UTC')->format('D, d M Y H:i:s') . ' GMT');
     }
 
     /**
@@ -88,16 +96,19 @@ class AdmsController extends Controller
             'content_length' => strlen($rawData),
         ]);
 
+        $response = 'OK';
         try {
             switch (strtoupper($table)) {
                 case 'ATTLOG':
                     $count = $this->procesarAttLog($rawData, $sn);
                     Log::channel('daily')->info("[ADMS] Procesados {$count} registros ATTLOG de SN: {$sn}");
+                    $response = "OK: {$count}";
                     break;
 
                 case 'OPERLOG':
-                    $this->procesarOperLog($rawData, $sn);
+                    $count = $this->procesarOperLog($rawData, $sn);
                     Log::channel('daily')->info("[ADMS] Procesado OPERLOG de SN: {$sn}");
+                    $response = "OK: {$count}";
                     break;
 
                 default:
@@ -110,8 +121,8 @@ class AdmsController extends Controller
             Log::channel('daily')->error("[ADMS] Error procesando {$table} de SN: {$sn}: " . $e->getMessage());
         }
 
-        // Siempre responder OK para que el equipo no reenvíe
-        return response('OK', 200)
+        // Responder OK:count para que el equipo sepa qué registros se procesaron
+        return response($response, 200)
             ->header('Content-Type', 'text/plain');
     }
 
@@ -128,9 +139,15 @@ class AdmsController extends Controller
         // Actualizar último contacto del equipo
         $this->actualizarUltimoContacto($sn);
 
-        // Responder OK (o enviar comandos si los hay)
-        return response('OK', 200)
-            ->header('Content-Type', 'text/plain');
+        $commands = [
+            "C:101:SET OPTION DuplicateCheck=0",
+            "C:102:SET OPTION TimeZone=" . (now()->timezone('America/Tijuana')->getOffset() / 60),
+            "C:103:SET OPTION ServerTime=" . now()->timezone('America/Tijuana')->subHours(16)->format('Y-m-d H:i:s'),
+        ];
+
+        return response(implode("\n", $commands), 200)
+            ->header('Content-Type', 'text/plain')
+            ->header('Date', now()->timezone('UTC')->format('D, d M Y H:i:s') . ' GMT');
     }
 
     /**
@@ -141,7 +158,10 @@ class AdmsController extends Controller
      */
     private function procesarAttLog(string $rawData, string $sn): int
     {
-        $lines = array_filter(explode("\n", trim($rawData)));
+        // Usar regex para separar líneas (maneja \r\n, \n y \r que envían algunos equipos)
+        $lines = preg_split('/\r\n|\r|\n/', trim($rawData));
+        $lines = array_filter($lines);
+        
         $location = $this->obtenerLocationPorSN($sn);
         $connection = app()->environment('testing') ? config('database.default') : 'biometrico';
         $locationSlug = str_replace(' ', '', $location);
@@ -165,16 +185,28 @@ class AdmsController extends Controller
                 continue;
             }
 
+            // Protección inteligente de hora:
+            // Muchos equipos ZKTeco con ADMS se desfasan +16h solos.
+            // Si detectamos que el registro viene con más de 2 horas al futuro,
+            // le restamos las 16h para normalizarlo. 
+            // Si el reloj está bien (manual), no hacemos nada.
             $timestamp = strtotime($fecha);
-            if ($timestamp === false || $timestamp > strtotime('+1 day')) {
+            if ($timestamp === false) {
                 continue;
             }
 
-            $identificador = "{$pin}_" . date('YmdHi', $timestamp) . "_{$locationSlug}";
+            if ($timestamp > (time() + 7200)) { 
+                $timestampCorregido = $timestamp - (16 * 3600);
+            } else {
+                $timestampCorregido = $timestamp;
+            }
+            
+            $fechaCorregida = date('Y-m-d H:i:s', $timestampCorregido);
+            $identificador = "{$pin}_" . date('YmdHi', $timestampCorregido) . "_{$locationSlug}";
 
             $insertRows[] = [
                 'num_empleado' => $pin,
-                'fecha' => $fecha,
+                'fecha' => $fechaCorregida,
                 'identificador' => $identificador,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -183,7 +215,7 @@ class AdmsController extends Controller
             $registrosNuevos[] = [
                 'identificador' => $identificador,
                 'pin' => $pin,
-                'fecha' => $fecha,
+                'fecha' => $fechaCorregida,
                 'status' => $status,
                 'verify_mode' => $verifyMode,
             ];
@@ -225,9 +257,11 @@ class AdmsController extends Controller
      * Contiene información de usuarios, cambios de configuración, etc.
      * Por ahora solo lo loggeamos para referencia.
      */
-    private function procesarOperLog(string $rawData, string $sn): void
+    private function procesarOperLog(string $rawData, string $sn): int
     {
-        $lines = array_filter(explode("\n", trim($rawData)));
+        $lines = preg_split('/\r\n|\r|\n/', trim($rawData));
+        $lines = array_filter($lines);
+        $count = 0;
 
         foreach ($lines as $line) {
             // Parsear key=value pairs separados por tab
@@ -242,13 +276,11 @@ class AdmsController extends Controller
 
             if (!empty($fields)) {
                 Log::channel('daily')->info("[ADMS] OPERLOG de SN {$sn}", $fields);
-
-                // Futuro: Aquí podrías sincronizar usuarios automáticamente
-                // if (isset($fields['PIN']) && isset($fields['Name'])) {
-                //     $this->sincronizarUsuario($fields);
-                // }
+                $count++;
             }
         }
+
+        return $count;
     }
 
     /**

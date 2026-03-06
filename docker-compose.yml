@@ -6,6 +6,8 @@ services:
     container_name: modern_app
     restart: unless-stopped
     working_dir: /var/www
+    environment:
+      TZ: America/Tijuana
     volumes:
       - .:/var/www
     ports:
