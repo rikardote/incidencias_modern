@@ -41,6 +41,10 @@ class Monitor extends Component
             ->limit(20)
             ->get()
             ->map(function ($checada) {
+                // El identificador tiene formato: PIN_YYYYMMDDHHII_LOCATION
+                $parts = explode('_', $checada->identificador);
+                $location = count($parts) >= 3 ? implode('_', array_slice($parts, 2)) : 'Desconocido';
+
                 return [
                     'id' => $checada->id,
                     'num_empleado' => $checada->num_empleado,
@@ -48,6 +52,7 @@ class Monitor extends Component
                     'fecha' => $checada->fecha,
                     'hora' => date('H:i:s', strtotime($checada->fecha)),
                     'chip' => $checada->identificador,
+                    'location' => $location,
                 ];
             })->toArray();
     }
