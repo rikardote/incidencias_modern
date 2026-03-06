@@ -13,6 +13,7 @@ use App\Events\NewIncidenciaBatchCreated; // Importado para tiempo real
 use Livewire\Component;
 use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class Manager extends Component
@@ -236,9 +237,17 @@ class Manager extends Component
             ->orderBy('fecha_inicio', 'desc')->get();
 
         $todosLosCodigos = CodigoDeIncidencia::orderBy('code')->get();
-        $frecuentesIds = Cache::get('codigos_frecuentes_3yrs', []);
+        $frecuentesIds = Cache::remember('codigos_frecuentes_3yrs', 86400, function() {
+            return Incidencia::select('codigodeincidencia_id', DB::raw('count(*) as count'))
+                ->where('fecha_inicio', '>=', now()->subYears(3))
+                ->groupBy('codigodeincidencia_id')
+                ->orderByDesc('count')
+                ->limit(10)
+                ->pluck('codigodeincidencia_id')
+                ->toArray();
+        });
         $topCodigos = $todosLosCodigos->whereIn('id', $frecuentesIds)->sortBy('code');
-        $otrosCodigos = $todosLosCodigos->whereNotIn('id', $frecuentesIds);
+        $otrosCodigos = $todosLosCodigos->whereNotIn('id', $topCodigos->pluck('id'));
 
         $periodos = Periodo::where('year', '>=', (int)date('Y') - 5)
             ->orderBy('year', 'desc')->orderBy('periodo', 'desc')->get();
