@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Vite;
+use Illuminate\Support\Facades\Cache;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,26 +22,24 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::useBuildDirectory('dist');
-        require base_path('routes/channels.php');
 
         // Compartir la QNA activa con absolutamente todas las vistas
-        $activeQna = null;
-        try {
-            // 1. Buscamos la QNA activa más antigua que TENGA fecha de cierre (la que urge cerrar)
-            // 2. Si ninguna tiene fecha, buscamos la QNA activa más antigua (la subsecuente a la última cerrada)
-            $activeQna = \App\Models\Qna::where('active', '1')
-                ->whereNotNull('cierre')
-                ->orderBy('year', 'asc')
-                ->orderBy('qna', 'asc')
-                ->first()
-                ?? \App\Models\Qna::where('active', '1')
-                ->orderBy('year', 'asc')
-                ->orderBy('qna', 'asc')
-                ->first();
-        }
-        catch (\Exception $e) {
-        // Silencio en caso de que la tabla no exista aún (migraciones)
-        }
+        $activeQna = Cache::remember('active_qna', 3600, function() {
+            try {
+                return \App\Models\Qna::where('active', '1')
+                    ->whereNotNull('cierre')
+                    ->orderBy('year', 'asc')
+                    ->orderBy('qna', 'asc')
+                    ->first()
+                    ?? \App\Models\Qna::where('active', '1')
+                    ->orderBy('year', 'asc')
+                    ->orderBy('qna', 'asc')
+                    ->first();
+            }
+            catch (\Exception $e) {
+                return null;
+            }
+        });
 
         \Illuminate\Support\Facades\View::share('activeQna', $activeQna);
     }

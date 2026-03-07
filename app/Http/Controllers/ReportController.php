@@ -173,13 +173,13 @@ class ReportController extends Controller
 
         $mpdf->WriteHTML('</tbody></table>');
 
-        $pdfFileName = 'RH5-' . str_pad($qna->qna, 2, '0', STR_PAD_LEFT) . '-' . $qna->year . '-' . str_replace(' ', '_', $department->description) . '.pdf';
+        $pdfFileName = str_pad($qna->qna, 2, '0', STR_PAD_LEFT) . '-' . $qna->year . '-' . mb_strtoupper($department->description) . '.RH5.PDF';
 
         $pdfContent = $mpdf->Output('', 'S');
 
         return response($pdfContent, 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $pdfFileName . '"'
+            'Content-Disposition' => 'attachment; filename="' . $pdfFileName . '"'
         ]);
     }
 
@@ -353,11 +353,11 @@ class ReportController extends Controller
 
         $mpdf->WriteHTML($contentHtml, \Mpdf\HTMLParserMode::HTML_BODY);
 
-        $pdfFileName = 'SIN_DERECHO_' . $monthName . '_' . $year . '_' . str_replace(' ', '_', $department->code) . '.pdf';
+        $pdfFileName = str_pad($month, 2, '0', STR_PAD_LEFT) . '-' . $year . '-' . mb_strtoupper($department->description) . '.SINDERECHO.PDF';
 
         return response($mpdf->Output($pdfFileName, 'I'), 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $pdfFileName . '"'
+            'Content-Disposition' => 'attachment; filename="' . $pdfFileName . '"'
         ]);
     }
     public function kardexPdf($num_empleado, $fecha_inicio, $fecha_final)
@@ -497,7 +497,7 @@ class ReportController extends Controller
 
         return response($mpdf->Output($pdfFileName, 'I'), 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $pdfFileName . '"'
+            'Content-Disposition' => 'attachment; filename="' . $pdfFileName . '"'
         ]);
     }
 
@@ -699,7 +699,7 @@ class ReportController extends Controller
 
         return response($mpdf->Output($pdfFileName, 'I'), 200, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $pdfFileName . '"'
+            'Content-Disposition' => 'attachment; filename="' . $pdfFileName . '"'
         ]);
     }
 

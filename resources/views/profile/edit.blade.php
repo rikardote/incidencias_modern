@@ -21,13 +21,6 @@
                 </div>
             </div>
 
-            {{-- Widget Selection section will be added here --}}
-            <div id="widget-selection-container"
-                class="p-4 sm:p-8 bg-white dark:bg-gray-800 shadow rounded border border-gray-200 dark:border-gray-700">
-                <div class="max-w-xl">
-                    @include('profile.partials.update-widgets-form')
-                </div>
-            </div>
         </div>
     </div>
 </x-app-layout>

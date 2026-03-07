@@ -39,7 +39,6 @@
             }, type === 'error' ? 1200 : 500);
         }
     }" x-on:topbar-start.window="start()" x-on:topbar-end.window="finish($event.detail)"
-        x-on:island-notif.window="if($event.detail.type === 'error') finish('error'); else finish('success');"
         class="absolute top-0 left-0 w-full h-[3px] z-[100000] pointer-events-none overflow-hidden transition-opacity duration-500"
         :class="barOpacity === 0 ? 'opacity-0' : 'opacity-100'">
         <div class="h-full shadow-[0_0_10px_currentColor] transition-all duration-500 ease-out"
@@ -170,142 +169,35 @@
                 </div>
             </div>
 
-            <!-- DYNAMIC ISLAND CONTAINER (MIDDLE) -->
+            <!-- QNA INFO (MIDDLE) -->
             <div class="flex items-center px-4 shrink-0">
                 @if($activeQna)
-                <div x-data="{ 
-                    isMaint: {{ \Illuminate\Support\Facades\Cache::get('capture_maintenance', false) ? 'true' : 'false' }},
-                    islandMsg: null,
-                    islandType: 'info',
-                    islandTimer: null,
-                    showPhase: 'face',
-                    progress: 0,
-                    activeStyle: $store.island.activeStyle,
-                    init() {
-                        this.$watch('$store.island.activeStyle', val => this.activeStyle = val);
-                        window.addEventListener('island-notif', (e) => {
-                            this.showIsland(e.detail.message || 'Sin mensaje', e.detail.type || 'info');
-                        });
-                    },
-                    get face() {
-                        const msg = (this.islandMsg || '').toLowerCase();
-                        if (this.islandType === 'error' || msg.includes('error')) return '( > _ < )';
-                        if (msg.includes('eliminada') || msg.includes('borrar')) return '( - _ - )';
-                        if (this.islandType === 'success') return '( ^ ‿ ^ )';
-                        return '( - ‿ - )';
-                    },
-                    showIsland(rawMsg, type) {
-                        if (this.islandTimer) clearTimeout(this.islandTimer);
-                        this.islandMsg = rawMsg;
-                        this.islandType = type || 'info';
-
-                        if (navigator.vibrate) {
-                            try {
-                                if (this.islandType === 'error') navigator.vibrate([200, 100, 200]);
-                                else navigator.vibrate(50);
-                            } catch(e) {}
-                        }
-
-                        let duration = Math.max(5000, (rawMsg.length * 120) + 2000);
-
-                        this.showPhase = $store.island.showFaces ? 'face' : 'text';
-                        if ($store.island.showFaces) {
-                            setTimeout(() => {
-                                if (this.islandMsg === rawMsg) this.showPhase = 'text';
-                            }, 800);
-                        }
-
-                        this.islandTimer = setTimeout(() => {
-                            this.islandMsg = null;
-                        }, duration);
-                    }
-                 }" @maintenance-updated.window="isMaint = $event.detail.mode"
-                    class="bg-[#0a1f1a] dark:bg-gray-900 border rounded-full shadow-lg h-9 px-4 flex items-center justify-center relative transition-all duration-700 cubic-bezier(0.4, 0, 0.2, 1) z-[100000]"
-                    :class="{ 
-                        'border-[#e6d194] ring-2 ring-[#e6d194]/20 bg-[#0a1f1a] z-[100]': islandMsg && islandType !== 'error', 
-                        'border-red-500 ring-2 ring-red-500/30 bg-[#1a0a0a] z-[100]': islandMsg && islandType === 'error',
-                        'border-white/10': !islandMsg
-                     }" :style="islandMsg ? 'min-width: clamp(280px, 15ch + 10rem, 400px)' : 'min-width: 14.5rem'">
-
-                    {{-- Estado 1: QNA Activa (Default) --}}
-                    <div class="flex items-center gap-3 sm:gap-4 shrink-0 transition-all duration-500 ease-in-out"
-                        :class="(isMaint || islandMsg) ? 'opacity-0 invisible blur-sm translate-y-2' : 'opacity-100 visible translate-y-0'">
-                        <div class="flex items-center gap-2 border-r border-oro/20 pr-3 sm:pr-4 leading-none">
+                <div x-data="{ isMaint: {{ \Illuminate\Support\Facades\Cache::get('capture_maintenance', false) ? 'true' : 'false' }} }" 
+                     @maintenance-updated.window="isMaint = $event.detail.mode"
+                     class="bg-[#0a1f1a]/50 dark:bg-gray-900 border border-white/10 rounded-full h-9 px-6 flex items-center justify-center relative shadow-sm">
+                    
+                    <div class="flex items-center gap-4 transition-all duration-500" :class="isMaint ? 'opacity-0 invisible blur-sm' : 'opacity-100 visible'">
+                        <div class="flex items-center gap-2 border-r border-oro/20 pr-4 leading-none">
                             <div class="relative flex h-2 w-2 shrink-0">
-                                <span
-                                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-oro opacity-75"></span>
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-oro opacity-75"></span>
                                 <span class="relative inline-flex rounded-full h-2 w-2 bg-oro"></span>
                             </div>
-                            <div class="flex items-baseline gap-1.5">
-                                <span
-                                    class="hidden lg:inline text-[7px] font-bold text-gray-400 uppercase tracking-wider nothing-font">QNA
-                                    ACTIVA</span>
-                                <span
-                                    class="text-[13px] font-black text-white leading-none nothing-font tracking-tight">
-                                    {{ $activeQna->qna }}/{{ $activeQna->year }}
-                                </span>
-                            </div>
+                            <span class="text-[11px] font-black text-white leading-none tracking-tight nothing-font">
+                                {{ $activeQna->qna }}/{{ $activeQna->year }}
+                            </span>
                         </div>
                         <div class="flex items-baseline gap-1.5 leading-none">
-                            <span
-                                class="text-[7px] font-bold text-gray-400 uppercase tracking-wider nothing-font">CIERRE:</span>
-                            <span class="text-[13px] font-black text-oro tracking-tight leading-none nothing-font">
-                                {{ $activeQna->cierre ? \Carbon\Carbon::parse($activeQna->cierre)->format('d/m/Y') :
-                                'PENDIENTE' }}
+                            <span class="text-[7px] font-bold text-gray-400 uppercase tracking-wider nothing-font">CIERRE:</span>
+                            <span class="text-[11px] font-black text-oro tracking-tight leading-none nothing-font">
+                                {{ $activeQna->cierre ? \Carbon\Carbon::parse($activeQna->cierre)->format('d/m/Y') : 'PENDIENTE' }}
                             </span>
                         </div>
                     </div>
 
-                    {{-- Estado: Notificación con Estilos --}}
-                    <div x-show="islandMsg" x-cloak class="absolute inset-0 flex items-center justify-center px-4">
-                        {{-- Fase Rostro --}}
-                        <template x-if="showPhase === 'face'">
-                            <span x-text="face"
-                                class="text-emerald-400 font-black animate-pulse tracking-widest text-xl nothing-font"></span>
-                        </template>
-
-                        {{-- Fase Texto con Selección de Estilo --}}
-                        <template x-if="showPhase === 'text'">
-                            <div class="w-full">
-                                {{-- Estilo Reporte/Progreso --}}
-                                <template x-if="(islandMsg || '').includes('Generando') || activeStyle === 'progress'">
-                                    <x-island.styles.progress />
-                                </template>
-
-                                {{-- Estilo Matrix --}}
-                                <template x-if="activeStyle === 'matrix' && !(islandMsg || '').includes('Generando')">
-                                    <x-island.styles.matrix />
-                                </template>
-
-                                {{-- Estilo StarWars --}}
-                                <template x-if="activeStyle === 'starwars' && !(islandMsg || '').includes('Generando')">
-                                    <x-island.styles.starwars />
-                                </template>
-
-                                {{-- Estilo Minimal/Classic (Fallback) --}}
-                                <template x-if="activeStyle === 'classic' || activeStyle === 'minimal'">
-                                    <div
-                                        class="flex items-center justify-center gap-2 overflow-hidden w-full relative min-w-0">
-                                        <div :class="islandMsg && islandMsg.length > 25 ? 'animate-marquee whitespace-nowrap' : ''"
-                                            :style="islandMsg && islandMsg.length > 25 ? `animation-duration: ${Math.max(4, islandMsg.length * 0.12)}s` : ''"
-                                            class="inline-block min-w-0">
-                                            <span x-text="islandMsg"
-                                                class="text-[10px] font-bold text-white uppercase tracking-widest block text-center truncate px-2 nothing-font"></span>
-                                        </div>
-                                    </div>
-                                </template>
-                            </div>
-                        </template>
-                    </div>
-
-                    {{-- Estado: Mantenimiento --}}
-                    <div x-show="isMaint && !islandMsg" x-cloak
-                        class="absolute inset-0 flex items-center justify-center px-1">
+                    <div x-show="isMaint" x-cloak class="absolute inset-0 flex items-center justify-center p-1">
                         <div class="flex items-baseline gap-2 animate-pulse">
                             <span class="text-red-500 text-xs font-black animate-ping">●</span>
-                            <span
-                                class="text-red-500 text-[10px] font-black uppercase tracking-[0.2em] nothing-font">Mantenimiento
-                                de Captura</span>
+                            <span class="text-red-500 text-[10px] font-black uppercase tracking-[0.2em] nothing-font">MANTENIMIENTO ACTIVADO</span>
                         </div>
                     </div>
                 </div>
@@ -444,6 +336,10 @@
             </div>
 
             <div class="mt-3 space-y-1">
+                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
+                    {{ __('Dashboard') }}
+                </x-responsive-nav-link>
+
                 <x-responsive-nav-link :href="route('profile.edit')" wire:navigate>
                     {{ __('Perfil') }}
                 </x-responsive-nav-link>

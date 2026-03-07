@@ -21,7 +21,15 @@ class VacacionesReport extends Component
     public function mount($employeeId)
     {
         $this->employeeId = $employeeId;
-        $this->employee = Employe::with(['department', 'puesto', 'jornada'])->findOrFail($employeeId);
+        $user = auth()->user();
+        $query = Employe::with(['department', 'puesto', 'jornada']);
+
+        if (!$user->admin()) {
+            $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
+            $query->whereIn('deparment_id', $departmentIds);
+        }
+
+        $this->employee = $query->findOrFail($employeeId);
     }
 
     public function showDetails($periodId, $periodNombre)

@@ -102,18 +102,8 @@
     <script>
         document.addEventListener('alpine:init', () => {
             Alpine.store('island', {
-                activeStyle: localStorage.getItem('island_style') || 'classic',
-                showFaces: localStorage.getItem('island_show_faces') !== 'false',
                 logCount: 0,
                 logIsOpen: false,
-                setStyle(style) {
-                    this.activeStyle = style;
-                    localStorage.setItem('island_style', style);
-                },
-                setFaces(show) {
-                    this.showFaces = show;
-                    localStorage.setItem('island_show_faces', show);
-                },
                 incrementLog() {
                     if (!this.logIsOpen) this.logCount++;
                 },
@@ -139,19 +129,27 @@
                             Alpine.store('island').incrementLog();
                         }
 
-                        // Dispatch visual notification to Dynamic Island
-                        window.dispatchEvent(new CustomEvent('island-notif', {
-                            detail: { message: 'Nuevas incidencias detectadas', type: 'info' }
-                        }));
+                        // Show Toast instead of Island Notif
+                        if (window.Toast) {
+                            window.Toast.fire({
+                                icon: 'info',
+                                title: 'Nuevas incidencias detectadas'
+                            });
+                        }
 
                         // Trigger internal component refresh if it exists
                         window.dispatchEvent(new CustomEvent('live-log-refresh'));
                     });
             }
 
-            // Global Debug Monitor
+            // Compatibility Bridge: Redirect Island Notifs to Toasts
             window.addEventListener('island-notif', (e) => {
-                console.warn('⚡️ EVENT-DEBUG: island-notif arrived at window:', e.detail);
+                if (window.Toast) {
+                    window.Toast.fire({
+                        icon: e.detail.type || 'info',
+                        title: e.detail.message || 'Aviso'
+                    });
+                }
             });
 
             Livewire.on('swal', (event) => {
@@ -168,36 +166,18 @@
             // Bridge para Notificaciones
             Livewire.on('toast', (event) => {
                 const data = Array.isArray(event) ? event[0] : event;
-                setTimeout(() => {
-                    window.dispatchEvent(new CustomEvent('island-notif', {
-                        detail: {
-                            message: data.title || (data.icon === 'error' ? 'Error' : 'Aviso'),
-                            type: data.icon || 'info'
-                        }
-                    }));
-                }, 50);
+                if (window.Toast) {
+                    window.Toast.fire({
+                        icon: data.icon || 'info',
+                        title: data.title || (data.icon === 'error' ? 'Error' : 'Aviso')
+                    });
+                }
 
                 if (data.icon === 'success') {
                     localStorage.setItem('biometrico_refresh', Date.now());
                 }
             });
 
-            // Bridge para Sincronización de Estilo (Dynamic Island)
-            Livewire.on('island-style-updated', (event) => {
-                const data = Array.isArray(event) ? event[0] : event;
-                const style = data.style;
-                // Actualizar store global de Alpine
-                if (window.Alpine) {
-                    Alpine.store('island').setStyle(style);
-                }
-            });
-
-            // Escuchar cambios en otras pestañas
-            window.addEventListener('storage', (event) => {
-                if (event.key === 'island_style' && window.Alpine) {
-                    Alpine.store('island').setStyle(event.newValue);
-                }
-            });
         });
     </script>
 

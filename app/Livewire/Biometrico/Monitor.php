@@ -3,47 +3,53 @@
 namespace App\Livewire\Biometrico;
 
 use App\Models\Checada;
-use App\Models\Equipo;
 use Livewire\Component;
-use Jmrashed\Zkteco\Lib\ZKTeco;
 use Illuminate\Support\Facades\Log;
 
 class Monitor extends Component
 {
-    public $devices = [];
     public $recentChecadas = [];
-    public $isRefreshingStatus = false;
+    public $equipoNames = [];
 
     public function mount()
     {
-        $this->loadDevices();
+        $this->loadEquipoNames();
         $this->loadRecentChecadas();
     }
 
-    public function loadDevices()
+    public function loadEquipoNames()
     {
-        $this->devices = Equipo::all()->map(function ($device) {
-            return [
-                'id' => $device->id,
-                'location' => $device->location,
-                'ip' => $device->ip,
-                'status' => 'checking', // success, error, checking
-                'last_sync' => $device->updated_at->diffForHumans(),
-            ];
-        })->toArray();
+        $this->equipoNames = \App\Models\Equipo::pluck('location', 'serial_number')->toArray();
     }
+
+
 
     public function loadRecentChecadas()
     {
-        $this->recentChecadas = Checada::with('employee')
+        $user = auth()->user();
+        $query = Checada::with('employee')
             ->where('fecha', '<=', now()->addDay())
             ->orderBy('fecha', 'desc')
-            ->limit(20)
-            ->get()
+            ->limit(50);
+
+        if (!$user->admin()) {
+            $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
+            $query->whereHas('employee', function ($q) use ($departmentIds) {
+                $q->whereIn('deparment_id', $departmentIds);
+            });
+        }
+
+        $this->recentChecadas = $query->get()
             ->map(function ($checada) {
                 // El identificador tiene formato: PIN_YYYYMMDDHHII_LOCATION
                 $parts = explode('_', $checada->identificador);
                 $location = count($parts) >= 3 ? implode('_', array_slice($parts, 2)) : 'Desconocido';
+
+                // Si la ubicación parece un Serial Number (empieza con CL... o similar) 
+                // o si tenemos un mapeo para este valor, lo usamos
+                // Quitamos el prefijo ADMS_ si viene en el identificador para buscarlo en la tabla
+                $sn = str_replace('ADMS_', '', $location);
+                $refinedLocation = $this->equipoNames[$sn] ?? $location;
 
                 return [
                     'id' => $checada->id,
@@ -52,32 +58,12 @@ class Monitor extends Component
                     'fecha' => $checada->fecha,
                     'hora' => date('H:i:s', strtotime($checada->fecha)),
                     'chip' => $checada->identificador,
-                    'location' => $location,
+                    'location' => str_starts_with($refinedLocation, 'ADMS_') ? $refinedLocation : 'ADMS_' . $refinedLocation,
                 ];
             })->toArray();
     }
 
-    public function refreshStatus()
-    {
-        $this->isRefreshingStatus = true;
-        
-        foreach ($this->devices as &$device) {
-            try {
-                $zk = new ZKTeco($device['ip']);
-                // Timeout corto para no bloquear
-                if ($zk->connect()) {
-                    $device['status'] = 'success';
-                    $zk->disconnect();
-                } else {
-                    $device['status'] = 'error';
-                }
-            } catch (\Exception $e) {
-                $device['status'] = 'error';
-            }
-        }
-        
-        $this->isRefreshingStatus = false;
-    }
+
 
     public function getListeners()
     {
@@ -88,26 +74,43 @@ class Monitor extends Component
 
     public function onChecadaCreated($event)
     {
+        $user = auth()->user();
         // El evento viene con 'checada' y 'location'
         $checada = $event['checada'];
         
-        // Recargar el empleado para tener el nombre
+        // Recargar el empleado para tener el nombre y la validación de departamento
         $checadaModel = Checada::with('employee')->find($checada['id']);
         
+        // Si el usuario no es admin, validar que tenga acceso al departamento del empleado
+        if (!$user->admin()) {
+            $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
+            $employeeDepartmentId = $checadaModel->employee->deparment_id ?? null;
+            
+            if (!$employeeDepartmentId || !in_array($employeeDepartmentId, $departmentIds)) {
+                return; // No tiene acceso, ignorar evento
+            }
+        }
+
+        $rawLocation = $event['location'] ?? 'Desconocido';
+        $sn = str_replace('ADMS_', '', $rawLocation);
+        $refinedLocation = $this->equipoNames[$sn] ?? $rawLocation;
+
         $newChecada = [
             'id' => $checada['id'],
             'num_empleado' => $checada['num_empleado'],
             'nombre' => $checadaModel && $checadaModel->employee ? $checadaModel->employee->full_name : 'No registrado',
             'fecha' => $checada['fecha'],
             'hora' => date('H:i:s', strtotime($checada['fecha'])),
-            'location' => $event['location'] ?? 'Desconocido',
+            'location' => str_starts_with($refinedLocation, 'ADMS_') 
+                ? $refinedLocation 
+                : 'ADMS_' . $refinedLocation,
             'chip' => $checadaModel ? $checadaModel->identificador : 'Desconocido',
         ];
 
         array_unshift($this->recentChecadas, $newChecada);
         
-        // Mantener solo 20
-        if (count($this->recentChecadas) > 20) {
+        // Mantener solo 50
+        if (count($this->recentChecadas) > 50) {
             array_pop($this->recentChecadas);
         }
     }

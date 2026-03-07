@@ -24,8 +24,15 @@ class EmployeeStatistics extends Component
     #[Computed]
     public function employee()
     {
-        return Employe::with(['department', 'puesto', 'horario', 'jornada'])
-            ->findOrFail($this->employeeId);
+        $user = auth()->user();
+        $query = Employe::with(['department', 'puesto', 'horario', 'jornada']);
+
+        if (!$user->admin()) {
+            $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
+            $query->whereIn('deparment_id', $departmentIds);
+        }
+
+        return $query->findOrFail($this->employeeId);
     }
 
     #[Computed]

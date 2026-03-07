@@ -17,7 +17,15 @@ class EmployeeAttendance extends Component
 
     public function mount($employeeId)
     {
-        $this->employee = Employe::with(['department', 'puesto', 'horario'])->findOrFail($employeeId);
+        $user = auth()->user();
+        $query = Employe::with(['department', 'puesto', 'horario']);
+
+        if (!$user->admin()) {
+            $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
+            $query->whereIn('deparment_id', $departmentIds);
+        }
+
+        $this->employee = $query->findOrFail($employeeId);
         $this->año = (int)date('Y');
 
         // Calcular quincena actual

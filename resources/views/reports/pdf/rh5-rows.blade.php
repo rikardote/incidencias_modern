@@ -23,8 +23,8 @@
             @if($firstInGroup->horas_otorgadas)
                <div class="comment-text">{{ $firstInGroup->horas_otorgadas }}</div>
             @endif
-            @if($firstInGroup->codigo->code == 900 && $firstInGroup->autoriza_txt)
-               <div class="comment-text">{{ $firstInGroup->autoriza_txt }}</div>
+            @if($firstInGroup->codigo->code == 900 && $firstInGroup->cobertura_txt)
+               <div class="comment-text">LABORÓ: {{ $firstInGroup->cobertura_txt }}</div>
             @endif
         </td>
         <td class="text-center">
