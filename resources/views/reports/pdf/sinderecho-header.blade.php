@@ -2,7 +2,7 @@
     <table style="width: 100%;">
         <tr>
             <td class="logo-box">
-                <img src="{{ public_path('images/60issste.png') }}" class="logo-img">
+                <img src="{{ $logoBase64 ?? public_path('images/60issste.png') }}" class="logo-img">
             </td>
             <td class="title-box">
                 <div class="title-main">

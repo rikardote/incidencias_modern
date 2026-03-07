@@ -80,14 +80,6 @@ class Rh5Report extends Component
         }
 
         ksort($this->results);
-
-        // Notificar a la Isla Dinámica que hemos terminado
-        $this->dispatch('island-progress-update', progress: 100);
-        
-        $this->dispatch('island-notif', 
-            message: 'Reporte Listo', 
-            type: 'success'
-        );
     }
 
     public function render()

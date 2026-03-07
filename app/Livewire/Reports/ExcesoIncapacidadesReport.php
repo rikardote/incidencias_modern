@@ -51,36 +51,58 @@ class ExcesoIncapacidadesReport extends Component
         $empleados = $query->get();
         $this->data = [];
 
+        if ($empleados->isEmpty()) {
+            $this->loading = false;
+            return;
+        }
+
+        $empleadoIds = $empleados->pluck('id')->toArray();
+
+        // Código 55 - Incapacidad. Obtenemos el ID del código.
+        $codigoIncapacidad = DB::table('codigos_de_incidencias')->where('code', '55')->first();
+        if (!$codigoIncapacidad) {
+            $this->loading = false;
+            return;
+        }
+
+        // Traemos TODAS las incapacidades de estos empleados en un rango amplio que cubra 
+        // cualquier "año laboral" actual (13 meses atrás hasta hoy para estar seguros).
+        $todasIncapacidades = Incidencia::with(['codigo'])
+            ->whereIn('employee_id', $empleadoIds)
+            ->where('codigodeincidencia_id', $codigoIncapacidad->id)
+            ->where('fecha_inicio', '>=', Carbon::now()->subMonths(13)->format('Y-m-d'))
+            ->whereNull('deleted_at')
+            ->orderBy('fecha_inicio')
+            ->get()
+            ->groupBy('employee_id');
+
         foreach ($empleados as $empleado) {
+            // El periodo de incapacidades se calcula según su fecha de ingreso (aniversario)
             $fechaInicio = getdateActual($empleado->fecha_ingreso);
             $fechaFinal = getdatePosterior($fechaInicio);
 
-            // Código 55 es incapacidad (según legacy logic)
-            $incapacidades = Incidencia::with(['codigo'])
-                ->where('employee_id', $empleado->id)
-                ->whereHas('codigo', function ($q) {
-                $q->where('code', '55');
-            })
-                ->whereBetween('fecha_inicio', [$fechaInicio, $fechaFinal])
-                ->whereNull('deleted_at')
-                ->orderBy('fecha_inicio')
-                ->get();
+            // Filtramos las incapacidades que ya tenemos en memoria
+            $incidenciasEmpleado = $todasIncapacidades->get($empleado->id, collect());
+            
+            $incapacidadesMes = $incidenciasEmpleado->filter(function($inc) use ($fechaInicio, $fechaFinal) {
+                return $inc->fecha_inicio >= $fechaInicio && $inc->fecha_inicio <= $fechaFinal;
+            });
 
-            if ($incapacidades->isEmpty()) {
+            if ($incapacidadesMes->isEmpty()) {
                 continue;
             }
 
-            $totalDias = $incapacidades->sum('total_dias');
+            $totalDias = $incapacidadesMes->sum('total_dias');
             $antiguedad = getAntiguedad($empleado->fecha_ingreso);
 
-            $incapacidadReciente = $incapacidades->contains(function ($inc) {
+            $incapacidadReciente = $incapacidadesMes->contains(function ($inc) {
                 return Carbon::parse($inc->fecha_inicio)->addDays(30)->isAfter(Carbon::now());
             });
 
             if (getExcesodeIncapacidad($totalDias, $antiguedad)) {
                 $this->data[$empleado->num_empleado] = [
                     'empleado' => $empleado,
-                    'incapacidades' => $incapacidades,
+                    'incapacidades' => $incapacidadesMes,
                     'total_dias' => $totalDias,
                     'antiguedad' => $antiguedad,
                     'periodo_inicio' => $fechaInicio,
@@ -91,11 +113,7 @@ class ExcesoIncapacidadesReport extends Component
         }
 
         $this->loading = false;
-
-        $this->dispatch('island-notif', [
-            'message' => 'Reporte de Incapacidades Listo',
-            'type' => 'success'
-        ]);
+        $this->dispatch('toast', icon: 'success', title: 'Reporte de Incapacidades Listo');
     }
 
 

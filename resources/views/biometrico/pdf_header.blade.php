@@ -1,11 +1,11 @@
-<div class="header-container" style="font-family: 'Helvetica', sans-serif; position: relative;">
-    <table style="width: 100%; border-collapse: collapse;">
+<div class="header-container" style="font-family: 'Helvetica', sans-serif;">
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px;">
         <tr>
-            <td style="width: 40%; vertical-align: top;">
-                <img src="{{ public_path('images/60issste.png') }}" style="width: 250px;">
+            <td style="width: 35%; vertical-align: middle;">
+                <img src="{{ public_path('images/60issste.png') }}" style="width: 220px;">
             </td>
-            <td style="width: 60%; text-align: right; vertical-align: top;">
-                <div style="font-size: 9pt; font-weight: bold; text-transform: uppercase;">
+            <td style="width: 65%; text-align: right; vertical-align: middle;">
+                <div style="font-size: 8pt; font-weight: bold; color: #333; text-transform: uppercase; line-height: 1.2;">
                     Representación Estatal Baja California<br>
                     Subdelegación de Administración<br>
                     Departamento de Recursos Humanos
@@ -14,39 +14,29 @@
         </tr>
     </table>
 
-    <div style="background-color: #1e293b; color: white; text-align: center; padding: 4px; font-weight: bold; font-size: 10pt; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px;">
-        Reporte de Control de Asistencia
+    <div style="border: 1.5pt solid #13322B; color: #13322B; text-align: center; padding: 4px; font-weight: bold; font-size: 10pt; margin-top: 5px; text-transform: uppercase; letter-spacing: 1.5px; border-radius: 2px;">
+        CONTROL DE ASISTENCIA BIOMÉTRICO
     </div>
 
-    <table style="width: 100%; margin-top: 5px; border-collapse: collapse;">
+    <table style="width: 100%; margin-top: 6px; border-collapse: collapse;">
         <tr>
-            <td style="width: 20%; padding-bottom: 2px;">
-                <span style="font-size: 8pt; color: #64748b; font-weight: bold;">QNA:</span>
-                <span style="font-size: 8pt; font-weight: bold;">{{ str_pad($quincena, 2, '0', STR_PAD_LEFT) }}/{{ $año }}</span>
+            <td style="width: 60%; vertical-align: bottom;">
+                <div style="font-size: 7.5pt; color: #64748b; font-weight: bold; text-transform: uppercase;">Adscripción:</div>
+                <div style="font-size: 9pt; font-weight: bold; color: #1e293b; text-transform: uppercase;">
+                    [{{ str_pad($dpto->code, 5, "0", STR_PAD_LEFT) }}] {{ $dpto->description }}
+                </div>
             </td>
-            <td style="width: 80%; text-align: right; padding-bottom: 2px;">
-                <span style="font-size: 8pt; color: #64748b; font-weight: bold;">DEL:</span>
-                <span style="font-size: 8pt; font-weight: bold;">{{ \Carbon\Carbon::parse($fecha_inicio)->format('d/m/Y') }}</span>
-                <span style="font-size: 8pt; color: #64748b; font-weight: bold; margin-left: 5px;">AL:</span>
-                <span style="font-size: 8pt; font-weight: bold;">{{ \Carbon\Carbon::parse($fecha_fin)->format('d/m/Y') }}</span>
+            <td style="width: 40%; text-align: right; vertical-align: bottom;">
+                <div style="font-size: 7.5pt; color: #64748b; font-weight: bold; text-transform: uppercase;">Periodo de Control:</div>
+                <div style="font-size: 9pt; font-weight: bold; color: #1e293b;">
+                    QNA {{ str_pad($quincena, 2, '0', STR_PAD_LEFT) }}/{{ $año }} 
+                    <span style="font-size: 8pt; font-weight: normal; color: #64748b; margin-left: 4px;">
+                        ({{ \Carbon\Carbon::parse($fecha_inicio)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($fecha_fin)->format('d/m/Y') }})
+                    </span>
+                </div>
             </td>
         </tr>
     </table>
     
-    <div style="border-bottom: 0.5pt solid #cbd5e1; margin-top: 2px; margin-bottom: 3px;"></div>
-
-    <table style="width: 100%; border-collapse: collapse;">
-        <tr>
-            <td style="width: 15%;">
-                <span style="font-size: 8pt; color: #64748b; font-weight: bold;">CLAVE:</span>
-                <span style="font-size: 8pt; font-weight: bold;">{{ str_pad($dpto->code, 5, "0", STR_PAD_LEFT) }}</span>
-            </td>
-            <td style="width: 85%; text-align: right;">
-                <span style="font-size: 8pt; color: #64748b; font-weight: bold;">ADSCRIPCIÓN:</span>
-                <span style="font-size: 8pt; font-weight: bold; text-transform: uppercase;">{{ $dpto->description }}</span>
-            </td>
-        </tr>
-    </table>
-
-    <div style="border-bottom: 1.5pt solid #1e293b; margin-top: 4px; margin-bottom: 5px;"></div>
+    <div style="border-bottom: 2pt solid #13322B; margin-top: 5px; margin-bottom: 5px; opacity: 0.8;"></div>
 </div>

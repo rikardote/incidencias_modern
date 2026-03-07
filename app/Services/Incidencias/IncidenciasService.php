@@ -173,7 +173,40 @@ class IncidenciasService
 
     public function eliminarPorToken($token)
     {
-        if ($token)
-            return DB::table('incidencias')->where('token', $token)->update(['deleted_at' => Carbon::now()]);
+        if (!$token) return;
+
+        $user = auth()->user();
+        
+        // Verificar si las incidencias pertenecen a quincenas cerradas
+        $incidencias = DB::table('incidencias')
+            ->where('token', $token)
+            ->whereNull('deleted_at')
+            ->get();
+        
+        foreach ($incidencias as $inc) {
+            $qnaId = $inc->qna_id;
+            
+            // Si no tiene qna_id, intentamos resolverlo por fecha (para registros viejos)
+            if (!$qnaId && $inc->fecha_inicio) {
+                $qnaId = qna_year($inc->fecha_inicio);
+            }
+
+            if ($qnaId) {
+                $qna = Qna::find($qnaId);
+                // Si la QNA no está activa o ya pasó su fecha de cierre
+                $isClosed = $qna && ($qna->active != '1' || ($qna->cierre && now()->greaterThan($qna->cierre)));
+                
+                if ($isClosed) {
+                    // Solo permitimos si es admin (opcional) o si tiene permiso especial.
+                    // El usuario dice que "no debería dejarlo" incluso siendo posiblemente admin.
+                    // Vamos a permitirlo SOLO si tiene la excepción explícita de captura en quincena cerrada.
+                    if ($user && !$user->canCaptureInClosedQna($qna->id)) {
+                        throw new \DomainException("No se puede eliminar esta incidencia porque pertenece a una quincena cerrada (Q{$qna->qna}/{$qna->year}).");
+                    }
+                }
+            }
+        }
+
+        return DB::table('incidencias')->where('token', $token)->update(['deleted_at' => Carbon::now()]);
     }
 }

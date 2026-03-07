@@ -16,6 +16,7 @@
     }"
     x-init="
         window.isMaintenance = {{ \Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin() ? 'true' : 'false' }};
+        window.isLocked = {{ $isLocked ? 'true' : 'false' }};
     ">
     {{-- Header del Reporte --}}
     <div class="mb-8 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
@@ -193,8 +194,8 @@
                 <div class="flex justify-end items-end mt-2">
                     {{-- Botón de Acción Limpio (Inferior Derecha) --}}
                     <div class="flex-shrink-0 h-8 flex items-end">
-                        @if(!$registrosEmpleado->contains(fn($r) => !empty($r->incidencias)))
-                        <button x-data @click.stop="if(window.isMaintenance) { Swal.fire('Mantenimiento', 'No se puede capturar en este momento.', 'error'); return; } Swal.fire({
+                        @if(!$isLocked && !$registrosEmpleado->contains(fn($r) => !empty($r->incidencias)))
+                        <button x-data @click.stop="if(window.isMaintenance) { Swal.fire('Mantenimiento', 'No se puede capturar en este momento.', 'error'); return; } if(window.isLocked) { Swal.fire('Cerrado', 'Esta quincena está cerrada para modificaciones.', 'warning'); return; } Swal.fire({
                                         title: '¿Marcar sin incidencias?',
                                         text: 'Se capturará el código 77 para toda la quincena.',
                                         icon: 'info',
@@ -344,8 +345,8 @@
                             if ($isWeekend && empty($rowClass)) $rowClass = 'bg-slate-50/40 dark:bg-black/20';
                             @endphp
 
-                            <tr @click="if(window.isMaintenance) { Swal.fire('Mantenimiento', 'Captura suspendida temporalmente.', 'error'); return; } openModal({{ $registro->employee_id }}, {{ $num_empleado }}, '{{ trim(addslashes($registro->apellido_paterno . ' ' . $registro->apellido_materno . ' ' . $registro->nombre)) }}', '{{ $registro->fecha }}', '{{ \Carbon\Carbon::parse($registro->fecha)->translatedFormat('d \d\e F, Y') }}')"
-                                class="{{ $rowClass }} hover:bg-slate-100 dark:hover:bg-gray-700 transition-colors cursor-pointer group">
+                            <tr @click="if(window.isMaintenance) { Swal.fire('Mantenimiento', 'Captura suspendida temporalmente.', 'error'); return; } if(window.isLocked) { Swal.fire('Cerrado', 'Esta quincena está cerrada para modificaciones.', 'warning'); return; } openModal({{ $registro->employee_id }}, {{ $num_empleado }}, '{{ trim(addslashes($registro->apellido_paterno . ' ' . $registro->apellido_materno . ' ' . $registro->nombre)) }}', '{{ $registro->fecha }}', '{{ \Carbon\Carbon::parse($registro->fecha)->translatedFormat('d \d\e F, Y') }}')"
+                                class="{{ $rowClass }} {{ !$isLocked ? 'hover:bg-slate-100 dark:hover:bg-gray-700 cursor-pointer' : 'cursor-default' }} transition-colors group">
                                 <td
                                     class="px-3 py-1.5 font-medium text-gray-500 dark:text-gray-300 whitespace-nowrap {{ $isWeekend ? 'opacity-40' : '' }}">
                                     {{ \Carbon\Carbon::parse($registro->fecha)->format('d/m/Y') }}
@@ -397,7 +398,7 @@
                                         @endphp
                                         @foreach($incs as $idx => $inc)
                                         @php $token = $tokens[$idx] ?? ''; @endphp
-                                        <button x-data @click.stop="Swal.fire({
+                                        <button x-data @click.stop="if(window.isLocked) { Swal.fire('Cerrado', 'No se pueden eliminar registros en quincenas cerradas.', 'warning'); return; } Swal.fire({
                                                                 title: '¿Confirmar eliminación?',
                                                                 text: 'Esta acción borrará el registro de la incidencia código {{ $inc }}',
                                                                 icon: 'warning',

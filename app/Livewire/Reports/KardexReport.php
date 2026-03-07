@@ -124,14 +124,6 @@ class KardexReport extends Component
         })->values();
 
         $this->results = $grouped->toArray();
-
-        // Notificar a la Isla Dinámica que hemos terminado
-        $this->dispatch('island-progress-update', progress: 100);
-        
-        $this->dispatch('island-notif', 
-            message: 'Reporte listo', 
-            type: 'success'
-        );
     }
 
     public function render()

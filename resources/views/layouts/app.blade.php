@@ -14,6 +14,10 @@
         setDarkModePreference();
         document.addEventListener('livewire:navigated', setDarkModePreference);
     </script>
+    <style>
+        /* Prevent layout shift during Livewire updates */
+        html { overflow-y: scroll; }
+    </style>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 

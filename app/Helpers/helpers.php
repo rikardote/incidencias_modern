@@ -85,13 +85,21 @@ function qna_year($fecha)
     }
 
     // Primero intentamos con quincenas activas (caso normal)
-    $qna = Qna::where('qna', $qnaNum)->where('year', $year)->where('active', '1')->first();
+    $qna = Qna::where('qna', $qnaNum)
+        ->where('year', $year)
+        ->where('active', '1')
+        ->first();
+
+    // Si la QNA está activa pero tiene una fecha de cierre y ya pasó, la tratamos como cerrada
+    if ($qna && $qna->cierre && now()->greaterThan($qna->cierre)) {
+        $qna = null;
+    }
 
     if ($qna) {
         return $qna->id;
     }
 
-    // Si no hay QNA activa, verificamos si el usuario tiene un pase para ESA quincena específica
+    // Si no hay QNA activa (o está cerrada), verificamos si el usuario tiene un pase para ESA quincena específica
     $user = auth()->user();
     if ($user) {
         $qnaCerrada = Qna::where('qna', $qnaNum)->where('year', $year)->first();

@@ -123,11 +123,8 @@
             <table class="w-full text-left">
                 <thead>
                     <tr class="bg-gray-50 dark:bg-gray-900/10">
-                        <th class="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Empleado
-                        </th>
-                        <th
-                            class="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">
-                            Acción</th>
+                        <th class="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest">Empleado</th>
+                        <th class="px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">Acción</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50 dark:divide-gray-700/50">
@@ -135,28 +132,23 @@
                     <tr class="hover:bg-gray-50 dark:hover:bg-gray-900/40 transition-colors">
                         <td class="px-6 py-4">
                             <div class="flex flex-col">
-                                <span class="text-xs font-black text-gray-800 dark:text-gray-100 uppercase">{{
-                                    $emp->fullname }}</span>
-                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-tight">ID: #{{
-                                    $emp->num_empleado }}</span>
+                                <span class="text-xs font-black text-gray-800 dark:text-gray-100 uppercase">{{ $emp->fullname }}</span>
+                                <span class="text-[10px] text-gray-400 font-bold uppercase tracking-tight">ID: #{{ $emp->num_empleado }}</span>
                             </div>
                         </td>
                         <td class="px-6 py-4 text-center">
                             <button wire:click="showDetails({{ $emp->id }})"
                                 class="w-9 h-9 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-[#13322B] dark:text-[#e6d194] hover:bg-[#13322B] hover:text-white transition-all shadow-sm mx-auto">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
                             </button>
                         </td>
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="2"
-                            class="px-6 py-12 text-center text-xs font-black text-gray-400 uppercase tracking-widest">
+                        <td colspan="2" class="px-6 py-12 text-center text-xs font-black text-gray-400 uppercase tracking-widest">
                             Sin resultados</td>
                     </tr>
                     @endforelse
@@ -169,18 +161,14 @@
             @forelse($results as $emp)
             <div class="p-4 bg-white dark:bg-gray-800 flex items-center justify-between gap-4">
                 <div class="flex flex-col min-w-0">
-                    <span class="text-xs font-black text-gray-800 dark:text-gray-100 uppercase truncate">{{
-                        $emp->fullname }}</span>
-                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-tight mt-1">ID: #{{
-                        $emp->num_empleado }}</span>
+                    <span class="text-xs font-black text-gray-800 dark:text-gray-100 uppercase truncate">{{ $emp->fullname }}</span>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-tight mt-1">ID: #{{ $emp->num_empleado }}</span>
                 </div>
                 <button wire:click="showDetails({{ $emp->id }})"
                     class="w-10 h-10 shrink-0 rounded-xl bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-[#13322B] dark:text-[#e6d194] hover:bg-[#13322B] hover:text-white transition-all shadow-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
                 </button>
             </div>

@@ -98,6 +98,12 @@ class Index extends Component
         // Calcular fechas
         $this->calcularFechas();
 
+        // Determinar si la quincena actual está cerrada para este usuario
+        $selectedQna = $qnasList->firstWhere('value', (int)$this->quincena_seleccionada);
+        $isQnaClosed = $selectedQna && ($selectedQna->active != '1' || ($selectedQna->cierre && now()->greaterThan($selectedQna->cierre)));
+        $canBypass = $selectedQna && $user->canCaptureInClosedQna($selectedQna->id);
+        $isLocked = $isQnaClosed && !$canBypass;
+
         $empleados = collect();
         if ($this->centro_seleccionado) {
             $checadaModel = new Checada();
@@ -115,6 +121,7 @@ class Index extends Component
             'quincenas' => $quincenas,
             'años' => $años,
             'empleados' => $empleados,
+            'isLocked' => $isLocked,
             'codigos' => CodigoDeIncidencia::whereIn('code', $individualCodes)->orderBy('code')->get(),
             'incidenciasSinColor' => ['7','17','40','41','42','46','49','51','53','54','55','60','61','62','63','77','94','901']
         ]);

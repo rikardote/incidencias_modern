@@ -1,12 +1,7 @@
 <div class="py-12" x-data="{ 
     selectedEmployee: null,
-    open: false,
-    startLoading() {
-        window.dispatchEvent(new CustomEvent('island-notif', { 
-            detail: { message: 'Generando Reporte de Incapacidades...', type: 'info' } 
-        }));
-    }
-}" x-init="startLoading()" wire:init="loadData">
+    open: false
+}" wire:init="loadData">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header Section -->
         <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -76,7 +71,7 @@
                     </div>
                 </div>
 
-                <button wire:click="loadData" @click="startLoading()" wire:loading.attr="disabled"
+                <button wire:click="loadData" wire:loading.attr="disabled"
                     class="w-full sm:w-auto justify-center inline-flex items-center px-6 py-2.5 bg-guinda hover:bg-guinda-dark text-white font-semibold rounded-xl shadow-lg shadow-guinda/20 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]">
                     <span wire:loading.remove wire:target="loadData">
                         Generar Reporte

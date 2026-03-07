@@ -41,7 +41,6 @@ class Checada extends Model
             // Limpiar tablas temporales
             $connection->unprepared("
                 DROP TEMPORARY TABLE IF EXISTS fechas_temp;
-                DROP TEMPORARY TABLE IF EXISTS dias_laborables_temp;
                 DROP TEMPORARY TABLE IF EXISTS empleados_temp;
                 DROP TEMPORARY TABLE IF EXISTS dias_periodo_temp;
             ");
@@ -52,10 +51,12 @@ class Checada extends Model
             // Llenar fechas
             $current = new \DateTime($fecha_inicio);
             $end = new \DateTime($fecha_fin);
+            $fechas_array = [];
             while ($current <= $end) {
-                $connection->table('fechas_temp')->insert(['fecha' => $current->format('Y-m-d')]);
+                $fechas_array[] = ['fecha' => $current->format('Y-m-d')];
                 $current->modify('+1 day');
             }
+            $connection->table('fechas_temp')->insert($fechas_array);
 
             // Días del periodo
             $connection->unprepared("
@@ -89,7 +90,7 @@ class Checada extends Model
                 AND e.deleted_at IS NULL
             ");
 
-            // Consulta final
+            // Consulta principal sin subconsultas pesadas
             $resultados = $connection->select("
                 SELECT
                     e.num_empleado, e.employee_id, e.nombre, e.apellido_paterno, e.apellido_materno,
@@ -103,32 +104,49 @@ class Checada extends Model
                     IF(MIN(c.fecha) IS NOT NULL,
                         TIME(MIN(c.fecha)) > ADDTIME(e.horario_entrada, '00:11:00'),
                         NULL
-                    ) as retardo,
-                    (
-                        SELECT GROUP_CONCAT(ci.code ORDER BY i.id)
-                        FROM sistemas.incidencias i
-                        INNER JOIN sistemas.codigos_de_incidencias ci ON ci.id = i.codigodeincidencia_id
-                        WHERE i.employee_id = e.employee_id
-                        AND f.fecha BETWEEN DATE(i.fecha_inicio) AND DATE(i.fecha_final)
-                        AND i.deleted_at IS NULL
-                    ) as incidencias,
-                    (
-                        SELECT GROUP_CONCAT(i.token ORDER BY i.id)
-                        FROM sistemas.incidencias i
-                        WHERE i.employee_id = e.employee_id
-                        AND f.fecha BETWEEN DATE(i.fecha_inicio) AND DATE(i.fecha_final)
-                        AND i.deleted_at IS NULL
-                    ) as incidencias_tokens
+                    ) as retardo
                 FROM dias_periodo_temp f
                 CROSS JOIN empleados_temp e
                 LEFT JOIN checadas c ON e.num_empleado = c.num_empleado
-                    AND DATE(c.fecha) = f.fecha
+                    AND c.fecha >= f.fecha AND c.fecha < DATE_ADD(f.fecha, INTERVAL 1 DAY)
                 GROUP BY
                     e.num_empleado, e.nombre, e.apellido_paterno, e.apellido_materno,
                     e.deparment_id, e.exento, e.lactancia, e.lactancia_inicio, e.lactancia_fin, e.estancia, e.estancia_inicio, e.estancia_fin, e.horario, e.horario_entrada, e.horario_salida, e.es_jornada_vespertina,
                     e.employee_id, f.fecha
                 ORDER BY e.num_empleado, f.fecha
             ");
+
+            // Obtener incidencias en una sola consulta para todos los empleados del centro en ese periodo
+            $employeeIds = collect($resultados)->pluck('employee_id')->unique()->toArray();
+            
+            if (!empty($employeeIds)) {
+                $incidenciasRecords = DB::connection('mysql')->table('incidencias as i')
+                    ->join('codigos_de_incidencias as ci', 'ci.id', '=', 'i.codigodeincidencia_id')
+                    ->whereIn('i.employee_id', $employeeIds)
+                    ->where('i.fecha_inicio', '<=', $fecha_fin . ' 23:59:59')
+                    ->where('i.fecha_final', '>=', $fecha_inicio . ' 00:00:00')
+                    ->whereNull('i.deleted_at')
+                    ->select('i.employee_id', 'i.fecha_inicio', 'i.fecha_final', 'ci.code', 'i.token')
+                    ->get();
+
+                // Mapear incidencias a los resultados
+                foreach ($resultados as $row) {
+                    $fecha = $row->fecha;
+                    $empId = $row->employee_id;
+                    
+                    $matched = $incidenciasRecords->filter(function($inc) use ($empId, $fecha) {
+                        return $inc->employee_id == $empId && $fecha >= substr($inc->fecha_inicio, 0, 10) && $fecha <= substr($inc->fecha_final, 0, 10);
+                    });
+
+                    if ($matched->isNotEmpty()) {
+                        $row->incidencias = $matched->pluck('code')->implode(',');
+                        $row->incidencias_tokens = $matched->pluck('token')->implode(',');
+                    } else {
+                        $row->incidencias = null;
+                        $row->incidencias_tokens = null;
+                    }
+                }
+            }
 
             return collect($resultados);
         }
@@ -140,7 +158,6 @@ class Checada extends Model
             if ($connection) {
                 $connection->unprepared("
                     DROP TEMPORARY TABLE IF EXISTS fechas_temp;
-                    DROP TEMPORARY TABLE IF EXISTS dias_laborables_temp;
                     DROP TEMPORARY TABLE IF EXISTS empleados_temp;
                     DROP TEMPORARY TABLE IF EXISTS dias_periodo_temp;
                 ");
@@ -170,10 +187,12 @@ class Checada extends Model
             // Llenar fechas
             $current = new \DateTime($fecha_inicio);
             $end = new \DateTime($fecha_fin);
+            $fechas_array = [];
             while ($current <= $end) {
-                $connection->table('fechas_temp')->insert(['fecha' => $current->format('Y-m-d')]);
+                $fechas_array[] = ['fecha' => $current->format('Y-m-d')];
                 $current->modify('+1 day');
             }
+            $connection->table('fechas_temp')->insert($fechas_array);
 
             // Días del periodo
             $connection->unprepared("
@@ -207,7 +226,7 @@ class Checada extends Model
                 AND e.deleted_at IS NULL
             ");
 
-            // Consulta final
+            // Consulta final sin subconsultas
             $resultados = $connection->select("
                 SELECT
                     e.num_empleado, e.employee_id, e.nombre, e.apellido_paterno, e.apellido_materno,
@@ -217,32 +236,44 @@ class Checada extends Model
                     MAX(c.fecha) as ultima_checada,
                     TIME(MIN(c.fecha)) as hora_entrada,
                     TIME(MAX(c.fecha)) as hora_salida,
-                    COUNT(c.fecha) as num_checadas,
-                    (
-                        SELECT GROUP_CONCAT(ci.code ORDER BY i.id)
-                        FROM sistemas.incidencias i
-                        INNER JOIN sistemas.codigos_de_incidencias ci ON ci.id = i.codigodeincidencia_id
-                        WHERE i.employee_id = e.employee_id
-                        AND f.fecha BETWEEN DATE(i.fecha_inicio) AND DATE(i.fecha_final)
-                        AND i.deleted_at IS NULL
-                    ) as incidencias,
-                    (
-                        SELECT GROUP_CONCAT(i.token ORDER BY i.id)
-                        FROM sistemas.incidencias i
-                        WHERE i.employee_id = e.employee_id
-                        AND f.fecha BETWEEN DATE(i.fecha_inicio) AND DATE(i.fecha_final)
-                        AND i.deleted_at IS NULL
-                    ) as incidencias_tokens
+                    COUNT(c.fecha) as num_checadas
                 FROM dias_periodo_temp f
                 CROSS JOIN empleados_temp e
                 LEFT JOIN checadas c ON e.num_empleado = c.num_empleado
-                    AND DATE(c.fecha) = f.fecha
+                    AND c.fecha >= f.fecha AND c.fecha < DATE_ADD(f.fecha, INTERVAL 1 DAY)
                 GROUP BY
                     e.num_empleado, e.nombre, e.apellido_paterno, e.apellido_materno,
                     e.deparment_id, e.exento, e.lactancia, e.lactancia_inicio, e.lactancia_fin, e.estancia, e.estancia_inicio, e.estancia_fin, e.horario, e.horario_entrada, e.horario_salida, e.es_jornada_vespertina,
                     e.employee_id, f.fecha
                 ORDER BY f.fecha
             ");
+
+            // Obtener incidencias en una sola consulta
+            $incidenciasRecords = DB::connection('mysql')->table('incidencias as i')
+                ->join('codigos_de_incidencias as ci', 'ci.id', '=', 'i.codigodeincidencia_id')
+                ->where('i.employee_id', $employee_id)
+                ->where('i.fecha_inicio', '<=', $fecha_fin . ' 23:59:59')
+                ->where('i.fecha_final', '>=', $fecha_inicio . ' 00:00:00')
+                ->whereNull('i.deleted_at')
+                ->select('i.fecha_inicio', 'i.fecha_final', 'ci.code', 'i.token')
+                ->get();
+
+            // Mapear incidencias
+            foreach ($resultados as $row) {
+                $fecha = $row->fecha;
+                
+                $matched = $incidenciasRecords->filter(function($inc) use ($fecha) {
+                    return $fecha >= substr($inc->fecha_inicio, 0, 10) && $fecha <= substr($inc->fecha_final, 0, 10);
+                });
+
+                if ($matched->isNotEmpty()) {
+                    $row->incidencias = $matched->pluck('code')->implode(',');
+                    $row->incidencias_tokens = $matched->pluck('token')->implode(',');
+                } else {
+                    $row->incidencias = null;
+                    $row->incidencias_tokens = null;
+                }
+            }
 
             return collect($resultados);
         }

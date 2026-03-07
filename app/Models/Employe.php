@@ -51,6 +51,11 @@ class Employe extends Model
         return $this->belongsTo(Jornada::class);
     }
 
+    public function incidencias()
+    {
+        return $this->hasMany(Incidencia::class, 'employee_id');
+    }
+
     public function getFullNameAttribute(): string
     {
         return "{$this->name} {$this->father_lastname} {$this->mother_lastname}";

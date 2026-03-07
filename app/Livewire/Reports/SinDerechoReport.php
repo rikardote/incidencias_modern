@@ -51,82 +51,85 @@ class SinDerechoReport extends Component
     public function generate()
     {
         $this->validate();
-        usleep(1500000); // Delay intencional para ver la animación de la Isla
 
         $dt = Carbon::create($this->year, $this->month, 1, 12, 0, 0);
         $fecha_inicio = $dt->copy()->startOfMonth()->format('Y-m-d');
         $fecha_final = $dt->copy()->endOfMonth()->format('Y-m-d');
 
         // Note: Code is string or numeric, handled by the relationship. 
-        // We need to fetch the IDs from the database based on codes.
-
         $lic = ['40', '41', '46', '47', '53', '54', '55'];
         $inc = ['01', '02', '03', '04', '08', '09', '10', '18', '19', '25', '30', '31', '78', '86', '100'];
 
-        // Get the actual IDs for these codes
         $licIds = DB::table('codigos_de_incidencias')->whereIn('code', $lic)->pluck('id')->toArray();
         $incIds = DB::table('codigos_de_incidencias')->whereIn('code', $inc)->pluck('id')->toArray();
 
-        // 1. Incidencias without right
-        // Legacy: where employees.condicion_id = 1 (meaning "Base")
-        // We will query to Group by Employee to get their data
+        // OPTIMIZACIÓN CRÍTICA: Primero obtenemos los IDs de los empleados del departamento.
+        // Esto reduce el universo de búsqueda para la tabla 'incidencias' de miles de registros a solo unos pocos.
+        $targetEmployeeIds = DB::table('employees')
+            ->where('deparment_id', $this->departmentId)
+            ->where('condicion_id', 1)
+            ->pluck('id')
+            ->toArray();
 
-        $incidencias = [];
-
-        if (!empty($incIds)) {
-            $queryInc = DB::table('incidencias')
-                ->select('employees.id', 'employees.num_empleado')
-                ->join('employees', 'employees.id', '=', 'incidencias.employee_id')
-                ->whereNull('incidencias.deleted_at')
-                ->where('employees.deparment_id', $this->departmentId)
-                ->where('employees.condicion_id', 1)
-                ->whereIn('incidencias.codigodeincidencia_id', $incIds)
-                ->whereBetween('incidencias.fecha_inicio', [$fecha_inicio, $fecha_final])
-                ->groupBy('employees.id', 'employees.num_empleado')
-                ->get();
-
-            foreach ($queryInc as $row) {
-                $incidencias[$row->num_empleado] = $row->id;
-            }
+        if (empty($targetEmployeeIds)) {
+            $this->results = collect();
+            return;
         }
 
-        if (!empty($licIds)) {
-            $queryLic = DB::table('incidencias')
-                ->select('employees.id', 'employees.num_empleado', DB::raw('SUM(incidencias.total_dias) as count'))
-                ->join('employees', 'employees.id', '=', 'incidencias.employee_id')
-                ->whereNull('incidencias.deleted_at')
-                ->where('employees.deparment_id', $this->departmentId)
-                ->where('employees.condicion_id', 1)
-                ->whereIn('incidencias.codigodeincidencia_id', $licIds)
-                ->whereBetween('incidencias.fecha_inicio', [$fecha_inicio, $fecha_final])
-                ->groupBy('employees.id', 'employees.num_empleado')
-                ->havingRaw('SUM(incidencias.total_dias) > 3')
-                ->get();
+        // OBTENCIÓN DE DATOS EN UNA SOLA PASADA
+        // Traemos todas las incidencias de interés para esos empleados en ese mes.
+        // Esto evita escanear la tabla 'incidencias' varias veces.
+        $allIncidencias = DB::table('incidencias')
+            ->select('employee_id', 'codigodeincidencia_id', 'total_dias')
+            ->whereNull('deleted_at')
+            ->whereIn('employee_id', $targetEmployeeIds)
+            ->whereIn('codigodeincidencia_id', array_merge($incIds, $licIds))
+            ->whereBetween('fecha_inicio', [$fecha_inicio, $fecha_final])
+            ->get();
 
-            foreach ($queryLic as $row) {
-                $incidencias[$row->num_empleado] = $row->id;
+        // Procesamos la lógica en memoria (PHP es mucho más rápido para esto que una BD sin índices)
+        $incidenciasPorEmpleado = $allIncidencias->groupBy('employee_id');
+        $employeeIds = [];
+
+        foreach ($incidenciasPorEmpleado as $empId => $incidencias) {
+            $hasCriticalInc = false;
+            $sumLicMedicas = 0;
+
+            foreach ($incidencias as $inc) {
+                // Si tiene alguna falta (INC), pierde el derecho automáticamente
+                if (in_array($inc->codigodeincidencia_id, $incIds)) {
+                    $hasCriticalInc = true;
+                    break; 
+                }
+                // Si es licencia médica, las acumulamos
+                if (in_array($inc->codigodeincidencia_id, $licIds)) {
+                    $sumLicMedicas += $inc->total_dias;
+                }
+            }
+
+            if ($hasCriticalInc || $sumLicMedicas > 3) {
+                $employeeIds[] = $empId;
             }
         }
-
-        // Now we get full employee models sorted by num_empleado
-        $employeeIds = array_values($incidencias);
 
         $this->results = Employe::with(['puesto', 'horario', 'jornada'])
             ->whereIn('id', $employeeIds)
             ->orderBy('num_empleado')
             ->get();
 
-        // Notificar a la Isla Dinámica que hemos terminado
-        $this->dispatch('island-progress-update', progress: 100);
-        
-        $this->dispatch('island-notif', 
-            message: 'Reporte Listo', 
-            type: 'success'
-        );
+        $this->dispatch('toast', icon: 'success', title: 'Reporte Generado');
     }
 
     public function showDetails($employeeId)
     {
+        $employee = collect($this->results)->firstWhere('id', $employeeId);
+        if (!$employee) {
+            return;
+        }
+
+        $this->selectedEmployeeName = $employee->num_empleado . ' - ' . $employee->name . ' ' . $employee->father_lastname . ' ' . $employee->mother_lastname;
+
+        // Necesitamos acotar estrictamente las fechas al mes/año que el usuario seleccionó en la interfaz
         $dt = Carbon::create($this->year, $this->month, 1, 12, 0, 0);
         $fecha_inicio = $dt->copy()->startOfMonth()->format('Y-m-d');
         $fecha_final = $dt->copy()->endOfMonth()->format('Y-m-d');
@@ -134,27 +137,26 @@ class SinDerechoReport extends Component
         $lic = ['40', '41', '46', '47', '53', '54', '55'];
         $inc = ['01', '02', '03', '04', '08', '09', '10', '18', '19', '25', '30', '31', '78', '86', '100'];
 
-        $employee = Employe::findOrFail($employeeId);
-        $this->selectedEmployeeName = $employee->num_empleado . ' - ' . $employee->name . ' ' . $employee->father_lastname . ' ' . $employee->mother_lastname;
-
-        // Obtain incidences causing the loss of rights
-        // 1. the INC ones
-        $incidenciasInc = Incidencia::with(['codigo', 'periodo'])
+        // Hacemos una única consulta pequeña que tarda <1ms en ejecutarse para traer solo ese mes
+        $incidencias = Incidencia::with(['codigo'])
             ->where('employee_id', $employeeId)
-            ->whereIn('codigodeincidencia_id', function ($q) use ($inc) {
-            $q->select('id')->from('codigos_de_incidencias')->whereIn('code', $inc);
-        })
             ->whereBetween('fecha_inicio', [$fecha_inicio, $fecha_final])
+            ->whereHas('codigo', function ($q) use ($inc, $lic) {
+                $q->whereIn('code', array_merge($inc, $lic));
+            })
             ->get();
 
-        // 2. the LIC ones
-        $incidenciasLic = Incidencia::with(['codigo', 'periodo'])
-            ->where('employee_id', $employeeId)
-            ->whereIn('codigodeincidencia_id', function ($q) use ($lic) {
-            $q->select('id')->from('codigos_de_incidencias')->whereIn('code', $lic);
-        })
-            ->whereBetween('fecha_inicio', [$fecha_inicio, $fecha_final])
-            ->get();
+        $incidenciasInc = collect();
+        $incidenciasLic = collect();
+
+        foreach ($incidencias as $incidencia) {
+            $codeStr = (string) $incidencia->codigo->code;
+            if (in_array($codeStr, $inc)) {
+                $incidenciasInc->push($incidencia);
+            } elseif (in_array($codeStr, $lic)) {
+                $incidenciasLic->push($incidencia);
+            }
+        }
 
         $totalLicDias = $incidenciasLic->sum('total_dias');
 
@@ -162,7 +164,8 @@ class SinDerechoReport extends Component
         foreach ($incidenciasInc as $i) {
             $collected->push($i);
         }
-        // Only show licencias if the sum > 3
+        
+        // Solo agregamos las licencias a la vista detalle si suman más de 3 días en total
         if ($totalLicDias > 3) {
             foreach ($incidenciasLic as $i) {
                 $collected->push($i);

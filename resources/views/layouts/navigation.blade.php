@@ -14,11 +14,11 @@
             clearInterval(this.loadingTimer);
             this.barColor = 'bg-[#e6d194]';
             this.barOpacity = 100;
-            this.barWidth = 5;
+            this.barWidth = 10; // Empezar un poco más adelante
             this.isError = false;
             this.loadingTimer = setInterval(() => {
-                if (this.barWidth < 90) this.barWidth += Math.random() * 5;
-            }, 200);
+                if (this.barWidth < 95) this.barWidth += Math.random() * 2;
+            }, 100); // Latidos más rápidos pero incrementos menores
         },
         finish(type = 'success') {
             if (this.isError && type === 'success') return; 
@@ -35,13 +35,18 @@
             
             this.resetTimer = setTimeout(() => {
                 this.barOpacity = 0;
-                setTimeout(() => { if (this.barOpacity === 0) { this.barWidth = 0; this.isError = false; } }, 400); 
-            }, type === 'error' ? 1200 : 500);
+                setTimeout(() => { 
+                    if (this.barOpacity === 0) { 
+                        this.barWidth = 0; 
+                        this.isError = false; 
+                    } 
+                }, 300); 
+            }, type === 'error' ? 400 : 300); // Reducido drásticamente (antes 1200/500)
         }
     }" x-on:topbar-start.window="start()" x-on:topbar-end.window="finish($event.detail)"
-        class="absolute top-0 left-0 w-full h-[3px] z-[100000] pointer-events-none overflow-hidden transition-opacity duration-500"
+        class="absolute top-0 left-0 w-full h-[3px] z-[100000] pointer-events-none overflow-hidden transition-opacity duration-300"
         :class="barOpacity === 0 ? 'opacity-0' : 'opacity-100'">
-        <div class="h-full shadow-[0_0_10px_currentColor] transition-all duration-500 ease-out"
+        <div class="h-full shadow-[0_0_10px_currentColor] transition-all duration-300 ease-out"
             :style="`width: ${barWidth}%;`" :class="barColor">
         </div>
     </div>
