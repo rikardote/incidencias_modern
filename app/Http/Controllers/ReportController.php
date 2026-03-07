@@ -30,18 +30,17 @@ class ReportController extends Controller
         $department = Department::findOrFail($departmentId);
 
         $incidencias = Incidencia::with(['employee', 'codigo', 'periodo'])
-            ->where('qna_id', $qnaId)
-            ->whereHas('employee', function ($q) use ($departmentId) {
-            $q->where('deparment_id', $departmentId);
-        })
-            ->whereNotIn('codigodeincidencia_id', function ($q) {
-            $q->select('id')->from('codigos_de_incidencias')->whereIn('code', [902, 903, 904]);
-        })
+            ->select('incidencias.*')
+            ->join('employees', 'employees.id', '=', 'incidencias.employee_id')
+            ->where('incidencias.qna_id', $qnaId)
+            ->where('employees.deparment_id', $departmentId)
+            ->whereHas('codigo', function ($q) {
+                $q->whereNotIn('code', [902, 903, 904]);
+            })
+            ->orderBy('employees.num_empleado')
+            ->orderBy('incidencias.id')
             ->get()
-            ->groupBy('token') // Usar token para agrupar como en el legacy
-            ->sortBy(function ($group) {
-            return $group->first()->employee->num_empleado;
-        });
+            ->groupBy('token');
 
         $mpdf = new Mpdf([
             'orientation' => 'P',
@@ -127,15 +126,18 @@ class ReportController extends Controller
             }
         ';
 
-        $headerHtml = view('reports.pdf.rh5-header', compact('department', 'qna'))->render();
+        // Convertir logo a base64 para que mPDF no lo lea del disco en cada página
+        $logoPath = public_path('images/60issste.png');
+        $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
+
+        $headerHtml = view('reports.pdf.rh5-header', compact('department', 'qna', 'logoBase64'))->render();
 
         $mpdf->WriteHTML($css, \Mpdf\HTMLParserMode::HEADER_CSS);
         $mpdf->setHTMLHeader($headerHtml);
         $mpdf->SetFooter('Página {PAGENO} de {nb}');
 
         // Optimización: Escribir la tabla por partes para evitar límites de PCRE backtrack
-        $tableHeader = '
-        <table class="content-table" style="overflow: wrap;">
+        $tableHeader = '<table class="content-table" style="overflow: wrap;">
             <thead>
                 <tr>
                     <th style="width: 10%;">Num Empleado</th>
@@ -151,24 +153,80 @@ class ReportController extends Controller
         
         $mpdf->WriteHTML($tableHeader);
 
+        // Optimización: Generar HTML directamente en PHP (sin Blade ni Carbon::parse por fila)
         $lastEmp = null;
-        // Convertimos a array para asegurar que el chunking mantenga la estructura sin problemas de índices
-        $incidenciasArray = $incidencias->all(); 
-        $chunks = array_chunk($incidenciasArray, 50, true); 
-        
-        foreach ($chunks as $chunk) {
-            $chunkHtml = view('reports.pdf.rh5-rows', [
-                'incidencias' => $chunk,
-                'lastEmp' => $lastEmp
-            ])->render();
-            
-            $mpdf->WriteHTML($chunkHtml);
-            
-            // Actualizar lastEmp para el siguiente bloque con seguridad
-            $lastGroup = end($chunk);
-            if ($lastGroup && $lastGroup->first() && $lastGroup->first()->employee) {
-                $lastEmp = $lastGroup->first()->employee->num_empleado;
+        $rowsHtml = '';
+        $rowCount = 0;
+
+        foreach ($incidencias as $token => $group) {
+            $firstInGroup = $group->first();
+            $empId = $firstInGroup->employee->num_empleado;
+            $totalDias = $group->sum('total_dias');
+            $isNewEmp = ($empId !== $lastEmp);
+
+            $dividerClass = ($isNewEmp && $lastEmp !== null) ? 'group-divider' : '';
+            $empDisplay = $isNewEmp ? $empId : '';
+
+            // Columna empleado
+            $empCol = '';
+            if ($isNewEmp) {
+                $empCol .= '<div style="font-size: 10pt; margin-bottom: 2px;">'
+                    . e($firstInGroup->employee->father_lastname) . ' '
+                    . e($firstInGroup->employee->mother_lastname) . ' '
+                    . e($firstInGroup->employee->name) . '</div>';
             }
+            if ($firstInGroup->otorgado) {
+                $empCol .= '<div class="comment-text">' . e($firstInGroup->otorgado) . '</div>';
+            }
+            if ($firstInGroup->becas_comments) {
+                $empCol .= '<div class="comment-text">' . e($firstInGroup->becas_comments) . '</div>';
+            }
+            if ($firstInGroup->horas_otorgadas) {
+                $empCol .= '<div class="comment-text">' . e($firstInGroup->horas_otorgadas) . '</div>';
+            }
+            if ($firstInGroup->codigo->code == 900 && $firstInGroup->cobertura_txt) {
+                $empCol .= '<div class="comment-text">LABORÓ: ' . e($firstInGroup->cobertura_txt) . '</div>';
+            }
+
+            // Código display
+            $code = $firstInGroup->codigo->code;
+            if ($code == 901) $codeDisplay = 'OT';
+            elseif ($code == 905) $codeDisplay = 'PS';
+            elseif ($code == 900) $codeDisplay = 'TXT';
+            else $codeDisplay = str_pad($code, 2, '0', STR_PAD_LEFT);
+
+            // Fechas (date directo, sin Carbon::parse)
+            $fechaInicio = date('d/m/Y', strtotime($firstInGroup->fecha_inicio));
+            $fechaFinal = date('d/m/Y', strtotime($firstInGroup->fecha_final));
+
+            // Periodo
+            $periodo = $firstInGroup->periodo
+                ? $firstInGroup->periodo->periodo . '/' . $firstInGroup->periodo->year
+                : '-';
+
+            $rowsHtml .= '<tr class="' . $dividerClass . '">'
+                . '<td class="text-center">' . $empDisplay . '</td>'
+                . '<td>' . $empCol . '</td>'
+                . '<td class="text-center">' . $codeDisplay . '</td>'
+                . '<td class="text-center">' . $fechaInicio . '</td>'
+                . '<td class="text-center">' . $fechaFinal . '</td>'
+                . '<td class="text-center">' . $periodo . '</td>'
+                . '<td class="text-center">' . $totalDias . '</td>'
+                . '</tr>';
+
+            $lastEmp = $empId;
+            $rowCount++;
+
+            // Escribir al PDF cada 200 filas para no acumular demasiado HTML en memoria
+            if ($rowCount % 200 === 0) {
+                $mpdf->WriteHTML($rowsHtml);
+                $rowsHtml = '';
+            }
+        }
+
+        // Escribir filas restantes
+        if ($rowsHtml !== '') {
+            $mpdf->WriteHTML($rowsHtml);
         }
 
         $mpdf->WriteHTML('</tbody></table>');

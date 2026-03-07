@@ -44,21 +44,19 @@ class Rh5Report extends Component
 
     public function generate()
     {
-        usleep(1500000); // Delay intencional para ver la animación de la Isla
         $this->validate([
             'qnaId' => 'required|exists:qnas,id',
             'departmentId' => 'required|exists:deparments,id',
         ]);
-        usleep(800000); // Artificial delay to show the spinner
 
         $incidencias = Incidencia::with(['employee', 'codigo', 'periodo'])
             ->where('qna_id', $this->qnaId)
             ->whereHas('employee', function ($q) {
-            $q->where('deparment_id', $this->departmentId);
-        })
-            ->whereNotIn('codigodeincidencia_id', function ($q) {
-            $q->select('id')->from('codigos_de_incidencias')->whereIn('code', [902, 903, 904]);
-        })
+                $q->where('deparment_id', $this->departmentId);
+            })
+            ->whereHas('codigo', function($q) {
+                $q->whereNotIn('code', [902, 903, 904]);
+            })
             ->get()
             ->groupBy('employee.num_empleado');
 
