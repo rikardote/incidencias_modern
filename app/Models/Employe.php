@@ -12,6 +12,14 @@ class Employe extends Model
 
     protected $table = "sistemas.employees";
 
+    public function getTable()
+    {
+        if (app()->environment('testing')) {
+            return 'employees';
+        }
+        return parent::getTable();
+    }
+
     protected $fillable = [
         "num_empleado", "name", "father_lastname", "mother_lastname",
         "curp", "rfc",

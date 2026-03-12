@@ -19,6 +19,7 @@ class TXTRuleTest extends TestCase
         $rule = new TXTRule(new \App\Services\Incidencias\IncidenciaHelpersService());
         $incidencia = new Incidencia();
         $empleado = new Employe();
+        $empleado->condicion_id = Inc::CONDICION_BASE;
 
         // Simular un código que NO es TXT (ej. vacaciones)
         // La regla debería hacer un return temprano y no lanzar excepción.
@@ -33,6 +34,7 @@ class TXTRuleTest extends TestCase
         $rule = new TXTRule(new \App\Services\Incidencias\IncidenciaHelpersService());
         $incidencia = new Incidencia();
         $empleado = new Employe();
+        $empleado->condicion_id = Inc::CONDICION_BASE;
 
         // El array $data no trae cobertura_txt
         $data = [
@@ -50,6 +52,7 @@ class TXTRuleTest extends TestCase
         $rule = new TXTRule(new \App\Services\Incidencias\IncidenciaHelpersService());
         $incidencia = new Incidencia();
         $empleado = new Employe();
+        $empleado->condicion_id = Inc::CONDICION_BASE;
 
         // El array $data SÍ trae cobertura, pero NO autoriza_txt
         $data = [

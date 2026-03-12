@@ -24,6 +24,12 @@ class TXTRule implements IncidenciaRuleInterface
             return;
         }
 
+        // Solo personal de base puede capturar TXT (clave 900)
+        // Se valida que la condición del empleado coincida con el ID de 'BASE'
+        if ($empleado->condicion_id != Inc::CONDICION_BASE) {
+            throw new DomainException('Solo el personal de base puede cubrir T.X.T.');
+        }
+
         // Asignar campos específicos de TXT antes de validar y guardar
         if (isset($data['cobertura_txt'])) $incidencia->cobertura_txt = $data['cobertura_txt'];
         if (isset($data['autoriza_txt'])) $incidencia->autoriza_txt = $data['autoriza_txt'];

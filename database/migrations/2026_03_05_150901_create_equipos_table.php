@@ -11,22 +11,26 @@ return new class extends Migration
      */
     public function up(): void
     {
-        \Illuminate\Support\Facades\Schema::connection('biometrico')->create('equipos', function (\Illuminate\Database\Schema\Blueprint $table) {
-            $table->id();
-            $table->string('location');
-            $table->string('ip');
-            $table->timestamps();
-        });
+        $conn = app()->environment('testing') ? config('database.default') : 'biometrico';
+        
+        if (!\Illuminate\Support\Facades\Schema::connection($conn)->hasTable('equipos')) {
+            \Illuminate\Support\Facades\Schema::connection($conn)->create('equipos', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->id();
+                $table->string('location');
+                $table->string('ip');
+                $table->timestamps();
+            });
 
-        // Seed initial data
-        \Illuminate\Support\Facades\DB::connection('biometrico')->table('equipos')->insert([
-            ['location' => 'Delegación Principal', 'ip' => '192.160.141.37', 'created_at' => now(), 'updated_at' => now()],
-            ['location' => 'Almacén', 'ip' => '192.160.169.230', 'created_at' => now(), 'updated_at' => now()],
-            ['location' => 'San Felipe', 'ip' => '192.165.240.253', 'created_at' => now(), 'updated_at' => now()],
-            ['location' => 'Los Algodones', 'ip' => '192.165.232.253', 'created_at' => now(), 'updated_at' => now()],
-            ['location' => 'Tecate', 'ip' => '192.165.171.253', 'created_at' => now(), 'updated_at' => now()],
-            ['location' => 'EBDI 60', 'ip' => '192.161.192.253', 'created_at' => now(), 'updated_at' => now()],
-        ]);
+            // Seed initial data only if created
+            \Illuminate\Support\Facades\DB::connection($conn)->table('equipos')->insert([
+                ['location' => 'Delegación Principal', 'ip' => '192.160.141.37', 'created_at' => now(), 'updated_at' => now()],
+                ['location' => 'Almacén', 'ip' => '192.160.169.230', 'created_at' => now(), 'updated_at' => now()],
+                ['location' => 'San Felipe', 'ip' => '192.165.240.253', 'created_at' => now(), 'updated_at' => now()],
+                ['location' => 'Los Algodones', 'ip' => '192.165.232.253', 'created_at' => now(), 'updated_at' => now()],
+                ['location' => 'Tecate', 'ip' => '192.165.171.253', 'created_at' => now(), 'updated_at' => now()],
+                ['location' => 'EBDI 60', 'ip' => '192.161.192.253', 'created_at' => now(), 'updated_at' => now()],
+            ]);
+        }
     }
 
     /**
@@ -34,6 +38,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        \Illuminate\Support\Facades\Schema::connection('biometrico')->dropIfExists('equipos');
+        $conn = app()->environment('testing') ? config('database.default') : 'biometrico';
+        \Illuminate\Support\Facades\Schema::connection($conn)->dropIfExists('equipos');
     }
 };

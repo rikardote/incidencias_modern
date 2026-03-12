@@ -19,6 +19,9 @@ class Incidencias
     // Faltas
     const FALTA = 10;
 
+    // Onomástico
+    const ONOMASTICO = 14;
+
     // Incapacidades (Tipos de incapacidades médicas)
     const RIESGO_TRABAJO = 53;
     const MATERNIDAD = 54;
@@ -39,6 +42,14 @@ class Incidencias
 
     // Código obsoleto
     const CODIGO_OBSOLETO = 912;
+
+    /*
+     |--------------------------------------------------------------------------
+     | CONDICIONES DE EMPLEADO
+     |--------------------------------------------------------------------------
+     */
+    const CONDICION_BASE = 1;
+    const CONDICION_CONFIANZA = 2;
 
     /*
      |--------------------------------------------------------------------------

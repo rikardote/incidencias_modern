@@ -54,7 +54,7 @@ class TraslapeTest extends TestCase
         $rule = new DuplicadosRule();
 
         $resultado = $rule->yaCapturado(
-            $empleado->id,
+            $empleado,
             '2024-02-05',
             '2024-02-07',
             55 // incapacidad

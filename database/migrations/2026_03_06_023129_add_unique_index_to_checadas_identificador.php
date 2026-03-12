@@ -18,8 +18,18 @@ return new class extends Migration {
     {
         $conn = app()->environment('testing') ? config('database.default') : 'biometrico';
         $db = DB::connection($conn);
+        $driver = $db->getDriverName();
 
-        // Verificar si el índice ya existe
+        if ($driver === 'sqlite') {
+            try {
+                \Illuminate\Support\Facades\Schema::connection($conn)->table('checadas', function (\Illuminate\Database\Schema\Blueprint $table) {
+                    $table->unique('identificador', 'idx_checadas_identificador_unique');
+                });
+            } catch (\Exception $e) {}
+            return;
+        }
+
+        // Verificar si el índice ya existe (MySQL)
         $indices = $db->select("SHOW INDEX FROM checadas WHERE Key_name = 'idx_checadas_identificador_unique'");
         
         if (!empty($indices)) {

@@ -8,10 +8,12 @@ use App\Models\Incidencia;
 use App\Models\Qna;
 use App\Services\Incidencias\Rules\DuplicadosRule;
 use App\Services\Incidencias\Rules\TXTRule;
+use App\Services\Incidencias\Rules\OnomasticoRule;
 use App\Services\Incidencias\Rules\VacacionesRule;
 use App\Services\Incidencias\Rules\PaseSalidaRule;
 use App\Services\Incidencias\Rules\LicenciaConGoceRule;
 use App\Services\Incidencias\Rules\IncapacidadRule;
+use App\Services\Incidencias\Rules\Limite0809Rule;
 use App\Constants\Incidencias as Inc;
 use App\Services\Incidencias\SegmentadorQuincenal;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +38,7 @@ class IncidenciasService
         $inicio = $this->helpers->fechaYmd($data['datepicker_inicial']);
         $fin = $this->helpers->fechaYmd($data['datepicker_final']);
 
-        if ($conflict = $duplicadosRule->yaCapturado($empleado->id, $inicio, $fin, $incidenciaCodigo->code)) {
+        if ($conflict = $duplicadosRule->yaCapturado($empleado, $inicio, $fin, $incidenciaCodigo->code)) {
             $esMismoCodigo = ($conflict->code == $incidenciaCodigo->code);
             throw new \DomainException($esMismoCodigo ? 'Incidencia Duplicada' : 'Incidencia Traslape');
         }
@@ -82,10 +84,12 @@ class IncidenciasService
 
                 $reglasEspecificas = [
                     new TXTRule($this->helpers),
+                    new OnomasticoRule(),
                     new LicenciaConGoceRule($this->helpers),
                     new IncapacidadRule($this->helpers),
                     new VacacionesRule(), // No usa helpers actualmente
                     new PaseSalidaRule(), // No usa helpers actualmente
+                    // new Limite0809Rule(), // Desactivado temporalmente
                 ];
 
                 foreach ($reglasEspecificas as $regla) {

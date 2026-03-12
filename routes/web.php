@@ -111,6 +111,3 @@ Route::prefix('iclock')->withoutMiddleware([\Illuminate\Foundation\Http\Middlewa
 });
 
 require __DIR__ . '/auth.php';
-Route::get('/test-config', function () {
-    return config('database.connections.biometrico');
-});

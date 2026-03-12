@@ -13,8 +13,21 @@ return new class extends Migration {
     {
         $conn = app()->environment('testing') ? config('database.default') : 'biometrico';
         $db = DB::connection($conn);
+        $driver = $db->getDriverName();
 
-        // Verificar si las columnas ya existen
+        if ($driver === 'sqlite') {
+            \Illuminate\Support\Facades\Schema::connection($conn)->table('equipos', function (\Illuminate\Database\Schema\Blueprint $table) use ($conn) {
+                if (!\Illuminate\Support\Facades\Schema::connection($conn)->hasColumn('equipos', 'serial_number')) {
+                    $table->string('serial_number', 100)->nullable()->unique()->after('ip');
+                }
+                if (!\Illuminate\Support\Facades\Schema::connection($conn)->hasColumn('equipos', 'last_seen')) {
+                    $table->dateTime('last_seen')->nullable()->after('serial_number');
+                }
+            });
+            return;
+        }
+
+        // Verificar si las columnas ya existen (MySQL)
         $columns = $db->select("SHOW COLUMNS FROM equipos LIKE 'serial_number'");
         if (empty($columns)) {
             $db->statement("ALTER TABLE equipos ADD COLUMN serial_number VARCHAR(100) NULL AFTER ip");
