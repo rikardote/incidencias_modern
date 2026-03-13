@@ -6,6 +6,7 @@ use App\Models\Employe;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\On;
+use Illuminate\Support\Facades\Cache;
 
 class SearchEmployees extends Component
 {
@@ -225,15 +226,19 @@ class SearchEmployees extends Component
         $availableDepartments = $deptQuery->get();
 
         // Si no hay búsqueda, ni depto, ni inactivos, ni listar todo, devolvemos vista vacía
+        // Catálogos cacheados (solo se envían cuando el modal está abierto)
+        $catalogos = $this->showEmployeeModal ? $this->getCachedCatalogs() : [
+            'puestos' => collect(),
+            'horarios' => collect(),
+            'jornadas' => collect(),
+            'condiciones' => collect(),
+        ];
+
         if (empty($this->search) && empty($this->selectedDepartment) && !$this->showInactive && !$this->listAll) {
-            return view('livewire.search-employees', [
+            return view('livewire.search-employees', array_merge([
                 'employees' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20),
                 'departments' => $availableDepartments,
-                'puestos' => \App\Models\Puesto::orderBy('puesto')->get(),
-                'horarios' => \App\Models\Horario::orderBy('horario')->get(),
-                'jornadas' => \App\Models\Jornada::orderBy('jornada')->get(),
-                'condiciones' => \App\Models\Condicion::orderBy('condicion')->get(),
-            ]);
+            ], $catalogos));
         }
 
         if ($this->showInactive) {
@@ -277,13 +282,19 @@ class SearchEmployees extends Component
         ->orderBy('num_empleado', 'ASC')
         ->paginate(20);
 
-        return view('livewire.search-employees', [
+        return view('livewire.search-employees', array_merge([
             'employees' => $employees,
             'departments' => $availableDepartments,
-            'puestos' => \App\Models\Puesto::orderBy('puesto')->get(),
-            'horarios' => \App\Models\Horario::orderBy('horario')->get(),
-            'jornadas' => \App\Models\Jornada::orderBy('jornada')->get(),
-            'condiciones' => \App\Models\Condicion::orderBy('condicion')->get(),
-        ]);
+        ], $catalogos));
+    }
+
+    private function getCachedCatalogs(): array
+    {
+        return [
+            'puestos' => Cache::remember('catalogo_puestos', 3600, fn() => \App\Models\Puesto::orderBy('puesto')->get()),
+            'horarios' => Cache::remember('catalogo_horarios', 3600, fn() => \App\Models\Horario::orderBy('horario')->get()),
+            'jornadas' => Cache::remember('catalogo_jornadas', 3600, fn() => \App\Models\Jornada::orderBy('jornada')->get()),
+            'condiciones' => Cache::remember('catalogo_condiciones', 3600, fn() => \App\Models\Condicion::orderBy('condicion')->get()),
+        ];
     }
 }

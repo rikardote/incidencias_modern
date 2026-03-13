@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\On;
 
 class LiveCaptureLog extends Component
@@ -27,6 +28,9 @@ class LiveCaptureLog extends Component
     #[On('live-log-refresh')]
     public function refreshLog()
     {
+        // Limpiar cache para forzar recarga fresca
+        $user = auth()->user();
+        Cache::forget('live_capture_log_' . ($user ? $user->id : 'guest'));
         $this->loadInitialLogs();
     }
 
@@ -36,8 +40,25 @@ class LiveCaptureLog extends Component
     public function loadInitialLogs()
     {
         try {
-            // Paso 1: Obtener los tokens más recientes de forma optimizada
             $user = auth()->user();
+            $cacheKey = 'live_capture_log_' . ($user ? $user->id : 'guest');
+            
+            $this->logs = Cache::remember($cacheKey, 30, function () use ($user) {
+                return $this->fetchLogs($user);
+            });
+        } catch (\Exception $e) {
+            Log::error("LiveLog Load Error: " . $e->getMessage());
+            $this->logs = [$this->getSystemOnlinePlaceholder('Error de carga')];
+        }
+    }
+
+    /**
+     * Ejecuta las queries pesadas para obtener los logs.
+     */
+    private function fetchLogs($user)
+    {
+        try {
+            // Paso 1: Obtener los tokens más recientes de forma optimizada
             $latestTokensQuery = DB::table('incidencias')
                 ->join('employees', 'incidencias.employee_id', '=', 'employees.id')
                 ->whereNull('incidencias.deleted_at');
@@ -49,15 +70,14 @@ class LiveCaptureLog extends Component
 
             $latestTokens = $latestTokensQuery
                 ->orderBy('incidencias.created_at', 'desc')
-                ->take(100) 
+                ->take(100)
                 ->pluck('token')
                 ->unique()
                 ->take(15);
 
             // Si no hay datos, mostrar placeholder de sistema activo
             if ($latestTokens->isEmpty()) {
-                $this->logs = [$this->getSystemOnlinePlaceholder()];
-                return;
+                return [$this->getSystemOnlinePlaceholder()];
             }
 
             // Paso 2: Consultar datos consolidados para esos tokens
@@ -81,12 +101,12 @@ class LiveCaptureLog extends Component
                 ])
                 ->whereIn('incidencias.token', $latestTokens)
                 ->groupBy(
-                    'incidencias.token', 
-                    'employees.name', 
-                    'employees.father_lastname', 
-                    'employees.mother_lastname', 
-                    'codigos_de_incidencias.code', 
-                    'incidencias.capturado_por', 
+                    'incidencias.token',
+                    'employees.name',
+                    'employees.father_lastname',
+                    'employees.mother_lastname',
+                    'codigos_de_incidencias.code',
+                    'incidencias.capturado_por',
                     'incidencias.created_at',
                     'periodos.periodo',
                     'periodos.year'
@@ -94,8 +114,7 @@ class LiveCaptureLog extends Component
                 ->orderBy('incidencias.created_at', 'desc')
                 ->get();
 
-            // Paso 3: Mapear resultados al formato del frontend
-            $this->logs = $batches->map(function($g) {
+            return $batches->map(function($g) {
                 return [
                     'employee_name' => "{$g->name} {$g->father_lastname} {$g->mother_lastname}",
                     'type' => $g->type,
@@ -110,10 +129,9 @@ class LiveCaptureLog extends Component
                     'created_at' => $g->created_at
                 ];
             })->toArray();
-
         } catch (\Exception $e) {
-            Log::error("LiveLog Load Error: " . $e->getMessage());
-            $this->logs = [$this->getSystemOnlinePlaceholder('Error de carga')];
+            Log::error("LiveLog Fetch Error: " . $e->getMessage());
+            return [$this->getSystemOnlinePlaceholder('Error de carga')];
         }
     }
 

@@ -210,8 +210,8 @@ class Manager extends Component
 
     public function render()
     {
-        // 1. Obtener IDs de Qnas permitidas
-        $allowedQnaIds = Qna::where('active', '1')->pluck('id');
+        // 1. Obtener IDs de Qnas permitidas (cacheado 10 min)
+        $allowedQnaIds = Cache::remember('active_qna_ids', 600, fn() => Qna::where('active', '1')->pluck('id'));
         $exception = auth()->user()->activeCaptureException();
         if ($exception) {
             $qnaId = $exception->qna_id ?? Qna::where('active', '0')->orderBy('year', 'desc')->orderBy('qna', 'desc')->value('id');
@@ -236,7 +236,7 @@ class Manager extends Component
             ->whereIn('qna_id', $allowedQnaIds)
             ->orderBy('fecha_inicio', 'desc')->get();
 
-        $todosLosCodigos = CodigoDeIncidencia::orderBy('code')->get();
+        $todosLosCodigos = Cache::remember('catalogo_codigos_incidencia', 3600, fn() => CodigoDeIncidencia::orderBy('code')->get());
         $frecuentesIds = Cache::remember('codigos_frecuentes_3yrs', 86400, function() {
             return Incidencia::select('codigodeincidencia_id', DB::raw('count(*) as count'))
                 ->where('fecha_inicio', '>=', now()->subYears(3))
