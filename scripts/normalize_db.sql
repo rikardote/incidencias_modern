@@ -2,20 +2,35 @@
 SET sql_mode = '';
 SET FOREIGN_KEY_CHECKS = 0;
 
--- 2. Eliminar todas las llaves foráneas conocidas (para evitar bloqueos de tipo de dato)
--- Intentamos con todas las posibles que el dump legacy o intentos anteriores puedan tener
-ALTER TABLE comentarios DROP FOREIGN KEY IF EXISTS comentarios_employee_id_foreign;
-ALTER TABLE comentarios DROP FOREIGN KEY IF EXISTS comentarios_employee_id_foreign;
-ALTER TABLE deparment_user DROP FOREIGN KEY IF EXISTS deparment_user_deparment_id_foreign;
-ALTER TABLE deparment_user DROP FOREIGN KEY IF EXISTS deparment_user_user_id_foreign;
-ALTER TABLE incidencias DROP FOREIGN KEY IF EXISTS incidencias_codigodeincidencia_id_foreign;
-ALTER TABLE incidencias DROP FOREIGN KEY IF EXISTS incidencias_employee_id_foreign;
-ALTER TABLE incidencias DROP FOREIGN KEY IF EXISTS incidencias_qna_id_foreign;
-ALTER TABLE incidencias DROP FOREIGN KEY IF EXISTS incidencias_periodo_id_foreign;
-ALTER TABLE employees DROP FOREIGN KEY IF EXISTS employees_condicion_id_foreign;
-ALTER TABLE employees DROP FOREIGN KEY IF EXISTS employees_deparment_id_foreign;
-ALTER TABLE employees DROP FOREIGN KEY IF EXISTS employees_horario_id_foreign;
-ALTER TABLE employees DROP FOREIGN KEY IF EXISTS employees_puesto_id_foreign;
+-- 2. Eliminar llaves foráneas antiguas de forma segura (Compatible con MySQL 8.0)
+-- En MySQL 8.0 no existe "DROP FOREIGN KEY IF EXISTS", por lo que usamos un SP.
+DELIMITER //
+CREATE PROCEDURE DropForeignKeyIfExists(
+    IN tableName VARCHAR(255),
+    IN constraintName VARCHAR(255)
+)
+BEGIN
+    IF EXISTS (
+        SELECT NULL 
+        FROM information_schema.table_constraints 
+        WHERE table_schema = DATABASE() 
+        AND table_name = tableName 
+        AND constraint_name = constraintName 
+        AND constraint_type = 'FOREIGN KEY'
+    ) THEN
+        SET @query = CONCAT('ALTER TABLE ', tableName, ' DROP FOREIGN KEY ', constraintName);
+        PREPARE stmt FROM @query;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END IF;
+END //
+DELIMITER ;
+
+CALL DropForeignKeyIfExists('comentarios', 'comentarios_employee_id_foreign');
+CALL DropForeignKeyIfExists('deparment_user', 'deparment_user_deparment_id_foreign');
+CALL DropForeignKeyIfExists('deparment_user', 'deparment_user_user_id_foreign');
+
+DROP PROCEDURE IF EXISTS DropForeignKeyIfExists;
 
 -- 3. Convertir IDs de tablas legacy a BIGINT UNSIGNED
 ALTER TABLE users MODIFY id BIGINT UNSIGNED AUTO_INCREMENT;
@@ -44,12 +59,37 @@ ALTER TABLE employees MODIFY horario_id BIGINT UNSIGNED;
 -- 5. Normalizar datos específicos (Fix para dumps antiguos)
 UPDATE employees SET active = 1 WHERE active = 2 OR active IS NULL;
 
--- 6. Crear índices de rendimiento (Si no existen)
-CREATE INDEX IF NOT EXISTS idx_full_name ON employees (name, father_lastname, mother_lastname);
-CREATE INDEX IF NOT EXISTS idx_active ON employees (active);
-CREATE INDEX IF NOT EXISTS idx_token ON incidencias (token);
-CREATE INDEX IF NOT EXISTS idx_created_at ON incidencias (created_at);
-CREATE INDEX IF NOT EXISTS idx_deleted_created ON incidencias (deleted_at, created_at);
+-- 6. Crear índices de rendimiento de forma segura (Compatible con MySQL 8.0)
+-- En MySQL 8.0 no existe CREATE INDEX IF NOT EXISTS.
+DELIMITER //
+CREATE PROCEDURE CreateIndexIfNotExists(
+    IN tableName VARCHAR(255),
+    IN indexName VARCHAR(255),
+    IN columns VARCHAR(255)
+)
+BEGIN
+    IF NOT EXISTS (
+        SELECT NULL 
+        FROM information_schema.statistics 
+        WHERE table_schema = DATABASE() 
+        AND table_name = tableName 
+        AND index_name = indexName
+    ) THEN
+        SET @query = CONCAT('CREATE INDEX ', indexName, ' ON ', tableName, ' (', columns, ')');
+        PREPARE stmt FROM @query;
+        EXECUTE stmt;
+        DEALLOCATE PREPARE stmt;
+    END IF;
+END //
+DELIMITER ;
+
+CALL CreateIndexIfNotExists('employees', 'idx_full_name', 'name, father_lastname, mother_lastname');
+CALL CreateIndexIfNotExists('employees', 'idx_active', 'active');
+CALL CreateIndexIfNotExists('incidencias', 'idx_token', 'token');
+CALL CreateIndexIfNotExists('incidencias', 'idx_created_at', 'created_at');
+CALL CreateIndexIfNotExists('incidencias', 'idx_deleted_created', 'deleted_at, created_at');
+
+DROP PROCEDURE IF EXISTS CreateIndexIfNotExists;
 
 -- 7. Reactivar restricciones
 SET FOREIGN_KEY_CHECKS = 1;
