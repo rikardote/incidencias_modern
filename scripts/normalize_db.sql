@@ -57,7 +57,12 @@ ALTER TABLE employees MODIFY puesto_id BIGINT UNSIGNED;
 ALTER TABLE employees MODIFY horario_id BIGINT UNSIGNED;
 
 -- 5. Normalizar datos específicos (Fix para dumps antiguos)
-UPDATE employees SET active = 1 WHERE active = 2 OR active IS NULL;
+UPDATE employees 
+SET active = CASE 
+    WHEN deparment_id = 33 THEN 0
+    ELSE 1 
+END
+WHERE deparment_id = 33 OR active = 2 OR active IS NULL;
 
 -- 6. Crear índices de rendimiento de forma segura (Compatible con MySQL 8.0)
 -- En MySQL 8.0 no existe CREATE INDEX IF NOT EXISTS.
