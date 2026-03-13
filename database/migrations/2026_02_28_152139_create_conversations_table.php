@@ -11,16 +11,18 @@ return new class extends Migration {
     public function up(): void
     {
         $connection = app()->environment('testing') ? config('database.default') : 'mysql_chats';
-        Schema::connection($connection)->create('conversations', function (Blueprint $table) {
-            $table->id();
-            // Since users are in another DB, we just store their IDs without foreign constraints
-            $table->unsignedBigInteger('user_one_id');
-            $table->unsignedBigInteger('user_two_id');
-            $table->timestamps();
+        if (!Schema::connection($connection)->hasTable('conversations')) {
+            Schema::connection($connection)->create('conversations', function (Blueprint $table) {
+                $table->id();
+                // Since users are in another DB, we just store their IDs without foreign constraints
+                $table->unsignedBigInteger('user_one_id');
+                $table->unsignedBigInteger('user_two_id');
+                $table->timestamps();
 
-            // To speed up looking for existing conversations between two people
-            $table->index(['user_one_id', 'user_two_id']);
-        });
+                // To speed up looking for existing conversations between two people
+                $table->index(['user_one_id', 'user_two_id']);
+            });
+        }
     }
 
     /**

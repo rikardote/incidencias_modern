@@ -60,6 +60,15 @@ services:
     networks:
       - modern-net
 
+  redis:
+    image: redis:alpine
+    container_name: modern_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - modern-net
+
 networks:
   modern-net:
     driver: bridge

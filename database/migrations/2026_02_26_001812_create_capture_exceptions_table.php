@@ -8,7 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create("capture_exceptions", function (Blueprint $table) {
+        if (!Schema::hasTable('capture_exceptions')) {
+            Schema::create("capture_exceptions", function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger("user_id");
             $table->dateTime("expires_at");
@@ -18,7 +19,8 @@ return new class extends Migration
 
             $table->foreign("user_id")->references("id")->on("users")->cascadeOnDelete();
             $table->foreign("qna_id")->references("id")->on("qnas")->cascadeOnDelete();
-        });
+            });
+        }
     }
 
     public function down(): void

@@ -11,14 +11,16 @@ return new class extends Migration {
     public function up(): void
     {
         $connection = app()->environment('testing') ? config('database.default') : 'mysql_chats';
-        Schema::connection($connection)->create('messages', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('conversation_id')->index(); // No FK because we are on a different schema
-            $table->unsignedBigInteger('sender_id')->index();
-            $table->text('body');
-            $table->timestamp('read_at')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::connection($connection)->hasTable('messages')) {
+            Schema::connection($connection)->create('messages', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('conversation_id')->index(); // No FK because we are on a different schema
+                $table->unsignedBigInteger('sender_id')->index();
+                $table->text('body');
+                $table->timestamp('read_at')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     /**
