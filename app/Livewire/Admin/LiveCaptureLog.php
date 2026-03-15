@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Attributes\On;
+use Livewire\Attributes\Lazy;
 
+#[Lazy]
 class LiveCaptureLog extends Component
 {
     public $logs = [];
@@ -114,7 +116,24 @@ class LiveCaptureLog extends Component
                 ->orderBy('incidencias.created_at', 'desc')
                 ->get();
 
-            return $batches->map(function($g) {
+            // Optimización: Obtener quincenas en una sola consulta para todos los tokens
+            $uniqueTokens = $batches->pluck('token')->filter()->unique()->toArray();
+            $qnasByToken = DB::table('incidencias')
+                ->join('qnas', 'incidencias.qna_id', '=', 'qnas.id')
+                ->whereIn('incidencias.token', $uniqueTokens)
+                ->whereNull('incidencias.deleted_at')
+                ->select('incidencias.token', 'qnas.qna', 'qnas.year')
+                ->distinct()
+                ->get()
+                ->groupBy('token');
+
+            return $batches->map(function($g) use ($qnasByToken) {
+                // Obtener qnas pre-cargadas
+                $qnasArr = $qnasByToken->get($g->token, collect());
+                $qnasStr = $qnasArr->map(fn($q) => "Q{$q->qna}/" . substr($q->year, -2))
+                    ->unique()
+                    ->implode(', ');
+
                 return [
                     'employee_name' => "{$g->name} {$g->father_lastname} {$g->mother_lastname}",
                     'type' => $g->type,
@@ -124,7 +143,7 @@ class LiveCaptureLog extends Component
                         'fecha_final' => $g->fecha_final,
                         'total_dias' => (int)$g->total_dias,
                         'periodo' => $g->per_num ? "P{$g->per_num}/" . substr($g->per_year, -2) : 'N/A',
-                        'qnas' => $this->resolveQnasForToken($g->token)
+                        'qnas' => $qnasStr ?: '--'
                     ],
                     'created_at' => $g->created_at
                 ];
@@ -136,20 +155,19 @@ class LiveCaptureLog extends Component
     }
 
     /**
-     * Resuelve las quincenas asociadas a un token específico.
+     * Placeholder para carga diferida (Lazy).
      */
-    private function resolveQnasForToken($token)
+    public function placeholder()
     {
-        return DB::table('incidencias')
-            ->join('qnas', 'incidencias.qna_id', '=', 'qnas.id')
-            ->where('incidencias.token', $token)
-            ->whereNull('incidencias.deleted_at')
-            ->select('qnas.qna', 'qnas.year')
-            ->distinct()
-            ->get()
-            ->map(fn($q) => "Q{$q->qna}/" . substr($q->year, -2))
-            ->implode(', ');
+        return <<<'HTML'
+        <div class="fixed right-4 bottom-4 z-[60]">
+            <div class="w-12 h-12 rounded-full bg-[#0a1f1a] border border-white/10 flex items-center justify-center animate-pulse">
+                <div class="w-2 h-2 rounded-full bg-emerald-500/50"></div>
+            </div>
+        </div>
+        HTML;
     }
+
 
     /**
      * Genera un registro visual de estado del sistema.

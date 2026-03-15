@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Ubicarse siempre en la raíz del proyecto para que las rutas relativas funcionen
+BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$BASE_DIR"
+
 # Configuración
 DB_CONTAINER="modern_db"
 APP_CONTAINER="modern_app"
@@ -8,15 +12,23 @@ DB_USER="root"
 DB_PASS="root"
 
 if [ -z "$1" ]; then
-    echo "Uso: ./scripts/sync_db.sh ruta/al/archivo.sql"
+    echo "❌ Error: Uso: ./scripts/sync_db.sh ruta/al/archivo.sql"
     exit 1
 fi
 
 SQL_FILE=$1
 
 if [ ! -f "$SQL_FILE" ]; then
-    echo "Error: El archivo $SQL_FILE no existe."
+    echo "❌ Error: El archivo $SQL_FILE no existe en $(pwd)"
     exit 1
+fi
+
+# 0. Verificar si los contenedores están corriendo
+if [ -z "$(docker ps -q -f name=$DB_CONTAINER)" ]; then
+    echo "🐳 Los contenedores no están corriendo. Iniciando Docker Compose..."
+    docker compose up -d
+    echo "⏳ Esperando a que MySQL esté listo..."
+    sleep 10
 fi
 
 echo "🚀 Iniciando sincronización de base de datos..."
@@ -35,6 +47,7 @@ docker exec $DB_CONTAINER mysql -u $DB_USER -p$DB_PASS $DB_NAME -e "DROP TABLE I
 
 # 3. Normalizar IDs y crear índices
 echo "🔧 Normalizando estructuras de datos y optimizando índices..."
+echo "ℹ️  Este paso puede tardar varios minutos dependiendo del tamaño de la base de datos."
 docker exec -i $DB_CONTAINER mysql -u $DB_USER -p$DB_PASS $DB_NAME < scripts/normalize_db.sql
 
 # 4. Correr migraciones de Laravel
@@ -46,7 +59,7 @@ if [ -f "QNA04.csv" ]; then
     echo "📄 Enriqueciendo empleados con datos de QNA04.csv..."
     docker exec $APP_CONTAINER php scripts/import_qna_data.php
 else
-    echo "⚠️ QNA04.csv no encontrado, saltando importación de CURP/RFC."
+    echo "⚠️ QNA04.csv no encontrado en la raíz, saltando importación de CURP/RFC."
 fi
 
 # 6. Limpiar cachés
