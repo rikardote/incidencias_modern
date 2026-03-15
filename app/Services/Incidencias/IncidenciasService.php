@@ -152,8 +152,10 @@ class IncidenciasService
                     'created_at' => now()->toDateTimeString()
                 ];
 
+                /* 
                 \Illuminate\Support\Facades\Log::info("BROADCASTING BATCH:", $broadcastPayload);
                 broadcast(new \App\Events\NewIncidenciaBatchCreated($broadcastPayload));
+                */
             }
             catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error("Real-time Log Broadcast Error: " . $e->getMessage());

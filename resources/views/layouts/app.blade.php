@@ -122,6 +122,7 @@
         });
 
         document.addEventListener('livewire:initialized', () => {
+            /* 
             // Centralized Echo Listener
             if (typeof Echo !== 'undefined') {
                 Echo.private('chat')
@@ -145,6 +146,7 @@
                         window.dispatchEvent(new CustomEvent('live-log-refresh'));
                     });
             }
+            */
 
             // Compatibility Bridge: Redirect Island Notifs to Toasts
             window.addEventListener('island-notif', (e) => {
