@@ -134,29 +134,34 @@ class IncidenciasService
 
         $user = auth()->user();
         
-        // Verificar si las incidencias pertenecen a quincenas cerradas
+        // 1. Obtener solo las quincenas únicas involucradas en el lote
         $incidencias = DB::table('incidencias')
             ->where('token', $token)
             ->whereNull('deleted_at')
+            ->select('qna_id', 'fecha_inicio')
             ->get();
         
-        foreach ($incidencias as $inc) {
-            $qnaId = $inc->qna_id;
-            
-            // Si no tiene qna_id, intentamos resolverlo por fecha (para registros viejos)
-            if (!$qnaId && $inc->fecha_inicio) {
-                $qnaId = qna_year($inc->fecha_inicio);
-            }
+        if ($incidencias->isEmpty()) return;
 
-            if ($qnaId) {
-                $qna = Qna::find($qnaId);
-                // Si la QNA no está activa o ya pasó su fecha de cierre
-                $isClosed = $qna && ($qna->active != '1' || ($qna->cierre && now()->greaterThan($qna->cierre)));
+        $qnaIds = $incidencias->pluck('qna_id')->filter()->unique()->toArray();
+        $sinQnaId = $incidencias->whereNull('qna_id');
+
+        // Resolver IDs faltantes quincena por fecha (caso de registros migrados sin ID)
+        foreach ($sinQnaId as $inc) {
+            $resolvedId = qna_year($inc->fecha_inicio);
+            if ($resolvedId && !in_array($resolvedId, $qnaIds)) {
+                $qnaIds[] = $resolvedId;
+            }
+        }
+
+        // 2. Verificar quincenas en lote
+        if (!empty($qnaIds)) {
+            $qnas = Qna::whereIn('id', $qnaIds)->get();
+            
+            foreach ($qnas as $qna) {
+                $isClosed = ($qna->active != '1' || ($qna->cierre && now()->greaterThan($qna->cierre)));
                 
                 if ($isClosed) {
-                    // Solo permitimos si es admin (opcional) o si tiene permiso especial.
-                    // El usuario dice que "no debería dejarlo" incluso siendo posiblemente admin.
-                    // Vamos a permitirlo SOLO si tiene la excepción explícita de captura en quincena cerrada.
                     if ($user && !$user->canCaptureInClosedQna($qna->id)) {
                         throw new \DomainException("No se puede eliminar esta incidencia porque pertenece a una quincena cerrada (Q{$qna->qna}/{$qna->year}).");
                     }
@@ -164,6 +169,7 @@ class IncidenciasService
             }
         }
 
+        // 3. Ejecutar la actualización masiva
         return DB::table('incidencias')->where('token', $token)->update(['deleted_at' => Carbon::now()]);
     }
 }
