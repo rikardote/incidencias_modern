@@ -8,7 +8,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class NewIncidenciaBatchCreated implements ShouldBroadcastNow
+class NewIncidenciaBatchCreated
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 

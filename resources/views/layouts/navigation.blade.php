@@ -213,6 +213,7 @@
             <div class="flex flex-1 items-center justify-end">
                 <div class="hidden sm:flex sm:items-center sm:ms-6 gap-4">
                     <!-- Botón LOG (Desktop Icon Only) -->
+                    {{-- 
                     <button @click="$store.island.toggleLog()"
                         class="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/5 transition relative group active:scale-95">
                         <div class="relative">
@@ -232,6 +233,7 @@
                             </template>
                         </div>
                     </button>
+                    --}}
 
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
@@ -276,6 +278,7 @@
             <x-responsive-nav-link :href="route('employees.index')" :active="request()->routeIs('employees.index')"
                 wire:navigate>{{ __('Empleados') }}</x-responsive-nav-link>
 
+            {{-- 
             <button @click="$store.island.toggleLog(); open = false"
                 class="w-full flex items-center gap-3 ps-3 pe-4 py-2 border-l-4 border-transparent text-start text-base font-medium text-[#13322B] dark:text-gray-300 hover:text-[#0a1f1a] dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-[#13322B] dark:hover:border-[#e6d194] focus:outline-none transition duration-150 ease-in-out uppercase tracking-widest group">
                 <div class="relative">
@@ -295,6 +298,7 @@
                 </div>
                 <span>LOG</span>
             </button>
+            --}}
 
             <div class="px-4 py-2 mt-2">
                 <div class="font-medium text-[10px] text-gray-500 uppercase tracking-[0.2em]">Reportes</div>

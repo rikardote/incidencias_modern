@@ -163,10 +163,7 @@ class Manager extends Component
                 $service->crearIncidencias($data);
             }
 
-            /* 
-            // NOTIFICACIÓN TIEMPO REAL
-            broadcast(new NewIncidenciaBatchCreated())->toOthers();
-            */
+
 
             if (session()->has('incapacidad_warning')) {
                 $this->dispatch('swal', [
@@ -201,10 +198,7 @@ class Manager extends Component
         try {
             $service->eliminarPorToken($token);
             
-            /* 
-            // NOTIFICACIÓN TIEMPO REAL
-            broadcast(new NewIncidenciaBatchCreated())->toOthers();
-            */
+
 
             $this->dispatch('toast', ['icon' => 'success', 'title' => 'Incidencia Eliminada']);
         } catch (\Exception $e) {

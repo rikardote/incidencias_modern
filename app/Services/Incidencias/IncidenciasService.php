@@ -112,55 +112,6 @@ class IncidenciasService
                 $incidencia->save();
             }
 
-            // --- LOG EN TIEMPO REAL (AL VUELO) ---
-            try {
-                $totalDiasFinal = DB::table('incidencias')->where('token', $token)->whereNull('deleted_at')->sum('total_dias');
-
-                // Resolver Qnas involucradas
-                $qnasJoined = DB::table('incidencias')
-                    ->join('qnas', 'incidencias.qna_id', '=', 'qnas.id')
-                    ->where('incidencias.token', $token)
-                    ->whereNull('incidencias.deleted_at')
-                    ->select('qnas.qna', 'qnas.year')
-                    ->distinct()
-                    ->get()
-                    ->map(fn($q) => "Q{$q->qna}/" . substr($q->year, -2))
-                    ->implode(', ');
-
-                if (empty($qnasJoined))
-                    $qnasJoined = 'Pendiente';
-
-                $periodoTxt = 'N/A';
-                if (!empty($data['periodo_id'])) {
-                    $p = \App\Models\Periodo::find($data['periodo_id']);
-                    if ($p)
-                        $periodoTxt = "P{$p->periodo}/" . substr($p->year, -2);
-                }
-
-                // Payload para el broadcast (sin guardar en tabla de logs separada)
-                $broadcastPayload = [
-                    'employee_name' => $empleado->full_name,
-                    'type' => $incidenciaCodigo->code,
-                    'user_name' => auth()->user()->name,
-                    'details' => [
-                        'fecha_inicio' => $inicio,
-                        'fecha_final' => $fin,
-                        'total_dias' => (int)$totalDiasFinal,
-                        'qnas' => $qnasJoined,
-                        'periodo' => $periodoTxt
-                    ],
-                    'created_at' => now()->toDateTimeString()
-                ];
-
-                /* 
-                \Illuminate\Support\Facades\Log::info("BROADCASTING BATCH:", $broadcastPayload);
-                broadcast(new \App\Events\NewIncidenciaBatchCreated($broadcastPayload));
-                */
-            }
-            catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error("Real-time Log Broadcast Error: " . $e->getMessage());
-            }
-
             return $empleado->id;
         });
     }

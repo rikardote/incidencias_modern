@@ -122,31 +122,6 @@
         });
 
         document.addEventListener('livewire:initialized', () => {
-            /* 
-            // Centralized Echo Listener
-            if (typeof Echo !== 'undefined') {
-                Echo.private('chat')
-                    .listen('.NewIncidenciaBatchCreated', (e) => {
-                        console.log('BATCH RECEPTION (LAYOUT):', e);
-
-                        // Increment badge in layout's Alpine store
-                        if (window.Alpine) {
-                            Alpine.store('island').incrementLog();
-                        }
-
-                        // Show Toast instead of Island Notif
-                        if (window.Toast) {
-                            window.Toast.fire({
-                                icon: 'info',
-                                title: 'Nuevas incidencias detectadas'
-                            });
-                        }
-
-                        // Trigger internal component refresh if it exists
-                        window.dispatchEvent(new CustomEvent('live-log-refresh'));
-                    });
-            }
-            */
 
             // Compatibility Bridge: Redirect Island Notifs to Toasts
             window.addEventListener('island-notif', (e) => {
@@ -187,11 +162,6 @@
         });
     </script>
 
-    {{-- 
-    <div x-data x-on:toggle-live-log.window="$store.island.toggleLog()">
-        <livewire:admin.live-capture-log />
-    </div> 
-    --}}
 
     @livewire('chat-widget')
     @livewireScripts
