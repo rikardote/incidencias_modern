@@ -185,11 +185,11 @@
         });
     </script>
 
+    {{-- 
     <div x-data x-on:toggle-live-log.window="$store.island.toggleLog()">
-
-
         <livewire:admin.live-capture-log />
-    </div>
+    </div> 
+    --}}
 
     @livewire('chat-widget')
     @livewireScripts
