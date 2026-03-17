@@ -72,9 +72,20 @@ services:
     networks:
       - modern-net
 
+  nightwatch-agent:
+    image: laravelphp/nightwatch-agent:v1
+    container_name: modern_nightwatch_agent
+    restart: unless-stopped
+    environment:
+      NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN}
+    networks:
+      - modern-net
+
 networks:
   modern-net:
     driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1420
 
 volumes:
   modern_dbdata:

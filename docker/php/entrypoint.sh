@@ -6,9 +6,9 @@ export TZ=America/Tijuana
 ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 # Limpiar y optimizar caché para producción
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# php artisan config:cache
+# php artisan route:cache
+# php artisan view:cache
 
 # Iniciar Reverb en segundo plano con logging
 echo "Iniciando Reverb..."

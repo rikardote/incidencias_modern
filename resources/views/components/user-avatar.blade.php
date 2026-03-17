@@ -37,7 +37,7 @@ class="relative inline-block {{ $size }} flex-shrink-0">
     <template x-if="selected">
         <div class="flex items-center justify-center rounded-full {{ $size }} select-none transition-all duration-300"
             :class="selected.bg">
-            <span class="{{ $textSizeClass }} leading-none transform translate-y-[2px]" x-text="selected.emoji"></span>
+            <span class="{{ $textSizeClass }} leading-none" x-text="selected.emoji"></span>
         </div>
     </template>
 
@@ -52,7 +52,7 @@ class="relative inline-block {{ $size }} flex-shrink-0">
     <noscript>
         @if($initialSelected)
             <div class="flex items-center justify-center rounded-full {{ $initialSelected['bg'] }} {{ $size }} flex-shrink-0 select-none">
-                <span class="{{ $textSizeClass }} leading-none transform translate-y-[2px]">{{ $initialSelected['emoji'] }}</span>
+                <span class="{{ $textSizeClass }} leading-none">{{ $initialSelected['emoji'] }}</span>
             </div>
         @else
             <div class="flex items-center justify-center rounded-full bg-gradient-to-br from-oro to-[#9b2247] text-white font-bold {{ $size }} flex-shrink-0">
