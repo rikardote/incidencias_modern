@@ -96,20 +96,10 @@
             border-top: 0.5pt solid #e2e8f0;
             padding-top: 5px;
         }
-        
-        .summary-box {
-            margin-top: 15px;
-            width: 50%;
-            border: 1pt solid #e2e8f0;
-            float: right;
-        }
-        .summary-table { width: 100%; border-collapse: collapse; }
-        .summary-table td { padding: 5px; border-bottom: 0.5pt solid #e2e8f0; font-size: 7.5pt; }
-        .summary-label { font-weight: bold; color: #64748b; }
-        .summary-value { text-align: right; font-weight: bold; }
     </style>
 </head>
 <body>
+    {{-- DEFINICIONES DE ENCABEZADO Y PIE --}}
     <htmlpageheader name="page-header">
         <table class="header-table">
             <tr>
@@ -118,47 +108,55 @@
                 </td>
                 <td class="title-box">
                     <div class="title-main">Control de Asistencia Biométrico</div>
-                    <div class="title-sub">Reporte Individual de Incidencias</div>
+                    <div class="title-sub">Reporte Individual de Asistencia</div>
                     <div style="font-size: 8pt; color: #64748b; margin-top: 4px;">
                         Periodo: QNA {{ str_pad($qStart, 2, '0', STR_PAD_LEFT) }} - {{ str_pad($qEnd, 2, '0', STR_PAD_LEFT) }} / {{ $year }}
                     </div>
                 </td>
             </tr>
         </table>
+
+        <div class="info-container" style="margin-top: 5px;">
+            <table class="info-table">
+                <tr>
+                    <td class="label">Empleado:</td>
+                    <td class="value" colspan="3">{{ $employee->num_empleado }} - {{ $employee->full_name }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Departamento:</td>
+                    <td class="value">{{ $employee->department->description ?? 'N/A' }}</td>
+                    <td class="label">Puesto:</td>
+                    <td class="value" style="font-size: 7.5pt;">{{ $employee->puesto->puesto ?? 'N/A' }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Horario:</td>
+                    <td class="value">
+                        {{ $employee->horario->horario ?? 'SIN HORARIO ASIGNADO' }}
+                    </td>
+                    <td class="label">Generado:</td>
+                    <td class="value">{{ date('d/m/Y H:i') }}</td>
+                </tr>
+            </table>
+        </div>
     </htmlpageheader>
 
-    <div class="info-container">
-        <table class="info-table">
-            <tr>
-                <td class="label">Empleado:</td>
-                <td class="value" colspan="3">{{ $employee->num_empleado }} - {{ $employee->full_name }}</td>
-            </tr>
-            <tr>
-                <td class="label">Departamento:</td>
-                <td class="value">{{ $employee->department->description ?? 'N/A' }}</td>
-                <td class="label">Puesto:</td>
-                <td class="value">{{ $employee->puesto->description ?? 'N/A' }}</td>
-            </tr>
-            <tr>
-                <td class="label">Horario:</td>
-                <td class="value">
-                    {{ $employee->horario->horario ?? 'SIN HORARIO ASIGNADO' }}
-                </td>
-                <td class="label">Generado:</td>
-                <td class="value">{{ date('d/m/Y H:i') }}</td>
-            </tr>
-        </table>
-    </div>
+    <htmlpagefooter name="page-footer">
+        <div class="footer">
+            Página {PAGENO} de {nb} | Sistema de Control de Incidencias | ISSSTE
+        </div>
+    </htmlpagefooter>
 
+    {{-- ACTIVACIÓN DE ENCABEZADO Y PIE --}}
+    <sethtmlpageheader name="page-header" value="on" show-this-page="1" />
+    <sethtmlpagefooter name="page-footer" value="on" />
+    
     <table class="content-table">
         <thead>
             <tr>
-                <th style="width: 15%;">Fecha</th>
-                <th style="width: 15%;">Día</th>
+                <th style="width: 25%;">Fecha / Día</th>
                 <th style="width: 15%;">Entrada</th>
                 <th style="width: 15%;">Salida</th>
-                <th style="width: 10%;">Estatus</th>
-                <th style="width: 30%;">Incidencias / Observaciones</th>
+                <th style="width: 45%;">Incidencias / Observaciones</th>
             </tr>
         </thead>
         <tbody>
@@ -170,8 +168,10 @@
                     $isToday = $date->isToday();
                 @endphp
                 <tr class="day-row {{ $isWeekend ? 'weekend' : '' }}">
-                    <td style="font-weight: bold;">{{ $date->format('d/m/Y') }}</td>
-                    <td style="text-transform: uppercase;">{{ $date->translatedFormat('l') }}</td>
+                    <td style="text-align: left; padding-left: 10px;">
+                        <div style="font-weight: bold; font-size: 8.5pt;">{{ $date->format('d/m/Y') }}</div>
+                        <div style="font-size: 6.5pt; color: #64748b; text-transform: uppercase;">{{ $date->translatedFormat('l') }}</div>
+                    </td>
                     <td>
                         @if($reg && $reg->hora_entrada)
                             <span style="{{ $reg->retardo ? 'color: #ef4444; font-weight: bold;' : '' }}">
@@ -189,22 +189,23 @@
                         @endif
                     </td>
                     <td>
-                        @if($reg && $reg->retardo)
-                            <span class="badge badge-retardo">RETARDO</span>
-                        @elseif($reg && $reg->hora_entrada)
-                            <span style="color: #10b981; font-weight: bold;">OK</span>
-                        @elseif($isWeekend)
-                            <span style="color: #94a3b8;">DESC</span>
-                        @elseif($date->isPast())
-                            <span style="color: #ef4444; font-weight: bold;">FALTA</span>
-                        @endif
-                    </td>
-                    <td>
                         <div style="text-align: left; padding-left: 5px;">
                         @if($reg && $reg->incidencias)
                             @foreach(explode(',', $reg->incidencias) as $inc)
                                 <span class="badge badge-incidencia">{{ trim($inc) }}</span>
                             @endforeach
+                            
+                            @if($reg->motivo_comision)
+                                <div style="font-size: 6.5pt; font-style: italic; color: #475569; margin-top: 2px;">
+                                    {{ $reg->motivo_comision }}
+                                </div>
+                            @endif
+
+                            @if($reg->otorgado_motivo)
+                                <div style="font-size: 6.5pt; font-style: italic; color: #475569; margin-top: 2px;">
+                                    {{ $reg->otorgado_motivo }}
+                                </div>
+                            @endif
                         @elseif($employee->lactancia && $employee->lactancia_inicio && $employee->lactancia_fin && $fechaStr >= $employee->lactancia_inicio && $fechaStr <= $employee->lactancia_fin && !$isWeekend)
                              <span class="badge badge-lactancia">92 (LACTANCIA)</span>
                         @elseif($employee->estancia && $employee->estancia_inicio && $employee->estancia_fin && $fechaStr >= $employee->estancia_inicio && $fechaStr <= $employee->estancia_fin && !$isWeekend)
@@ -218,11 +219,5 @@
             @endforeach
         </tbody>
     </table>
-
-    <htmlpagefooter name="page-footer">
-        <div class="footer">
-            Página {PAGENO} de {nb} | Sistema de Incidencias Modernizado | ISSSTE
-        </div>
-    </htmlpageheader>
 </body>
 </html>

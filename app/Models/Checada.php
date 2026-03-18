@@ -126,7 +126,7 @@ class Checada extends Model
                     ->where('i.fecha_inicio', '<=', $fecha_fin . ' 23:59:59')
                     ->where('i.fecha_final', '>=', $fecha_inicio . ' 00:00:00')
                     ->whereNull('i.deleted_at')
-                    ->select('i.employee_id', 'i.fecha_inicio', 'i.fecha_final', 'ci.code', 'i.token')
+                    ->select('i.employee_id', 'i.fecha_inicio', 'i.fecha_final', 'ci.code', 'i.token', 'i.motivo_comision', 'i.otorgado')
                     ->get();
 
                 // Mapear incidencias a los resultados
@@ -141,9 +141,22 @@ class Checada extends Model
                     if ($matched->isNotEmpty()) {
                         $row->incidencias = $matched->pluck('code')->implode(',');
                         $row->incidencias_tokens = $matched->pluck('token')->implode(',');
+                        
+                        // Si hay comisión oficial (61), guardar el motivo
+                        $comision = $matched->firstWhere('code', 61);
+                        $row->motivo_comision = $comision ? $comision->motivo_comision : null;
+                        
+                        // Guardar cualquier valor en el campo 'otorgado' para mostrarlo (ej: 901, 916)
+                        $row->otorgado_motivo = $matched->whereNotNull('otorgado')
+                            ->where('otorgado', '!=', '')
+                            ->pluck('otorgado')
+                            ->unique()
+                            ->implode(', ');
                     } else {
                         $row->incidencias = null;
                         $row->incidencias_tokens = null;
+                        $row->motivo_comision = null;
+                        $row->otorgado_motivo = null;
                     }
                 }
             }
@@ -236,7 +249,11 @@ class Checada extends Model
                     MAX(c.fecha) as ultima_checada,
                     TIME(MIN(c.fecha)) as hora_entrada,
                     TIME(MAX(c.fecha)) as hora_salida,
-                    COUNT(c.fecha) as num_checadas
+                    COUNT(c.fecha) as num_checadas,
+                    IF(MIN(c.fecha) IS NOT NULL,
+                        TIME(MIN(c.fecha)) > ADDTIME(e.horario_entrada, '00:11:00'),
+                        NULL
+                    ) as retardo
                 FROM dias_periodo_temp f
                 CROSS JOIN empleados_temp e
                 LEFT JOIN checadas c ON e.num_empleado = c.num_empleado
@@ -255,7 +272,7 @@ class Checada extends Model
                 ->where('i.fecha_inicio', '<=', $fecha_fin . ' 23:59:59')
                 ->where('i.fecha_final', '>=', $fecha_inicio . ' 00:00:00')
                 ->whereNull('i.deleted_at')
-                ->select('i.fecha_inicio', 'i.fecha_final', 'ci.code', 'i.token')
+                ->select('i.fecha_inicio', 'i.fecha_final', 'ci.code', 'i.token', 'i.motivo_comision', 'i.otorgado')
                 ->get();
 
             // Mapear incidencias
@@ -269,9 +286,22 @@ class Checada extends Model
                 if ($matched->isNotEmpty()) {
                     $row->incidencias = $matched->pluck('code')->implode(',');
                     $row->incidencias_tokens = $matched->pluck('token')->implode(',');
+                    
+                    // Si hay comisión oficial (61), guardar el motivo
+                    $comision = $matched->firstWhere('code', 61);
+                    $row->motivo_comision = $comision ? $comision->motivo_comision : null;
+
+                    // Guardar cualquier valor en el campo 'otorgado' para mostrarlo (ej: 901, 916)
+                    $row->otorgado_motivo = $matched->whereNotNull('otorgado')
+                        ->where('otorgado', '!=', '')
+                        ->pluck('otorgado')
+                        ->unique()
+                        ->implode(', ');
                 } else {
                     $row->incidencias = null;
                     $row->incidencias_tokens = null;
+                    $row->motivo_comision = null;
+                    $row->otorgado_motivo = null;
                 }
             }
 

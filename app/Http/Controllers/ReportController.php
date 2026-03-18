@@ -464,9 +464,13 @@ class ReportController extends Controller
             'format' => 'Letter',
             'margin_left' => 15,
             'margin_right' => 15,
-            'margin_top' => 45,
+            'margin_top' => 60,
             'margin_bottom' => 20,
+            'tempDir' => storage_path('app/mpdf')
         ]);
+
+        $mpdf->setAutoTopMargin = 'stretch';
+        $mpdf->setAutoBottomMargin = 'stretch';
 
         $mpdf->SetTitle('Reporte Biométrico Individual - ' . $employee->num_empleado);
         
