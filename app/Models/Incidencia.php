@@ -17,7 +17,8 @@ class Incidencia extends Model
         "codigodeincidencia_id", "periodo_id", "token", "diagnostico",
         "medico_id", "fecha_expedida", "num_licencia", "otorgado",
         "pendientes", "becas_comments", "fecha_capturado",
-        "cobertura_txt", "horas_otorgadas", "autoriza_txt", "total_dias", "capturado_por"
+        "cobertura_txt", "horas_otorgadas", "autoriza_txt", "total_dias", "capturado_por",
+        "motivo_comision"
     ];
 
     /*
@@ -48,6 +49,10 @@ class Incidencia extends Model
     public function setBecasCommentsAttribute($v)
     {
         $this->attributes['becas_comments'] = $v ? mb_strtoupper(trim($v)) : null;
+    }
+    public function setMotivoComisionAttribute($v)
+    {
+        $this->attributes['motivo_comision'] = $v ? mb_strtoupper(trim($v)) : null;
     }
 
 

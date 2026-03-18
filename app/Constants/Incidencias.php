@@ -40,6 +40,9 @@ class Incidencias
     // Pase de salida
     const PASE_SALIDA = 905;
 
+    // Comisión Oficial
+    const COMISION_OFICIAL = 61;
+
     // Código obsoleto
     const CODIGO_OBSOLETO = 912;
 
@@ -130,11 +133,19 @@ class Incidencias
     }
 
     /**
-     * Indica si un código es un pase de salida
+     * Indica si un código es pase de salida
      */
     public static function esPaseSalida($codigo)
     {
         return $codigo == self::PASE_SALIDA;
+    }
+
+    /**
+     * Indica si un código es Comisión Oficial
+     */
+    public static function esComisionOficial($codigo)
+    {
+        return $codigo == self::COMISION_OFICIAL;
     }
 
     /**

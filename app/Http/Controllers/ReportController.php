@@ -187,6 +187,9 @@ class ReportController extends Controller
             if ($firstInGroup->codigo->code == 900 && $firstInGroup->cobertura_txt) {
                 $empCol .= '<div class="comment-text">LABORÓ: ' . e($firstInGroup->cobertura_txt) . '</div>';
             }
+            if ($firstInGroup->codigo->code == 61 && $firstInGroup->motivo_comision) {
+                $empCol .= '<div class="comment-text">MOTIVO: ' . e($firstInGroup->motivo_comision) . '</div>';
+            }
 
             // Código display
             $code = $firstInGroup->codigo->code;

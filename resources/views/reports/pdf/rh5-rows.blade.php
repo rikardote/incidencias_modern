@@ -26,6 +26,9 @@
             @if($firstInGroup->codigo->code == 900 && $firstInGroup->cobertura_txt)
                <div class="comment-text">LABORÓ: {{ $firstInGroup->cobertura_txt }}</div>
             @endif
+            @if($firstInGroup->codigo->code == 61 && $firstInGroup->motivo_comision)
+               <div class="comment-text">MOTIVO: {{ $firstInGroup->motivo_comision }}</div>
+            @endif
         </td>
         <td class="text-center">
             @if($firstInGroup->codigo->code == 901) OT

@@ -182,7 +182,8 @@
                                 $item['otorgado'],
                                 $item['becas_comments'],
                                 $item['horas_otorgadas'],
-                                ($item['code'] == 900 && $item['autoriza_txt']) ? $item['autoriza_txt'] : null
+                                ($item['code'] == 900 && $item['autoriza_txt']) ? "LABORÓ: " . $item['autoriza_txt'] : null,
+                                ($item['code'] == 61 && $item['motivo_comision']) ? "MOTIVO: " . $item['motivo_comision'] : null
                                 ])->filter()->first();
                                 @endphp
                                 @if($obs)
@@ -291,7 +292,8 @@
                         $item['otorgado'],
                         $item['becas_comments'],
                         $item['horas_otorgadas'],
-                        ($item['code'] == 900 && $item['autoriza_txt']) ? $item['autoriza_txt'] : null
+                        ($item['code'] == 900 && $item['autoriza_txt']) ? "LABORÓ: " . $item['autoriza_txt'] : null,
+                        ($item['code'] == 61 && $item['motivo_comision']) ? "MOTIVO: " . $item['motivo_comision'] : null
                         ])->filter()->first();
                         @endphp
                         @if($obs || $item['periodo'])

@@ -35,6 +35,8 @@ class Manager extends Component
     public $isIncapacidad = false;
     public $isVacacional = false;
     public $isTxt = false;
+    public $isComision = false;
+    public $motivo_comision;
 
     // Propiedades para optimización (No se envían al cliente en cada request si son pesadas)
     protected $medicos = [];
@@ -96,7 +98,8 @@ class Manager extends Component
             $this->isIncapacidad = IncConstants::esIncapacidad($codeInt);
             $this->isVacacional  = IncConstants::esVacacional($codeInt);
             $this->isTxt         = ($codeInt === IncConstants::TXT);
-            $this->dateMode = ($this->isLicencia || $this->isIncapacidad || $this->isVacacional) ? 'range' : 'multiple';
+            $this->isComision    = IncConstants::esComisionOficial($codeInt);
+            $this->dateMode = ($this->isLicencia || $this->isIncapacidad || $this->isVacacional || $this->isComision) ? 'range' : 'multiple';
         }
     }
 
@@ -106,6 +109,8 @@ class Manager extends Component
         $this->isIncapacidad = false;
         $this->isVacacional = false;
         $this->isTxt = false;
+        $this->isComision = false;
+        $this->motivo_comision = null;
     }
 
     public function store(IncidenciasService $service)
@@ -122,10 +127,20 @@ class Manager extends Component
             return;
         }
 
-        $this->validate([
+        $rules = [
             'codigo' => 'required|exists:codigos_de_incidencias,id',
             'fechas_seleccionadas' => 'required|string',
-        ]);
+        ];
+
+        if ($this->isComision) {
+            $rules['motivo_comision'] = 'required|string|max:500';
+            $messages = [
+                'motivo_comision.required' => 'El motivo de la comisión es obligatorio',
+            ];
+            $this->validate($rules, $messages);
+        } else {
+            $this->validate($rules);
+        }
 
         try {
             $token = sha1(time() . '_' . $this->employee->id);
@@ -139,6 +154,7 @@ class Manager extends Component
                 'periodo_id' => $this->periodo_id,
                 'autoriza_txt' => $this->autoriza_txt,
                 'cobertura_txt' => $this->cobertura_txt,
+                'motivo_comision' => $this->isComision ? $this->motivo_comision : null,
                 'token' => $token,
             ];
 

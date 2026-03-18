@@ -75,6 +75,7 @@ class Rh5Report extends Component
             'becas_comments' => $i->becas_comments,
             'horas_otorgadas' => $i->horas_otorgadas,
             'autoriza_txt' => $i->autoriza_txt,
+            'motivo_comision' => $i->motivo_comision,
             ])
             ];
         }
