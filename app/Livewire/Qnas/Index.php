@@ -5,6 +5,7 @@ namespace App\Livewire\Qnas;
 use App\Models\Qna;
 use Livewire\Component;
 use Livewire\Attributes\Computed;
+use Illuminate\Support\Facades\Cache;
 
 class Index extends Component
 {
@@ -40,6 +41,7 @@ class Index extends Component
         if ($qnaModel) {
             $qnaModel->active = $qnaModel->active == '1' ? '0' : '1';
             $qnaModel->save();
+            Cache::forget('active_qna');
         }
     }
 
@@ -84,6 +86,8 @@ class Index extends Component
             'active' => $this->active_status,
             'cierre' => $this->cierre ?: null,
         ]);
+
+        Cache::forget('active_qna');
 
         $this->dispatch('toast', [
             'icon' => 'success', 
@@ -130,6 +134,7 @@ class Index extends Component
         }
 
         $qna->delete();
+        Cache::forget('active_qna');
         $this->dispatch('toast', [
             'icon' => 'success',
             'title' => 'Quincena eliminada correctamente.'

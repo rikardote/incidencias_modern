@@ -90,8 +90,11 @@ function qna_year($fecha)
         ->where('active', '1')
         ->first();
 
-    // Si la QNA está activa pero tiene una fecha de cierre y ya pasó, la tratamos como cerrada
-    if ($qna && $qna->cierre && now()->greaterThan($qna->cierre)) {
+    // Si la QNA está activa pero tiene una fecha de cierre y ya pasó (comparamos contra el fin del día),
+    // la cerramos automáticamente en la BD para mantener consistencia
+    if ($qna && $qna->cierre && now()->greaterThan(Carbon::parse($qna->cierre)->endOfDay())) {
+        $qna->update(['active' => '0']);
+        \Illuminate\Support\Facades\Cache::forget('active_qna');
         $qna = null;
     }
 
