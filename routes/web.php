@@ -42,6 +42,9 @@ Route::middleware('auth')->group(function () {
     // Notificaciones del sistema (solo admins)
     Route::get('/admin/notificaciones', \App\Livewire\Admin\Notifications::class)->name('admin.notifications');
 
+    // Importación de empleados (solo admins)
+    Route::get('/admin/importar-empleados', \App\Livewire\Admin\EmployeeImport::class)->name('admin.employee-import');
+
     // Códigos de Incidencias (solo admins, logic in component)
     Route::get('/codigos-incidencia', \App\Livewire\CodigosIncidencia\Index::class)->name('codigos-incidencia.index');
 

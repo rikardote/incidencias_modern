@@ -248,7 +248,13 @@
                         </x-slot>
                         <x-slot name="content">
                             <x-dropdown-link :href="route('profile.edit')" wire:navigate>{{ __('Perfil')
-                                }}</x-dropdown-link>
+                                 }}</x-dropdown-link>
+                            
+                            @if(Auth::user()->admin())
+                                <x-dropdown-link :href="route('admin.employee-import')" wire:navigate>
+                                    {{ __('Importar Empleados') }}
+                                </x-dropdown-link>
+                            @endif
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <x-dropdown-link :href="route('logout')"

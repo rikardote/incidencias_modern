@@ -35,11 +35,19 @@ echo "🚀 Iniciando sincronización de base de datos..."
 
 # 1. Resetear bases de datos
 echo "📉 Limpiando bases de datos actuales..."
-docker exec $DB_CONTAINER mysql -u $DB_USER -p$DB_PASS -e "DROP DATABASE IF EXISTS $DB_NAME; CREATE DATABASE $DB_NAME; DROP DATABASE IF EXISTS sistemas_chats; CREATE DATABASE sistemas_chats;"
+docker exec $DB_CONTAINER mysql -u $DB_USER -p$DB_PASS -e "DROP DATABASE IF EXISTS $DB_NAME; CREATE DATABASE $DB_NAME; DROP DATABASE IF EXISTS sistemas_chats; CREATE DATABASE sistemas_chats; CREATE DATABASE IF NOT EXISTS biometrico;"
 
-# 2. Importar dump
+# 2. Importar dump principal
 echo "📥 Importando $SQL_FILE..."
 docker exec -i $DB_CONTAINER mysql -u $DB_USER -p$DB_PASS $DB_NAME < "$SQL_FILE"
+
+# 2.1 Importar biométrico (si existe)
+if [ -f "biometrico.sql" ]; then
+    echo "📥 Importando biometrico.sql en la base de datos biometrico..."
+    docker exec -i $DB_CONTAINER mysql -u $DB_USER -p$DB_PASS biometrico < "biometrico.sql"
+else
+    echo "⚠️ biometrico.sql no encontrado en la raíz, saltando importación de biométrico."
+fi
 
 # 2.5 Eliminar tabla de migraciones legacy para que Laravel no se confunda
 echo "🧹 Limpiando historial de migraciones antiguo..."
@@ -54,15 +62,7 @@ docker exec -i $DB_CONTAINER mysql -u $DB_USER -p$DB_PASS $DB_NAME < scripts/nor
 echo "🏃 Corriendo migraciones de Laravel..."
 docker exec $APP_CONTAINER php artisan migrate --force
 
-# 5. Importar datos adicionales del QNA (CURP/RFC)
-if [ -f "QNA04.csv" ]; then
-    echo "📄 Enriqueciendo empleados con datos de QNA04.csv..."
-    docker exec $APP_CONTAINER php scripts/import_qna_data.php
-else
-    echo "⚠️ QNA04.csv no encontrado en la raíz, saltando importación de CURP/RFC."
-fi
-
-# 6. Limpiar cachés
+# 5. Limpiar cachés
 echo "🧹 Limpiando cachés de la aplicación..."
 docker exec $APP_CONTAINER php artisan optimize:clear
 
