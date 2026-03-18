@@ -212,6 +212,8 @@
             <!-- Profile Dropdown (Right) -->
             <div class="flex flex-1 items-center justify-end">
                 <div class="hidden sm:flex sm:items-center sm:ms-6 gap-4">
+                    {{-- Campana de Notificaciones --}}
+                    @livewire('notification-bell')
                     <!-- Botón LOG (Desktop Icon Only) -->
                     {{-- 
                     <button @click="$store.island.toggleLog()"
@@ -382,6 +384,26 @@
                 });
             });
         });
+    </script>
+
+    <!-- Reverb: Escuchar notificaciones del sistema -->
+    <script>
+    document.addEventListener('livewire:init', () => {
+        const userId = {{ auth()->id() ?? 'null' }};
+        if (!userId) return;
+
+        // Canal privado personal
+        window.Echo.private(`notifications.${userId}`)
+            .listen('.SystemNotificationSent', (e) => {
+                window.dispatchEvent(new CustomEvent('new-system-notification', { detail: e }));
+            });
+
+        // Canal global (todos)
+        window.Echo.private('notifications.global')
+            .listen('.SystemNotificationSent', (e) => {
+                window.dispatchEvent(new CustomEvent('new-system-notification', { detail: e }));
+            });
+    });
     </script>
 
     <style>

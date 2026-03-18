@@ -39,6 +39,9 @@ Route::middleware('auth')->group(function () {
     // Usuarios (solo admins, logic in component)
     Route::get('/usuarios', \App\Livewire\Users\Index::class)->name('users.index');
 
+    // Notificaciones del sistema (solo admins)
+    Route::get('/admin/notificaciones', \App\Livewire\Admin\Notifications::class)->name('admin.notifications');
+
     // Códigos de Incidencias (solo admins, logic in component)
     Route::get('/codigos-incidencia', \App\Livewire\CodigosIncidencia\Index::class)->name('codigos-incidencia.index');
 
