@@ -10,9 +10,13 @@ return new class extends Migration
     {
         Schema::create('system_notifications', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('sender_id')->constrained('users')->cascadeOnDelete();
+            $table->unsignedInteger('sender_id');
+            $table->foreign('sender_id')->references('id')->on('users')->cascadeOnDelete();
+            
             // null = para todos; si tiene valor, es solo para ese usuario
-            $table->foreignId('target_user_id')->nullable()->constrained('users')->cascadeOnDelete();
+            $table->unsignedInteger('target_user_id')->nullable();
+            $table->foreign('target_user_id')->references('id')->on('users')->cascadeOnDelete();
+            
             $table->string('title');
             $table->text('body')->nullable();
             // 'info' | 'warning' | 'success' | 'danger'
@@ -23,7 +27,8 @@ return new class extends Migration
         Schema::create('system_notification_reads', function (Blueprint $table) {
             $table->id();
             $table->foreignId('notification_id')->constrained('system_notifications')->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+            $table->unsignedInteger('user_id');
+            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
             $table->timestamp('read_at');
             $table->unique(['notification_id', 'user_id']);
         });
