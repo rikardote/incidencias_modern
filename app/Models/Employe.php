@@ -12,6 +12,14 @@ class Employe extends Model
     use SoftDeletes;
 
     protected $table = "sistemas.employees";
+    
+    const SINDICATOS_MAP = [
+        'c_sindic_local' => 'SNTISSSTE',
+        'sindicato_tres' => 'SNADETISSSTE',
+        'sindicato_cuatro' => 'SINADTEISSSTE',
+        'concepto_nuevo_02' => 'SUTISSSTE',
+        'concepto_nuevo_03' => 'SINAPTEISSSTE',
+    ];
 
     public function getTable()
     {
@@ -185,5 +193,22 @@ class Employe extends Model
     public function getFormaPagoAttribute()
     {
         return ($this->external_data['id_forma_pago'] ?? null) ?: 'N/A';
+    }
+
+    public function getSindicatoAttribute()
+    {
+        $externalData = $this->external_data;
+        if (!$externalData) return 'Ninguno';
+
+        $nomina = $externalData['nomina_data'] ?? [];
+
+        foreach (self::SINDICATOS_MAP as $key => $name) {
+            $val = $externalData[$key] ?? ($nomina[$key] ?? 0);
+            if ((float)$val > 0) {
+                return $name;
+            }
+        }
+
+        return 'Ninguno';
     }
 }

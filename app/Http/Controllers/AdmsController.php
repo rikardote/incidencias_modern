@@ -62,11 +62,12 @@ class AdmsController extends Controller
             'Realtime=1',
             'Encrypt=0',
             'DuplicateCheck=0',
-            'TimeZone=' . (now()->timezone('America/Tijuana')->getOffset() / 60), // Dinámico (-480 o -420)
-            'ServerTime=' . now()->timezone('America/Tijuana')->subHours(16)->format('Y-m-d H:i:s'),
+            'TimeZone=' . (now()->timezone('America/Tijuana')->getOffset() / 60),
+            'ServerTime=' . now()->timezone('America/Tijuana')->format('Y-m-d H:i:s'),
+
         ];
 
-        Log::channel('daily')->info("[ADMS] Enviando handshake con ServerTime (Tijuana -16h) a SN: {$sn}");
+        Log::channel('daily')->info("[ADMS] Enviando handshake con ServerTime (Tijuana REAL) a SN: {$sn}");
 
         return response(implode("\n", $config), 200)
             ->header('Content-Type', 'text/plain')
@@ -136,13 +137,19 @@ class AdmsController extends Controller
     {
         $sn = $request->query('SN', 'unknown');
 
+        Log::channel('daily')->info("[ADMS] Heartbeat (getRequest) de SN: {$sn}", [
+            'ip' => $request->ip(),
+            'query' => $request->query(),
+        ]);
+
         // Actualizar último contacto del equipo
         $this->actualizarUltimoContacto($sn);
 
         $commands = [
             "C:101:SET OPTION DuplicateCheck=0",
             "C:102:SET OPTION TimeZone=" . (now()->timezone('America/Tijuana')->getOffset() / 60),
-            "C:103:SET OPTION ServerTime=" . now()->timezone('America/Tijuana')->subHours(16)->format('Y-m-d H:i:s'),
+            "C:103:SET OPTION ServerTime=" . now()->timezone('America/Tijuana')->format('Y-m-d H:i:s'),
+
         ];
 
         return response(implode("\n", $commands), 200)
@@ -195,11 +202,10 @@ class AdmsController extends Controller
                 continue;
             }
 
-            if ($timestamp > (time() + 7200)) { 
-                $timestampCorregido = $timestamp - (16 * 3600);
-            } else {
-                $timestampCorregido = $timestamp;
-            }
+            // El usuario confirmó que los equipos ya tienen la hora correcta.
+            // No aplicamos correcciones automáticas de desfase a menos que sea necesario.
+            $timestampCorregido = $timestamp;
+
             
             $fechaCorregida = date('Y-m-d H:i:s', $timestampCorregido);
             $identificador = "{$pin}_" . date('YmdHi', $timestampCorregido) . "_{$locationSlug}";

@@ -23,7 +23,5 @@ Broadcast::channel('notifications.{id}', function ($user, $id) {
     return (int)$user->id === (int)$id;
 });
 
-// Canal global para broadcasts a todos los usuarios autenticados
-Broadcast::channel('notifications.global', function ($user) {
-    return $user !== null;
-});
+// Canal global para broadcasts a todos los usuarios (Público)
+// Los canales públicos no requieren definición en channels.php para suscripción.

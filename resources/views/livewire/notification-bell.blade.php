@@ -134,7 +134,7 @@
                 icon: $event.detail.type === 'danger' ? 'error' : ($event.detail.type === 'warning' ? 'warning' : ($event.detail.type === 'success' ? 'success' : 'info')),
                 title: $event.detail.title
             });
-            $wire.\$refresh();
+            $wire.$refresh();
         "
     ></div>
 

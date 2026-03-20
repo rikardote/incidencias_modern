@@ -404,8 +404,8 @@
                 window.dispatchEvent(new CustomEvent('new-system-notification', { detail: e }));
             });
 
-        // Canal global (todos)
-        window.Echo.private('notifications.global')
+        // Canal global (todos) - Público
+        window.Echo.channel('notifications.global')
             .listen('.SystemNotificationSent', (e) => {
                 window.dispatchEvent(new CustomEvent('new-system-notification', { detail: e }));
             });

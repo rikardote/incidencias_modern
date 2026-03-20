@@ -25,19 +25,16 @@ class EmployeeApiService
         return Cache::remember("employee_api_data_{$numEmpleado}", 3600, function () use ($numEmpleado) {
             try {
                 $response = Http::get("{$this->baseUrl}/employees/search", [
-                    'id_empleado' => $numEmpleado
+                    'id_empleado' => $numEmpleado,
+                    'latest' => true
                 ]);
 
                 if ($response->successful()) {
                     $data = $response->json();
                     
                     if (!empty($data)) {
-                        // Sort by periodo descending to get the newest record
-                        usort($data, function($a, $b) {
-                            return strcmp($b['periodo'] ?? '', $a['periodo'] ?? '');
-                        });
-                        
-                        return $data[0];
+                        // Con latest=true, la API devuelve el objeto directamente o un array de un solo item.
+                        return is_array($data) && isset($data[0]) ? $data[0] : $data;
                     }
                 }
             } catch (\Exception $e) {

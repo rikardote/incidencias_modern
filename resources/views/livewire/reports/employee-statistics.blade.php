@@ -71,6 +71,12 @@
                                         }}
                                     </span>
                                 </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-black text-gray-400 uppercase">Sindicato</span>
+                                    <span class="text-xs font-black text-[#9b2247] dark:text-oro uppercase tracking-tight">
+                                        {{ $this->employee->sindicato }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 

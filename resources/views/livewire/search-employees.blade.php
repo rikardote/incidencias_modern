@@ -129,35 +129,157 @@
                 wire:click="$set('showEmployeeModal', false)"></div>
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
             <div
-                class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-900 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full border border-gray-100 dark:border-gray-800 animate-fadeInScale">
+                class="inline-block overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-900 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] sm:my-8 sm:align-middle sm:max-w-5xl sm:w-full border border-gray-100 dark:border-gray-800 animate-fadeInScale">
 
-                <x-employee-modal.header :editingEmployeeId="$editingEmployeeId" :name="$name"
-                    :father_lastname="$father_lastname" :num_empleado="$num_empleado" :curp="$curp"
-                    :gender="$this->getGender()" />
+                <div class="flex flex-col md:flex-row min-h-[600px]">
+                    {{-- SIDEBAR DE PERFIL --}}
+                    <div class="w-full md:w-80 bg-gradient-to-b from-[#13322B] to-[#1a4038] text-white p-8 flex flex-col relative overflow-hidden">
+                        {{-- Elementos decorativos --}}
+                        <div class="absolute top-0 right-0 -mr-16 -mt-16 w-40 h-40 bg-white/5 rounded-full blur-2xl"></div>
+                        
+                        <div class="relative z-10 flex flex-col items-center md:items-start space-y-6">
+                            {{-- Avatar --}}
+                            <div class="w-24 h-24 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl">
+                                @if($editingEmployeeId)
+                                    <span class="text-3xl font-black text-[#e6d194] uppercase tracking-tighter">
+                                        {{ strtoupper(mb_substr($name, 0, 1)) }}{{ strtoupper(mb_substr($father_lastname, 0, 1)) }}
+                                    </span>
+                                @else
+                                    <svg class="w-12 h-12 text-[#e6d194]/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                    </svg>
+                                @endif
+                            </div>
 
-                <div class="flex border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 px-8">
-                    <button type="button" @click="tab = 'personal'"
-                        :class="tab === 'personal' ? 'border-[#13322B] text-[#13322B] dark:border-[#e6d194] dark:text-[#e6d194]' : 'border-transparent text-gray-400 hover:text-gray-600'"
-                        class="px-6 py-4 border-b-2 text-[11px] font-black uppercase tracking-widest transition-all">Identidad</button>
-                    <button type="button" @click="tab = 'laboral'"
-                        :class="tab === 'laboral' ? 'border-[#13322B] text-[#13322B] dark:border-[#e6d194] dark:text-[#e6d194]' : 'border-transparent text-gray-400 hover:text-gray-600'"
-                        class="px-6 py-4 border-b-2 text-[11px] font-black uppercase tracking-widest transition-all">Estructura</button>
-                    <button type="button" @click="tab = 'seguridad'"
-                        :class="tab === 'seguridad' ? 'border-[#13322B] text-[#13322B] dark:border-[#e6d194] dark:text-[#e6d194]' : 'border-transparent text-gray-400 hover:text-gray-600'"
-                        class="px-6 py-4 border-b-2 text-[11px] font-black uppercase tracking-widest transition-all">Admin
-                        y Bio</button>
-                </div>
+                            <div class="text-center md:text-left space-y-2">
+                                <h3 class="text-xl font-black leading-tight tracking-tight uppercase">
+                                    {{ $editingEmployeeId ? ($name . ' ' . $father_lastname) : 'Nuevo Empleado' }}
+                                </h3>
+                                @if($editingEmployeeId)
+                                    <div class="flex flex-wrap gap-2 justify-center md:justify-start">
+                                        <span class="bg-[#e6d194] text-[#13322B] px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest">
+                                            #{{ $num_empleado }}
+                                        </span>
+                                        <span class="bg-white/10 text-white/80 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border border-white/10 text-center">
+                                            {{ $this->getGender() }}
+                                        </span>
+                                    </div>
+                                @endif
+                            </div>
 
-                <form wire:submit.prevent="save">
-                    <div class="p-10 min-h-[400px]">
-                        <x-employee-modal.tab-personal />
-                        <x-employee-modal.tab-laboral :departments="$departments" :puestos="$puestos"
-                            :horarios="$horarios" :jornadas="$jornadas" :condiciones="$condiciones"
-                            :externalData="$externalData" />
-                        <x-employee-modal.tab-seguridad />
+                            {{-- Información Secundaria --}}
+                            <div class="w-full space-y-4 pt-6 border-t border-white/10 mt-2">
+                                <div class="space-y-1">
+                                    <p class="text-[9px] font-black text-white/40 uppercase tracking-widest">CURP / RFC</p>
+                                    <p class="text-xs font-mono font-bold text-[#e6d194] break-all leading-tight">
+                                        {{ $curp ?: 'N/A' }}<br>
+                                        <span class="text-white/60">{{ $rfc ?: 'N/A' }}</span>
+                                    </p>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="space-y-1">
+                                        <p class="text-[9px] font-black text-white/40 uppercase tracking-widest">Nivel</p>
+                                        <p class="text-xs font-bold text-white/90">
+                                            {{ $externalData['id_nivel'] ?? 'N/A' }}{{ isset($externalData['id_sub_nivel']) ? '/' . $externalData['id_sub_nivel'] : '' }}
+                                        </p>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <p class="text-[9px] font-black text-white/40 uppercase tracking-widest">Turno</p>
+                                        <p class="text-xs font-bold text-white/90">
+                                            {{ $externalData['id_turno'] ?? 'N/A' }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-1">
+                                    <p class="text-[9px] font-black text-white/40 uppercase tracking-widest">Pago</p>
+                                    <p class="text-[10px] font-black text-white/60 uppercase leading-tight tracking-wider">
+                                        {{ $externalData['id_forma_pago'] ?? 'N/A' }}
+                                    </p>
+                                </div>
+
+                                <div class="space-y-1">
+                                    <p class="text-[9px] font-black text-white/40 uppercase tracking-widest">Sindicato</p>
+                                    @php
+                                        $sindicatoDisplay = 'Ninguno';
+                                        if ($externalData) {
+                                            $nomina = $externalData['nomina_data'] ?? [];
+                                            foreach (\App\Models\Employe::SINDICATOS_MAP as $key => $nameMap) {
+                                                $val = $externalData[$key] ?? ($nomina[$key] ?? 0);
+                                                if ((float)$val > 0) { $sindicatoDisplay = $nameMap; break; }
+                                            }
+                                        }
+                                    @endphp
+                                    <p class="text-xs font-bold {{ $sindicatoDisplay !== 'Ninguno' ? 'text-emerald-400' : 'text-white/60' }}">
+                                        {{ $sindicatoDisplay }}
+                                    </p>
+                                </div>
+
+                                <div class="space-y-1">
+                                    <p class="text-[9px] font-black text-white/40 uppercase tracking-widest">Estado</p>
+                                    @if($active)
+                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-black text-emerald-400 uppercase">
+                                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                            Activo
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 text-[10px] font-black text-red-400 uppercase tracking-widest">
+                                            <span class="w-2 h-2 rounded-full bg-red-400"></span>
+                                            Baja
+                                        </span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Botón Cerrar (en móvil) --}}
+                        <button type="button" wire:click="$set('showEmployeeModal', false)"
+                            class="absolute top-4 right-4 p-2 text-white/40 hover:text-white md:hidden">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
                     </div>
-                    <x-employee-modal.footer :editingEmployeeId="$editingEmployeeId" />
-                </form>
+
+                    {{-- CONTENIDO PRINCIPAL --}}
+                    <div class="flex-1 flex flex-col bg-white dark:bg-gray-900 overflow-hidden relative">
+                        {{-- Botón Cerrar (Escritorio) --}}
+                        <button type="button" wire:click="$set('showEmployeeModal', false)"
+                            class="absolute top-6 right-8 z-20 p-2 text-gray-300 hover:text-gray-600 dark:hover:text-white transition-colors hidden md:block">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+
+                        {{-- NAVEGACION DE PESTAÑAS --}}
+                        <div class="flex border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 px-8 pt-2">
+                            <button type="button" @click="tab = 'personal'"
+                                :class="tab === 'personal' ? 'border-[#13322B] text-[#13322B] dark:border-[#e6d194] dark:text-[#e6d194]' : 'border-transparent text-gray-400 hover:text-gray-600'"
+                                class="px-6 py-5 border-b-2 text-[11px] font-black uppercase tracking-widest transition-all">Identidad</button>
+                            <button type="button" @click="tab = 'laboral'"
+                                :class="tab === 'laboral' ? 'border-[#13322B] text-[#13322B] dark:border-[#e6d194] dark:text-[#e6d194]' : 'border-transparent text-gray-400 hover:text-gray-600'"
+                                class="px-6 py-5 border-b-2 text-[11px] font-black uppercase tracking-widest transition-all">Estructura</button>
+                            <button type="button" @click="tab = 'seguridad'"
+                                :class="tab === 'seguridad' ? 'border-[#13322B] text-[#13322B] dark:border-[#e6d194] dark:text-[#e6d194]' : 'border-transparent text-gray-400 hover:text-gray-600'"
+                                class="px-6 py-5 border-b-2 text-[11px] font-black uppercase tracking-widest transition-all">Admin y Bio</button>
+                        </div>
+
+                        <form wire:submit.prevent="save" class="flex-1 flex flex-col overflow-y-auto">
+                            <div class="p-8 lg:p-10 flex-1">
+                                <x-employee-modal.tab-personal />
+                                <x-employee-modal.tab-laboral :departments="$departments" :puestos="$puestos"
+                                    :horarios="$horarios" :jornadas="$jornadas" :condiciones="$condiciones"
+                                    :externalData="$externalData" />
+                                <x-employee-modal.tab-seguridad />
+                            </div>
+                            
+                            <div class="px-8 py-6 border-t border-gray-100 dark:border-gray-800 bg-gray-50/30 dark:bg-gray-900/30 sticky bottom-0">
+                                <x-employee-modal.footer :editingEmployeeId="$editingEmployeeId" />
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
