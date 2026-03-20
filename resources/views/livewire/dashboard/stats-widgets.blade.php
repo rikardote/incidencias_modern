@@ -52,9 +52,18 @@
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <div class="w-2 h-2 rounded-full {{ $systemStatus['db_main'] ? 'bg-green-500' : 'bg-red-500' }}"></div>
-                        <span class="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Base de Datos</span>
+                        <span class="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Base de Datos (Local)</span>
                     </div>
                     <span class="text-[9px] font-black {{ $systemStatus['db_main'] ? 'text-green-600' : 'text-red-600' }} uppercase">{{ $systemStatus['db_main'] ? 'Online' : 'Error' }}</span>
+                </div>
+
+                {{-- DB Biometrico --}}
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full {{ $systemStatus['db_biometrico'] ? 'bg-green-500' : 'bg-red-500' }}"></div>
+                        <span class="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Enlace Biométrico</span>
+                    </div>
+                    <span class="text-[9px] font-black {{ $systemStatus['db_biometrico'] ? 'text-green-600' : 'text-red-600' }} uppercase">{{ $systemStatus['db_biometrico'] ? 'Sincronizado' : 'Offline' }}</span>
                 </div>
 
                 {{-- REVERB --}}
@@ -64,6 +73,15 @@
                         <span class="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">Broadcasting (Reverb)</span>
                     </div>
                     <span class="text-[9px] font-black {{ $systemStatus['reverb'] ? 'text-green-600' : 'text-red-600' }} uppercase">{{ $systemStatus['reverb'] ? 'UP' : 'Down' }}</span>
+                </div>
+
+                {{-- API Empleados --}}
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full {{ $systemStatus['api_empleados'] ? 'bg-green-500' : 'bg-red-500' }}"></div>
+                        <span class="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider">API de Empleados</span>
+                    </div>
+                    <span class="text-[9px] font-black {{ $systemStatus['api_empleados'] ? 'text-green-600' : 'text-red-600' }} uppercase">{{ $systemStatus['api_empleados'] ? 'Conectado' : 'Sin Acceso' }}</span>
                 </div>
 
                 {{-- Mantenimiento --}}

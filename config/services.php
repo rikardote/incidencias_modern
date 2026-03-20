@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'employees' => [
+        'api_url' => env('EMPLOYEES_API_URL'),
+    ],
+
 ];

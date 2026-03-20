@@ -37,6 +37,7 @@ class StatsWidgets extends Component
             'db_main' => false,
             'db_biometrico' => false,
             'reverb' => false,
+            'api_empleados' => false,
             'maintenance' => Cache::get('capture_maintenance', false),
         ];
 
@@ -50,6 +51,16 @@ class StatsWidgets extends Component
         try {
             DB::connection(app()->environment('testing') ? config('database.default') : 'biometrico')->getPdo();
             $status['db_biometrico'] = true;
+        } catch (\Exception $e) {}
+
+        // Employees API Status
+        try {
+            $apiUrl = config('services.employees.api_url');
+            if ($apiUrl) {
+                // Hacemos una petición rápida al root de la API
+                $response = \Illuminate\Support\Facades\Http::timeout(1)->get($apiUrl);
+                $status['api_empleados'] = $response->successful() || $response->status() === 404; // 404 significa que el servidor respondió (está vivo)
+            }
         } catch (\Exception $e) {}
 
         // Reverb Status
