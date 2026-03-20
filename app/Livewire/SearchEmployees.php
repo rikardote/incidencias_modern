@@ -65,8 +65,6 @@ class SearchEmployees extends Component
             'jornada_id' => 'required|exists:jornadas,id',
             'condicion_id' => 'required|exists:condiciones,id',
             'fecha_ingreso' => 'required|date',
-            'curp' => 'nullable|min:18|max:18',
-            'rfc' => 'nullable|min:12|max:13',
             'lactancia_inicio' => 'required_if:lactancia,true|nullable|date',
             'lactancia_fin' => 'required_if:lactancia,true|nullable|date',
             'estancia_inicio' => 'required_if:estancia,true|nullable|date',
@@ -97,15 +95,26 @@ class SearchEmployees extends Component
         $this->name = $employee->name;
         $this->father_lastname = $employee->father_lastname;
         $this->mother_lastname = $employee->mother_lastname;
-        $this->curp = $employee->curp;
-        $this->rfc = $employee->rfc;
+        $this->curp = $employee->curp;  // Atributo con prioridad API
+        $this->rfc = $employee->rfc;    // Atributo con prioridad API
         $this->deparment_id = $employee->deparment_id;
         $this->condicion_id = $employee->condicion_id;
         $this->puesto_id = $employee->puesto_id;
         $this->horario_id = $employee->horario_id;
         $this->jornada_id = $employee->jornada_id;
-        $this->num_plaza = $employee->num_plaza;
-        $this->num_seguro = $employee->num_seguro;
+        $this->num_plaza = $employee->num_plaza;   // Prioridad API
+        $this->num_seguro = $employee->num_seguro; // Prioridad API
+
+        // Sincronizar puesto con API si existe información más reciente (Ej. A6 -> A8)
+        $externalData = $employee->external_data;
+        if ($externalData && !empty($externalData['n_puesto_plaza'])) {
+            $matchedPuesto = \App\Models\Puesto::firstOrCreate(
+                ['puesto' => trim($externalData['n_puesto_plaza'])],
+                ['clave' => $externalData['id_puesto_plaza'] ?? null]
+            );
+            $this->puesto_id = $matchedPuesto->id;
+        }
+
         $this->fecha_ingreso = $employee->fecha_ingreso;
         $this->estancia = (bool)$employee->estancia;
         $this->estancia_inicio = $employee->estancia_inicio;
@@ -122,20 +131,33 @@ class SearchEmployees extends Component
     {
         $this->validate();
 
+        // Sincronizar campos sensibles desde la API antes de guardar
+        $externalData = app(\App\Services\Employees\EmployeeApiService::class)->getEmployeeData($this->num_empleado);
+        
+        // Mapeo Inteligente de Puesto desde API (Crear si no existe)
+        $puestoId = $this->puesto_id;
+        if (!empty($externalData['n_puesto_plaza'])) {
+            $matchedPuesto = \App\Models\Puesto::firstOrCreate(
+                ['puesto' => trim($externalData['n_puesto_plaza'])],
+                ['clave' => $externalData['id_puesto_plaza'] ?? null]
+            );
+            $puestoId = $matchedPuesto->id;
+        }
+        
         $data = [
             'num_empleado' => str_pad($this->num_empleado, 6, '0', STR_PAD_LEFT),
-            'name' => strtoupper($this->name),
-            'father_lastname' => strtoupper($this->father_lastname),
-            'mother_lastname' => strtoupper($this->mother_lastname),
-            'curp' => $this->curp,
-            'rfc' => $this->rfc,
+            'name' => strtoupper($externalData['nombre'] ?? $this->name),
+            'father_lastname' => strtoupper($externalData['apellido_1'] ?? $this->father_lastname),
+            'mother_lastname' => strtoupper($externalData['apellido_2'] ?? $this->mother_lastname),
+            'curp' => $externalData['id_c_u_r_p_st'] ?? $this->curp,
+            'rfc' => $externalData['id_legal'] ?? $this->rfc,
             'deparment_id' => $this->deparment_id,
             'condicion_id' => $this->condicion_id,
-            'puesto_id' => $this->puesto_id,
+            'puesto_id' => $puestoId,
             'horario_id' => $this->horario_id,
             'jornada_id' => $this->jornada_id,
-            'num_plaza' => $this->num_plaza,
-            'num_seguro' => $this->num_seguro,
+            'num_plaza' => $externalData['id_plaza'] ?? $this->num_plaza,
+            'num_seguro' => $externalData['numero_ss'] ?? $this->num_seguro,
             'fecha_ingreso' => $this->fecha_ingreso,
             'estancia' => $this->estancia,
             'estancia_inicio' => $this->estancia ? $this->estancia_inicio : null,
@@ -167,23 +189,47 @@ class SearchEmployees extends Component
 
     public function updatedNumEmpleado($value)
     {
-        if (!$this->editingEmployeeId && !empty($value)) {
+        if (empty($value)) return;
+
+        // 1. Buscar en BD Local
+        if (!$this->editingEmployeeId) {
             $existing = \App\Models\Employe::withTrashed()->where('num_empleado', $value)->first();
             
             if ($existing) {
-                // Rellenar campos automáticamente
                 $this->editingEmployeeId = $existing->id;
                 $this->populateForm($existing);
-                
-                // Forzar reactivación
                 $this->active = true;
 
                 $this->dispatch('swal', [
                     'title' => '¡Registro localizado!',
-                    'text' => "Se encontró a {$existing->fullname} con este número. Los campos han sido rellenados automáticamente. Por favor, ACTUALICE TODA LA INFORMACIÓN necesaria (Departamento, Puesto, Horarios, etc.) antes de guardar para reactivar al empleado.",
+                    'text' => "Se encontró a {$existing->fullname} con este número. Los campos han sido rellenados automáticamente.",
                     'icon' => 'info',
-                    'timer' => 10000
+                    'timer' => 5000
                 ]);
+                return;
+            }
+        }
+
+        // 2. Buscar en API Externa para autocompletar identidad completa
+        $externalData = app(\App\Services\Employees\EmployeeApiService::class)->getEmployeeData($value);
+        if ($externalData) {
+            $this->curp = $externalData['id_c_u_r_p_st'] ?? $this->curp;
+            $this->rfc = $externalData['id_legal'] ?? $this->rfc;
+            $this->num_plaza = $externalData['id_plaza'] ?? $this->num_plaza;
+            $this->num_seguro = $externalData['numero_ss'] ?? $this->num_seguro;
+            
+            // Sincronizar identidad completa
+            $this->name = $externalData['nombre'] ?? $this->name;
+            $this->father_lastname = $externalData['apellido_1'] ?? $this->father_lastname;
+            $this->mother_lastname = $externalData['apellido_2'] ?? $this->mother_lastname;
+
+            // Mapeo Inteligente de Puesto (Crear si no existe)
+            if (!empty($externalData['n_puesto_plaza'])) {
+                $matchedPuesto = \App\Models\Puesto::firstOrCreate(
+                    ['puesto' => trim($externalData['n_puesto_plaza'])],
+                    ['clave' => $externalData['id_puesto_plaza'] ?? null]
+                );
+                $this->puesto_id = $matchedPuesto->id;
             }
         }
     }
@@ -282,9 +328,15 @@ class SearchEmployees extends Component
         ->orderBy('num_empleado', 'ASC')
         ->paginate(20);
 
+        // Datos externos para el modal (si está abierto)
+        $externalData = ($this->showEmployeeModal && !empty($this->num_empleado))
+            ? app(\App\Services\Employees\EmployeeApiService::class)->getEmployeeData($this->num_empleado)
+            : null;
+            
         return view('livewire.search-employees', array_merge([
             'employees' => $employees,
             'departments' => $availableDepartments,
+            'externalData' => $externalData,
         ], $catalogos));
     }
 

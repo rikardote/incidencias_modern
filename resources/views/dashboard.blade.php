@@ -170,6 +170,25 @@
                         </div>
                     </a>
 
+                    <!-- Card Plantilla -->
+                    <a href="http://plantilla.issstebc.gob.mx" target="_blank"
+                        class="md:mt-0 flex items-center justify-between p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-xl hover:-translate-y-1 hover:border-oro/30 transition-all group">
+                        <div>
+                            <h5
+                                class="text-lg font-black text-gray-900 dark:text-gray-100 group-hover:text-oro transition-colors">
+                                Plantilla</h5>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">Acceso Externo</p>
+                        </div>
+                        <div
+                            class="w-12 h-12 bg-gray-50 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:bg-oro/10 transition-colors shadow-inner">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                                stroke="currentColor"
+                                class="w-6 h-6 text-gray-400 dark:text-gray-500 group-hover:text-oro transition-transform group-hover:scale-110">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg>
+                        </div>
+                    </a>
+
                     <!-- Mantenimiento -->
                     <div class="md:col-span-1">
                         @livewire('system.maintenance-toggle')

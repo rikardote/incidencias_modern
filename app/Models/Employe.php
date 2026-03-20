@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Services\Employees\EmployeeApiService;
 
 class Employe extends Model
 {
@@ -95,5 +96,94 @@ class Employe extends Model
     public function scopeActive($query)
     {
         return $query->where('active', 1);
+    }
+
+    /**
+     * Get extended data from the External API (Plantilla)
+     */
+    public function getExternalDataAttribute()
+    {
+        return app(EmployeeApiService::class)->getEmployeeData($this->num_empleado);
+    }
+
+    /**
+     * Accessors for common external fields
+     */
+    /**
+     * Accessors for common external fields with API priority
+     */
+    public function getNameAttribute($value)
+    {
+        return strtoupper(($this->external_data['nombre'] ?? null) ?: $value);
+    }
+
+    public function getFatherLastnameAttribute($value)
+    {
+        return strtoupper(($this->external_data['apellido_1'] ?? null) ?: $value);
+    }
+
+    public function getMotherLastnameAttribute($value)
+    {
+        return strtoupper(($this->external_data['apellido_2'] ?? null) ?: $value);
+    }
+
+    /**
+     * Override the 'puesto' relationship/attribute to prioritize API data
+     */
+    public function getPuestoAttribute($value)
+    {
+        $externalData = $this->external_data;
+        if ($externalData && !empty($externalData['n_puesto_plaza'])) {
+            $apiName = trim($externalData['n_puesto_plaza']);
+            $local = \App\Models\Puesto::where('puesto', $apiName)->first();
+            
+            if ($local) {
+                return $local;
+            }
+            
+            // Return a generic object if not found locally yet
+            return (object)[
+                'id' => 0,
+                'puesto' => $apiName,
+                'clave' => $externalData['id_puesto_plaza'] ?? 'SYNC'
+            ];
+        }
+
+        return $this->getRelationValue('puesto');
+    }
+
+    public function getCurpAttribute($value)
+    {
+        return ($this->external_data['id_c_u_r_p_st'] ?? null) ?: $value;
+    }
+
+    public function getRfcAttribute($value)
+    {
+        return ($this->external_data['id_legal'] ?? null) ?: $value;
+    }
+
+    public function getNumPlazaAttribute($value)
+    {
+        return ($this->external_data['id_plaza'] ?? null) ?: $value;
+    }
+
+    public function getNumSeguroAttribute($value)
+    {
+        return ($this->external_data['numero_ss'] ?? null) ?: $value;
+    }
+
+    public function getNivelAttribute()
+    {
+        return ($this->external_data['id_nivel'] ?? null) ?: 'N/A';
+    }
+
+    public function getSubNivelAttribute()
+    {
+        return ($this->external_data['id_sub_nivel'] ?? null) ?: 'N/A';
+    }
+
+    public function getFormaPagoAttribute()
+    {
+        return ($this->external_data['id_forma_pago'] ?? null) ?: 'N/A';
     }
 }

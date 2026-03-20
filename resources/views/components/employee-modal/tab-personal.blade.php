@@ -26,28 +26,35 @@
 
             <div class="space-y-1.5 group">
                 <label
-                    class="text-[10px] font-black text-[#13322B]/60 dark:text-[#e6d194]/60 uppercase tracking-tighter ml-1">Nombre(s)</label>
-                <input type="text" wire:model="name"
-                    class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-[#13322B] dark:focus:border-[#e6d194] rounded-2xl text-sm font-bold transition-all outline-none uppercase">
+                    class="text-[10px] font-black text-[#13322B]/60 dark:text-[#e6d194]/60 uppercase tracking-tighter ml-1 flex items-center gap-2">
+                    Nombre(s)
+                    <span class="text-[8px] bg-oro/10 text-oro px-1.5 py-0.5 rounded uppercase tracking-widest font-black">Sincronizado</span>
+                </label>
+                <input type="text" wire:model="name" readonly
+                    class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 border-2 border-transparent rounded-2xl text-sm font-bold transition-all outline-none uppercase opacity-80 cursor-not-allowed">
                 @error('name') <span class="text-[9px] font-bold text-red-500 uppercase">{{ $message }}</span> @enderror
             </div>
 
             <div class="grid grid-cols-2 gap-4">
                 <div class="space-y-1.5 group">
                     <label
-                        class="text-[10px] font-black text-[#13322B]/60 dark:text-[#e6d194]/60 uppercase tracking-tighter ml-1">Apellido
-                        Paterno</label>
-                    <input type="text" wire:model="father_lastname"
-                        class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-[#13322B] dark:focus:border-[#e6d194] rounded-2xl text-sm font-bold transition-all outline-none uppercase">
+                        class="text-[10px] font-black text-[#13322B]/60 dark:text-[#e6d194]/60 uppercase tracking-tighter ml-1 flex items-center gap-2">
+                        Apellido Paterno
+                        <span class="text-[8px] bg-oro/10 text-oro px-1.5 py-0.5 rounded uppercase tracking-widest font-black">Sincronizado</span>
+                    </label>
+                    <input type="text" wire:model="father_lastname" readonly
+                        class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 border-2 border-transparent rounded-2xl text-sm font-bold transition-all outline-none uppercase opacity-80 cursor-not-allowed">
                     @error('father_lastname') <span class="text-[9px] font-bold text-red-500 uppercase">{{ $message
                         }}</span> @enderror
                 </div>
                 <div class="space-y-1.5 group">
                     <label
-                        class="text-[10px] font-black text-[#13322B]/60 dark:text-[#e6d194]/60 uppercase tracking-tighter ml-1">Apellido
-                        Materno</label>
-                    <input type="text" wire:model="mother_lastname"
-                        class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-[#13322B] dark:focus:border-[#e6d194] rounded-2xl text-sm font-bold transition-all outline-none uppercase">
+                        class="text-[10px] font-black text-[#13322B]/60 dark:text-[#e6d194]/60 uppercase tracking-tighter ml-1 flex items-center gap-2">
+                        Apellido Materno
+                        <span class="text-[8px] bg-oro/10 text-oro px-1.5 py-0.5 rounded uppercase tracking-widest font-black">Sincronizado</span>
+                    </label>
+                    <input type="text" wire:model="mother_lastname" readonly
+                        class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 border-2 border-transparent rounded-2xl text-sm font-bold transition-all outline-none uppercase opacity-80 cursor-not-allowed">
                     @error('mother_lastname') <span class="text-[9px] font-bold text-red-500 uppercase">{{ $message
                         }}</span> @enderror
                 </div>
@@ -58,17 +65,23 @@
             <div class="grid grid-cols-1 gap-4">
                 <div class="space-y-1.5">
                     <label
-                        class="text-[10px] font-black text-[#13322B]/60 dark:text-[#e6d194]/60 uppercase tracking-tighter ml-1">CURP</label>
-                    <input type="text" wire:model="curp" maxlength="18"
-                        class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-[#13322B] dark:focus:border-[#e6d194] rounded-2xl text-[11px] font-mono font-bold tracking-widest transition-all outline-none uppercase">
+                        class="text-[10px] font-black text-[#13322B]/60 dark:text-[#e6d194]/60 uppercase tracking-tighter ml-1 flex items-center gap-2">
+                        CURP
+                        <span class="text-[8px] bg-oro/10 text-oro px-1.5 py-0.5 rounded uppercase tracking-widest font-black">Sincronizado</span>
+                    </label>
+                    <input type="text" wire:model="curp" readonly
+                        class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 border-2 border-transparent rounded-2xl text-[11px] font-mono font-bold tracking-widest transition-all outline-none uppercase opacity-80 cursor-not-allowed">
                     @error('curp') <span class="text-[9px] font-bold text-red-500 uppercase">{{ $message }}</span>
                     @enderror
                 </div>
                 <div class="space-y-1.5">
                     <label
-                        class="text-[10px] font-black text-[#13322B]/60 dark:text-[#e6d194]/60 uppercase tracking-tighter ml-1">RFC</label>
-                    <input type="text" wire:model="rfc" maxlength="13"
-                        class="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border-2 border-transparent focus:border-[#13322B] dark:focus:border-[#e6d194] rounded-2xl text-[11px] font-mono font-bold tracking-widest transition-all outline-none uppercase">
+                        class="text-[10px] font-black text-[#13322B]/60 dark:text-[#e6d194]/60 uppercase tracking-tighter ml-1 flex items-center gap-2">
+                        RFC
+                        <span class="text-[8px] bg-oro/10 text-oro px-1.5 py-0.5 rounded uppercase tracking-widest font-black">Sincronizado</span>
+                    </label>
+                    <input type="text" wire:model="rfc" readonly
+                        class="w-full px-4 py-3 bg-gray-100 dark:bg-gray-800 border-2 border-transparent rounded-2xl text-[11px] font-mono font-bold tracking-widest transition-all outline-none uppercase opacity-80 cursor-not-allowed">
                     @error('rfc') <span class="text-[9px] font-bold text-red-500 uppercase">{{ $message }}</span>
                     @enderror
                 </div>

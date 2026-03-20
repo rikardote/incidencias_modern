@@ -152,7 +152,8 @@
                     <div class="p-10 min-h-[400px]">
                         <x-employee-modal.tab-personal />
                         <x-employee-modal.tab-laboral :departments="$departments" :puestos="$puestos"
-                            :horarios="$horarios" :jornadas="$jornadas" :condiciones="$condiciones" />
+                            :horarios="$horarios" :jornadas="$jornadas" :condiciones="$condiciones"
+                            :externalData="$externalData" />
                         <x-employee-modal.tab-seguridad />
                     </div>
                     <x-employee-modal.footer :editingEmployeeId="$editingEmployeeId" />
