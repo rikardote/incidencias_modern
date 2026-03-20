@@ -23,7 +23,7 @@ class Employe extends Model
 
     protected $fillable = [
         "num_empleado", "name", "father_lastname", "mother_lastname",
-        "curp", "rfc",
+        "curp", "rfc", "fecha_ingreso",
         "deparment_id", "condicion_id", "puesto_id", "horario_id",
         "num_plaza", "num_seguro", "jornada_id", "lactancia",
         "lactancia_inicio", "lactancia_fin", "comisionado", "estancia",

@@ -44,6 +44,7 @@ return new class extends Migration {
             Schema::create('puestos', function (Blueprint $table) {
                 $table->id();
                 $table->string('puesto')->nullable();
+                $table->string('clave')->nullable();
                 $table->timestamps();
             });
         }

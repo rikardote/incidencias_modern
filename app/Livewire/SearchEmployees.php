@@ -110,7 +110,7 @@ class SearchEmployees extends Component
         if ($externalData && !empty($externalData['n_puesto_plaza'])) {
             $matchedPuesto = \App\Models\Puesto::firstOrCreate(
                 ['puesto' => trim($externalData['n_puesto_plaza'])],
-                ['clave' => $externalData['id_puesto_plaza'] ?? null]
+                ['clave' => $externalData['id_puesto_plaza'] ?? 'SYNC']
             );
             $this->puesto_id = $matchedPuesto->id;
         }
@@ -139,7 +139,7 @@ class SearchEmployees extends Component
         if (!empty($externalData['n_puesto_plaza'])) {
             $matchedPuesto = \App\Models\Puesto::firstOrCreate(
                 ['puesto' => trim($externalData['n_puesto_plaza'])],
-                ['clave' => $externalData['id_puesto_plaza'] ?? null]
+                ['clave' => $externalData['id_puesto_plaza'] ?? 'SYNC']
             );
             $puestoId = $matchedPuesto->id;
         }
@@ -156,8 +156,8 @@ class SearchEmployees extends Component
             'puesto_id' => $puestoId,
             'horario_id' => $this->horario_id,
             'jornada_id' => $this->jornada_id,
-            'num_plaza' => $externalData['id_plaza'] ?? $this->num_plaza,
-            'num_seguro' => $externalData['numero_ss'] ?? $this->num_seguro,
+            'num_plaza' => (int)($externalData['id_plaza'] ?? $this->num_plaza),
+            'num_seguro' => (int)($externalData['numero_ss'] ?? $this->num_seguro),
             'fecha_ingreso' => $this->fecha_ingreso,
             'estancia' => $this->estancia,
             'estancia_inicio' => $this->estancia ? $this->estancia_inicio : null,
@@ -227,7 +227,7 @@ class SearchEmployees extends Component
             if (!empty($externalData['n_puesto_plaza'])) {
                 $matchedPuesto = \App\Models\Puesto::firstOrCreate(
                     ['puesto' => trim($externalData['n_puesto_plaza'])],
-                    ['clave' => $externalData['id_puesto_plaza'] ?? null]
+                    ['clave' => $externalData['id_puesto_plaza'] ?? 'SYNC']
                 );
                 $this->puesto_id = $matchedPuesto->id;
             }
@@ -280,10 +280,16 @@ class SearchEmployees extends Component
             'condiciones' => collect(),
         ];
 
+        // Datos externos para el modal (si está abierto)
+        $externalData = ($this->showEmployeeModal && !empty($this->num_empleado))
+            ? app(\App\Services\Employees\EmployeeApiService::class)->getEmployeeData($this->num_empleado)
+            : null;
+
         if (empty($this->search) && empty($this->selectedDepartment) && !$this->showInactive && !$this->listAll) {
             return view('livewire.search-employees', array_merge([
                 'employees' => new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20),
                 'departments' => $availableDepartments,
+                'externalData' => $externalData,
             ], $catalogos));
         }
 
@@ -328,11 +334,6 @@ class SearchEmployees extends Component
         ->orderBy('num_empleado', 'ASC')
         ->paginate(20);
 
-        // Datos externos para el modal (si está abierto)
-        $externalData = ($this->showEmployeeModal && !empty($this->num_empleado))
-            ? app(\App\Services\Employees\EmployeeApiService::class)->getEmployeeData($this->num_empleado)
-            : null;
-            
         return view('livewire.search-employees', array_merge([
             'employees' => $employees,
             'departments' => $availableDepartments,

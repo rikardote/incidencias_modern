@@ -7,5 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class Puesto extends Model
 {
     protected $table = "puestos";
-    protected $fillable = ["puesto"];
+    protected $fillable = ["puesto", "clave"];
 }
