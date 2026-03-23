@@ -130,3 +130,7 @@ Route::prefix('empleado')->name('employee.')->group(function () {
 });
 
 require __DIR__ . '/auth.php';
+use App\Http\Controllers\Notifications\TelegramWebhookController;
+
+// Telegram Webhook (Disable CSRF for this in VerifyCsrfToken if needed, or use routes/api.php)
+Route::post('/telegram/webhook/' . config('services.telegram.token'), [TelegramWebhookController::class, 'handle'])->name('telegram.webhook');

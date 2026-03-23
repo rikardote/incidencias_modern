@@ -38,7 +38,8 @@ class Employe extends Authenticatable
         "num_plaza", "num_seguro", "jornada_id", "lactancia",
         "lactancia_inicio", "lactancia_fin", "comisionado", "estancia",
         "estancia_inicio", "estancia_fin", "active", "exento",
-        "password", "remember_token", "fcm_token"
+        "password", "remember_token", "fcm_token",
+        "telegram_chat_id", "telegram_link_token"
     ];
 
     protected $hidden = [
@@ -246,5 +247,16 @@ class Employe extends Authenticatable
         }
 
         return 'Ninguno';
+    }
+
+    public function getTelegramLinkUrl(): string
+    {
+        if (!$this->telegram_link_token) {
+            $this->telegram_link_token = \Illuminate\Support\Str::random(16);
+            $this->save();
+        }
+
+        $botName = config('services.telegram.bot_name', 'IsssteBot');
+        return "https://t.me/{$botName}?start={$this->telegram_link_token}";
     }
 }

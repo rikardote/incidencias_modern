@@ -266,12 +266,23 @@ class AdmsController extends Controller
 
         // Disparar eventos para los registros realmente nuevos (máximo 10)
         if ($totalInsertados > 0) {
-            $recientes = array_slice($registrosNuevos, -10);
-            foreach ($recientes as $registro) {
+            // Deduplicar registros nuevos por identificador para no disparar eventos dobles
+            $identificadoresProcesados = [];
+            $recientes = array_slice($registrosNuevos, -20); // Tomamos un margen mayor para deduplicar
+            $disparados = 0;
+
+            foreach (array_reverse($recientes) as $registro) {
+                if ($disparados >= 10) break;
+                
+                $id = $registro['identificador'];
+                if (isset($identificadoresProcesados[$id])) continue;
+                $identificadoresProcesados[$id] = true;
+
                 try {
-                    $checada = Checada::where('identificador', $registro['identificador'])->first();
+                    $checada = Checada::where('identificador', $id)->first();
                     if ($checada) {
                         event(new ChecadaCreated($checada, $location));
+                        $disparados++;
                     }
                 } catch (\Exception $e) {
                     Log::channel('daily')->error("[ADMS] Error disparando evento: " . $e->getMessage());

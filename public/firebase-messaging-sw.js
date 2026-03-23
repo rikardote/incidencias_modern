@@ -16,11 +16,7 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage(function(payload) {
   console.log('[firebase-messaging-sw.js] Received background message ', payload);
-  const notificationTitle = payload.notification.title;
-  const notificationOptions = {
-    body: payload.notification.body,
-    icon: '/favicon.ico'
-  };
-
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  // No llamamos a showNotification aquí porque Firebase ya muestra 
+  // automáticamente la notificación si el payload tiene la llave 'notification'.
+  // Al llamarlo extra aquí, se duplicaba en algunos navegadores.
 });

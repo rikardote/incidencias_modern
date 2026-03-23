@@ -51,6 +51,12 @@ class SendPunchPushNotification implements ShouldQueue
             $messaging->send($message);
             Log::info("Push notification sent to employee {$empleado->num_empleado} for punch {$checada->id}.");
 
+            // --- TELEGRAM NOTIFICATION ---
+            if (!empty($empleado->telegram_chat_id)) {
+                $telegram = app(\App\Services\Notifications\TelegramService::class);
+                $telegram->sendMessage($empleado->telegram_chat_id, "🔔 *{$title}*\n\n{$body}");
+            }
+
         } catch (\Exception $e) {
             Log::error("Failed to send push notification for punch {$event->checada->id}: " . $e->getMessage());
         }

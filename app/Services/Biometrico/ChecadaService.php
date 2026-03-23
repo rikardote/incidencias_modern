@@ -196,13 +196,22 @@ class ChecadaService
     private function dispararEventos(array $registrosNuevos, string $location): void
     {
         // Solo disparar eventos de los últimos registros para no saturar broadcasts
-        $registrosRecientes = array_slice($registrosNuevos, -10);
+        $registrosRecientes = array_slice($registrosNuevos, -20);
+        $identificadoresProcesados = [];
+        $disparados = 0;
 
-        foreach ($registrosRecientes as $registro) {
+        foreach (array_reverse($registrosRecientes) as $registro) {
+            if ($disparados >= 10) break;
+
+            $id = $registro['identificador'];
+            if (isset($identificadoresProcesados[$id])) continue;
+            $identificadoresProcesados[$id] = true;
+
             try {
-                $checada = Checada::where('identificador', $registro['identificador'])->first();
+                $checada = Checada::where('identificador', $id)->first();
                 if ($checada) {
                     event(new ChecadaCreated($checada, $location));
+                    $disparados++;
                 }
             } catch (\Exception $e) {
                 Log::error("Error al disparar evento ChecadaCreated: " . $e->getMessage());

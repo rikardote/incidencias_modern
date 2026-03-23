@@ -20,6 +20,26 @@
                         <p><strong>RFC:</strong> {{ $empleado->rfc }}</p>
                         <p><strong>Departamento:</strong> {{ $empleado->department->description ?? 'N/A' }}</p>
                         <p><strong>Puesto:</strong> {{ $empleado->puesto->puesto ?? 'N/A' }}</p>
+
+                        <div class="mt-4 pt-4 border-t border-gray-100">
+                            @if($empleado->telegram_chat_id)
+                                <div class="flex items-center gap-2 text-emerald-600 font-bold text-sm">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    Telegram Vinculado
+                                </div>
+                            @else
+                                <a href="{{ $empleado->getTelegramLinkUrl() }}" target="_blank" 
+                                    class="inline-flex items-center gap-2 px-4 py-2 bg-[#0088cc] hover:bg-[#0077b5] text-white rounded-lg text-sm font-bold transition-all shadow-lg shadow-blue-500/20">
+                                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.79 5.42-1.12 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.11.02-1.93 1.23-5.46 3.62-.51.35-.98.53-1.39.52-.46-.01-1.33-.26-1.98-.48-.8-.27-1.43-.42-1.37-.89.03-.25.38-.51 1.03-.78 4.04-1.76 6.74-2.92 8.09-3.48 3.85-1.6 4.64-1.88 5.17-1.89.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.13-.03.2z"/>
+                                    </svg>
+                                    Vincular Telegram
+                                </a>
+                                <p class="mt-1 text-[10px] text-gray-400 italic">Recibe tus avisos de checada al instante en Telegram.</p>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
