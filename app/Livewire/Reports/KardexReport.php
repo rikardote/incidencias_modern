@@ -29,16 +29,26 @@ class KardexReport extends Component
     public function cambiarEmpleado($employeeId)
     {
         $this->results = null;
-        $user = auth()->user();
+        $guard = auth()->guard('employee')->check() ? 'employee' : 'web';
+        $user = auth()->guard($guard)->user();
+
         $query = Employe::with(['department', 'puesto', 'horario', 'jornada']);
 
-        // Seguridad: Solo ver empleados de departamentos permitidos
-        if (!$user->admin()) {
-            $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
-            $query->whereIn('deparment_id', $departmentIds);
+        if ($guard === 'employee') {
+            // Un empleado logueado solo puede verse a sí mismo
+            if ($user->id != $employeeId) {
+                if ($employeeId) abort(403, 'No tiene permiso para ver esta información.');
+                return;
+            }
+            $this->employee = $user;
+        } else {
+            // Seguridad: Solo ver empleados de departamentos permitidos
+            if (!$user->admin()) {
+                $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
+                $query->whereIn('deparment_id', $departmentIds);
+            }
+            $this->employee = $query->find($employeeId);
         }
-
-        $this->employee = $query->find($employeeId);
 
         if ($this->employee) {
             $this->num_empleado = $this->employee->num_empleado;

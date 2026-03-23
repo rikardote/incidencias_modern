@@ -111,9 +111,22 @@ Route::prefix('iclock')->withoutMiddleware([\Illuminate\Foundation\Http\Middlewa
     Route::get('/cdata', [\App\Http\Controllers\AdmsController::class, 'handshake']);
     Route::post('/cdata', [\App\Http\Controllers\AdmsController::class, 'receiveData']);
     Route::get('/getrequest', [\App\Http\Controllers\AdmsController::class, 'getRequest']);
+    Route::post('/devicecmd', [\App\Http\Controllers\AdmsController::class, 'receiveCommand']);
     // Algunos equipos usan estas variantes
     Route::get('/devicecmd', [\App\Http\Controllers\AdmsController::class, 'getRequest']);
     Route::post('/devicecmd', [\App\Http\Controllers\AdmsController::class, 'getRequest']);
+});
+
+// ─── PORTAL DE EMPLEADOS ─────────────────────────
+Route::prefix('empleado')->name('employee.')->group(function () {
+    Route::get('login', [\App\Http\Controllers\EmployeePortalController::class, 'showLoginForm'])->name('login');
+    Route::post('login', [\App\Http\Controllers\EmployeePortalController::class, 'login']);
+    
+    Route::middleware('auth:employee')->group(function () {
+        Route::get('dashboard', [\App\Http\Controllers\EmployeePortalController::class, 'dashboard'])->name('dashboard');
+        Route::post('fcm-token', [\App\Http\Controllers\EmployeePortalController::class, 'storeFcmToken'])->name('store_fcm_token');
+        Route::post('logout', [\App\Http\Controllers\EmployeePortalController::class, 'logout'])->name('logout');
+    });
 });
 
 require __DIR__ . '/auth.php';

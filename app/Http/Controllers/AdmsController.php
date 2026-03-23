@@ -128,6 +128,24 @@ class AdmsController extends Controller
     }
 
     /**
+     * POST /iclock/devicecmd
+     * 
+     * Recepción de confirmaciones de comandos ejecutados en el equipo.
+     */
+    public function receiveCommand(Request $request)
+    {
+        $sn = $request->query('SN', 'unknown');
+        $rawData = $request->getContent();
+
+        Log::channel('daily')->info("[ADMS] Confirmación de comando recibida de SN: {$sn}", [
+            'data' => substr($rawData, 0, 500)
+        ]);
+
+        return response('OK', 200)
+            ->header('Content-Type', 'text/plain');
+    }
+
+    /**
      * GET /iclock/getrequest
      * 
      * Heartbeat del equipo — lo envía periódicamente.
@@ -137,22 +155,29 @@ class AdmsController extends Controller
     {
         $sn = $request->query('SN', 'unknown');
 
-        Log::channel('daily')->info("[ADMS] Heartbeat (getRequest) de SN: {$sn}", [
-            'ip' => $request->ip(),
-            'query' => $request->query(),
-        ]);
-
         // Actualizar último contacto del equipo
         $this->actualizarUltimoContacto($sn);
 
-        $commands = [
-            "C:101:SET OPTION DuplicateCheck=0",
-            "C:102:SET OPTION TimeZone=" . (now()->timezone('America/Tijuana')->getOffset() / 60),
-            "C:103:SET OPTION ServerTime=" . now()->timezone('America/Tijuana')->format('Y-m-d H:i:s'),
+        // OPTIMIZACIÓN: Si el equipo ya nos contactó hace poco, no le mandamos comandos de config
+        // Esto evita el bucle infinito de heartbeats que satura el servidor.
+        $lastSeen = DB::connection('biometrico')->table('equipos')->where('serial_number', $sn)->value('last_seen');
+        
+        // Si el equipo es nuevo o no ha sido configurado en este minuto, le mandamos sus parámetros
+        if (!$lastSeen || strtotime($lastSeen) < strtotime('-1 minute')) {
+            Log::channel('daily')->info("[ADMS] Enviando configuración periódica a SN: {$sn}");
+            $commands = [
+                "C:101:SET OPTION DuplicateCheck=0",
+                "C:102:SET OPTION TimeZone=" . (now()->timezone('America/Tijuana')->getOffset() / 60),
+                "C:103:SET OPTION ServerTime=" . now()->timezone('America/Tijuana')->format('Y-m-d H:i:s'),
+            ];
+            $response = implode("\n", $commands);
+        } else {
+            // Heartbeat normal (sin comandos pendientes)
+            // Respondemos OK para que el equipo espere el tiempo de Delay configurado
+            $response = 'OK';
+        }
 
-        ];
-
-        return response(implode("\n", $commands), 200)
+        return response($response, 200)
             ->header('Content-Type', 'text/plain')
             ->header('Date', now()->timezone('UTC')->format('D, d M Y H:i:s') . ' GMT');
     }

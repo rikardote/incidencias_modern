@@ -17,15 +17,26 @@ class EmployeeAttendance extends Component
 
     public function mount($employeeId)
     {
-        $user = auth()->user();
+        $guard = auth()->guard('employee')->check() ? 'employee' : 'web';
+        $user = auth()->guard($guard)->user();
+
         $query = Employe::with(['department', 'puesto', 'horario']);
 
-        if (!$user->admin()) {
-            $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
-            $query->whereIn('deparment_id', $departmentIds);
+        if ($guard === 'employee') {
+            // Un empleado logueado solo puede verse a sí mismo
+            if ($user->id != $employeeId) {
+                abort(403, 'No tiene permiso para ver esta información.');
+            }
+            $this->employee = $user;
+        } else {
+            // Lógica para usuarios administrativos (guard 'web')
+            if (!$user->admin()) {
+                $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
+                $query->whereIn('deparment_id', $departmentIds);
+            }
+            $this->employee = $query->findOrFail($employeeId);
         }
-
-        $this->employee = $query->findOrFail($employeeId);
+        
         $this->año = (int)date('Y');
 
         // Calcular quincena actual

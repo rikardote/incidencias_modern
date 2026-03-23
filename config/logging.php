@@ -118,9 +118,6 @@ return [
             'replace_placeholders' => true,
         ],
 
-        'nightwatch' => [
-            'driver' => 'nightwatch',
-        ],
 
         'null' => [
             'driver' => 'monolog',

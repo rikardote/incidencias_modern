@@ -3,13 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Services\Employees\EmployeeApiService;
+use Illuminate\Notifications\Notifiable;
 
-class Employe extends Model
+class Employe extends Authenticatable
 {
-    use SoftDeletes;
+    use SoftDeletes, Notifiable;
 
     protected $table = "sistemas.employees";
     
@@ -35,8 +37,19 @@ class Employe extends Model
         "deparment_id", "condicion_id", "puesto_id", "horario_id",
         "num_plaza", "num_seguro", "jornada_id", "lactancia",
         "lactancia_inicio", "lactancia_fin", "comisionado", "estancia",
-        "estancia_inicio", "estancia_fin", "active", "exento"
+        "estancia_inicio", "estancia_fin", "active", "exento",
+        "password", "remember_token", "fcm_token"
     ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    public function routeNotificationForFcm()
+    {
+        return $this->fcm_token;
+    }
 
     public function setCurpAttribute($v)
     {
@@ -98,6 +111,29 @@ class Employe extends Model
             default:
                 return 'No definido';
         }
+    }
+
+    /**
+     * Compatibility with Admin layouts/logic
+     */
+    public function admin(): bool
+    {
+        return false;
+    }
+
+    public function getActiveAttribute($value): bool
+    {
+        return (bool)$value;
+    }
+
+    public function getAvatarAttribute(): ?string
+    {
+        return null;
+    }
+
+    public function getEmailAttribute(): ?string
+    {
+        return $this->rfc . "@sistemas.example.com";
     }
 
 

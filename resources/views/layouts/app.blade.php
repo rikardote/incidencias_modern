@@ -156,7 +156,9 @@
     </script>
 
 
-    @livewire('chat-widget')
+    @if(!request()->is('empleado*'))
+        @livewire('chat-widget')
+    @endif
     @livewireScripts
 </body>
 

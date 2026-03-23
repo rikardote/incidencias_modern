@@ -1,4 +1,20 @@
 <nav x-data="{ open: false }"
+    @php
+        $isEmployeePortal = request()->is('empleado*');
+        $isEmployee = auth()->guard('employee')->check();
+        $isWeb = auth()->guard('web')->check();
+
+        // En el portal de empleado, si hay sesión de empleado, mandamos eso
+        if ($isEmployeePortal && $isEmployee) {
+            $currentUser = auth()->guard('employee')->user();
+            $showAdminLinks = false;
+        } else {
+            // En cualquier otro lugar (o si no hay sesión de empleado en el portal), 
+            // mandamos la sesión web si existe, o la de empleado como respaldo
+            $currentUser = auth()->guard('web')->user() ?? auth()->guard('employee')->user();
+            $showAdminLinks = $isWeb;
+        }
+    @endphp
     class="bg-[#13322B] dark:bg-gray-950 border-b border-[#0a1f1a] dark:border-gray-800 shadow-md sticky top-0 z-50 antialiased">
 
     {{-- BARRA DE PROGRESO GLOBAL --}}
@@ -56,19 +72,22 @@
             <div class="flex flex-1 items-center">
                 <!-- Logo -->
                 <div class="shrink-0 hidden sm:flex items-center">
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-2" wire:navigate>
+                    <a href="{{ ($isEmployeePortal && $isEmployee) ? route('employee.dashboard') : route('dashboard') }}" class="flex items-center gap-2" wire:navigate>
                         <x-application-logo class="block h-10 w-auto drop-shadow-sm" />
                     </a>
                 </div>
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-6 sm:-my-px sm:ms-10 sm:flex">
+                    @if($showAdminLinks)
                     <x-nav-link :href="route('employees.index')" :active="request()->routeIs('employees.index')"
                         wire:navigate>
                         {{ __('Empleados') }}
                     </x-nav-link>
+                    @endif
 
 
+                    @if($showAdminLinks)
                     <!-- Dropdown Reportes -->
                     <div class="flex items-center">
                         <x-dropdown align="left" width="64"
@@ -170,6 +189,7 @@
                             </x-slot>
                         </x-dropdown>
                     </div>
+                    @endif
 
                 </div>
             </div>
@@ -241,17 +261,19 @@
                         <x-slot name="trigger">
                             <button
                                 class="flex items-center gap-3 text-sm font-medium text-gray-300 hover:text-white transition">
-                                <x-user-avatar :avatar="Auth::user()->avatar" :name="Auth::user()->name"
+                                <x-user-avatar :avatar="$currentUser->avatar ?? null" :name="$currentUser->name"
                                     size="w-8 h-8 rounded-full border border-white/10" />
-                                <span class="hidden md:inline">{{ Auth::user()->name }}</span>
+                                <span class="hidden md:inline">{{ $currentUser->name }}</span>
                             </button>
                         </x-slot>
                         <x-slot name="content">
+                            @if($showAdminLinks)
                             <x-dropdown-link :href="route('profile.edit')" wire:navigate>{{ __('Perfil')
                                  }}</x-dropdown-link>
+                            @endif
                             
                             
-                            <form method="POST" action="{{ route('logout') }}">
+                            <form method="POST" action="{{ ($isEmployeePortal && $isEmployee) ? route('employee.logout') : route('logout') }}">
                                 @csrf
                                 <x-dropdown-link :href="route('logout')"
                                     onclick="event.preventDefault(); this.closest('form').submit();"
@@ -279,8 +301,10 @@
     <div x-show="open" x-transition x-cloak
         class="sm:hidden bg-white dark:bg-[#0a1f1a] border-t border-gray-200 dark:border-white/5">
         <div class="pt-2 pb-3 space-y-1">
+            @if($showAdminLinks)
             <x-responsive-nav-link :href="route('employees.index')" :active="request()->routeIs('employees.index')"
                 wire:navigate>{{ __('Empleados') }}</x-responsive-nav-link>
+            @endif
 
             {{-- 
             <button @click="$store.island.toggleLog(); open = false"
@@ -304,6 +328,7 @@
             </button>
             --}}
 
+            @if($showAdminLinks)
             <div class="px-4 py-2 mt-2">
                 <div class="font-medium text-[10px] text-gray-500 uppercase tracking-[0.2em]">Reportes</div>
             </div>
@@ -335,31 +360,34 @@
                 wire:navigate>
                 <span class="ps-4">{{ __('Monitoreo en Vivo') }}</span>
             </x-responsive-nav-link>
+            @endif
 
         </div>
 
         <!-- Mobile User Info -->
         <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-800">
             <div class="px-4 flex items-center gap-3">
-                <x-user-avatar :avatar="Auth::user()->avatar" :name="Auth::user()->name" />
+                <x-user-avatar :avatar="$currentUser->avatar ?? null" :name="$currentUser->name" />
                 <div>
-                    <div class="font-medium text-base text-gray-800 dark:text-white">{{ Auth::user()->name }}</div>
-                    <div class="font-medium text-sm text-gray-500 dark:text-gray-400">{{ Auth::user()->email }}</div>
+                    <div class="font-medium text-base text-gray-800 dark:text-white">{{ $currentUser->name }}</div>
+                    <div class="font-medium text-sm text-gray-500 dark:text-gray-400">{{ $currentUser->email ?? $currentUser->num_empleado }}</div>
                 </div>
             </div>
 
             <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" wire:navigate>
+                <x-responsive-nav-link :href="($isEmployeePortal && $isEmployee) ? route('employee.dashboard') : route('dashboard')" :active="request()->routeIs('employee.dashboard') || request()->routeIs('dashboard')" wire:navigate>
                     {{ __('Dashboard') }}
                 </x-responsive-nav-link>
 
+                @if($showAdminLinks)
                 <x-responsive-nav-link :href="route('profile.edit')" wire:navigate>
                     {{ __('Perfil') }}
                 </x-responsive-nav-link>
+                @endif
 
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ ($isEmployeePortal && $isEmployee) ? route('employee.logout') : route('logout') }}">
                     @csrf
-                    <x-responsive-nav-link :href="route('logout')"
+                    <x-responsive-nav-link :href="($isEmployeePortal && $isEmployee) ? route('employee.logout') : route('logout')"
                         onclick="event.preventDefault(); this.closest('form').submit();">
                         {{ __('Cerrar Sesión') }}
                     </x-responsive-nav-link>

@@ -72,12 +72,19 @@ services:
     networks:
       - modern-net
 
-  nightwatch-agent:
-    image: laravelphp/nightwatch-agent:v1
-    container_name: modern_nightwatch_agent
+  queue:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: modern_queue
     restart: unless-stopped
-    environment:
-      NIGHTWATCH_TOKEN: ${NIGHTWATCH_TOKEN}
+    working_dir: /var/www
+    command: php artisan queue:work
+    volumes:
+      - .:/var/www
+    depends_on:
+      - db
+      - redis
     networks:
       - modern-net
 

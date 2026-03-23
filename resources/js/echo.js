@@ -3,21 +3,22 @@ import Pusher from 'pusher-js';
 
 window.Pusher = Pusher;
 
+const wsPort = import.meta.env.VITE_REVERB_PORT && import.meta.env.VITE_REVERB_PORT !== 'null' && import.meta.env.VITE_REVERB_PORT !== ''
+    ? import.meta.env.VITE_REVERB_PORT 
+    : (window.location.port || (window.location.protocol === 'https:' ? 443 : 80));
+
+console.log(`📡 Configurando Reverb en ${window.location.hostname}:${wsPort} (${window.location.protocol})`);
+
 window.Echo = new Echo({
     broadcaster: 'reverb',
     key: import.meta.env.VITE_REVERB_APP_KEY,
-    wsHost: window.location.hostname ?? import.meta.env.VITE_REVERB_HOST,
-    wsPort: import.meta.env.VITE_REVERB_PORT ?? 80,
-    wssPort: import.meta.env.VITE_REVERB_PORT ?? 443,
-    forceTLS: (import.meta.env.VITE_REVERB_SCHEME ?? 'https') === 'https',
+    wsHost: window.location.hostname,
+    wsPort: wsPort,
+    wssPort: wsPort,
+    forceTLS: window.location.protocol === 'https:',
     enabledTransports: ['ws', 'wss'],
-
-    // --- CONFIGURACIÓN DE RESILIENCIA ---
-    disableStats: true,
-    enabledTransports: ['ws', 'wss'],
-    cluster: 'mt1', // Reverb usa esto por compatibilidad con Pusher
+    cluster: 'mt1',
     autoConnect: true,
-    // Intenta reconectar cada vez más lento si falla (evita saturar el servidor)
     backoff: {
         initialDelay: 1000,
         maxDelay: 10000,

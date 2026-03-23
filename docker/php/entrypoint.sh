@@ -19,6 +19,11 @@ php artisan reverb:start --host=0.0.0.0 --port=8080 > storage/logs/reverb.log 2>
 echo "Iniciando Monitor de Biométricos (Real-time)... [POLLING DESACTIVADO - USANDO ADMS]"
 # php artisan biometrico:monitor > storage/logs/biometrico_monitor.log 2>&1 &
 
-# Iniciar el proceso principal (PHP-FPM)
-echo "Iniciando PHP-FPM..."
-exec php-fpm
+# Iniciar el proceso principal
+if [ "$#" -gt 0 ]; then
+    echo "Ejecutando comando: $@"
+    exec "$@"
+else
+    echo "Iniciando PHP-FPM..."
+    exec php-fpm
+fi
