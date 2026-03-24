@@ -29,9 +29,11 @@ class WearOSController extends Controller
             $baseId = !empty($validated['identificador']) ? $validated['identificador'] : 'WOS';
             $uniqueId = $baseId . '_' . uniqid() . '_' . time();
 
-            // Se fuerza el número de empleado a 332618 por el momento
+            // Si se proporciona identificador, usarlo como num_empleado, de lo contrario usar el default
+            $numEmpleado = !empty($validated['identificador']) ? $validated['identificador'] : '332618';
+            
             $checada = Checada::create([
-                'num_empleado' => '332618',
+                'num_empleado' => $numEmpleado,
                 'fecha' => $validated['fecha'],
                 'identificador' => $uniqueId,
             ]);
@@ -56,5 +58,32 @@ class WearOSController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    public function getHistory(Request $request, $identificador)
+    {
+        $apiKey = $request->header('X-API-KEY') ?? $request->input('api_key');
+        if ($apiKey !== env('WEAROS_API_KEY', 'secret-wearos-key-123')) {
+            return response()->json(['error' => 'No autorizado'], 401);
+        }
+
+        $checadas = Checada::where('num_empleado', $identificador)
+            ->orWhere('identificador', 'LIKE', $identificador . '%')
+            ->orderBy('fecha', 'desc')
+            ->limit(20)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'check_ins' => $checadas->map(function($c) {
+                return [
+                    'id' => $c->id,
+                    'employee_id' => $c->num_empleado,
+                    'employee_name' => 'Usuario', // Simplificado
+                    'type' => 'CHECK', // El modelo Checada no parece tener un tipo Entrada/Salida explícito en este controlador
+                    'timestamp' => strtotime($c->fecha) * 1000,
+                    'fecha' => $c->fecha,
+                    'identificador' => $c->identificador
+                ];
+            })
+        ]);
     }
 }

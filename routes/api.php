@@ -7,3 +7,4 @@ use Illuminate\Support\Facades\Route;
 // Y no se verán afectadas por la verificación CSRF.
 
 Route::post('wearos/checar', [\App\Http\Controllers\Api\WearOSController::class, 'storeCheckin']);
+Route::get('wearos/historial/{identificador}', [\App\Http\Controllers\Api\WearOSController::class, 'getHistory']);
