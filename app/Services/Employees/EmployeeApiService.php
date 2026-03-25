@@ -11,7 +11,7 @@ class EmployeeApiService
 
     public function __construct()
     {
-        $this->baseUrl = config('services.employees.api_url', env('EMPLOYEES_API_URL'));
+        $this->baseUrl = config('services.employees.api_url');
     }
 
     /**

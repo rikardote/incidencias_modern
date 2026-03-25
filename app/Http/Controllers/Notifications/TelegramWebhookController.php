@@ -32,7 +32,7 @@ class TelegramWebhookController extends Controller
         $message = $update['message'];
         $chatId = $message['chat']['id'];
         $text = $message['text'] ?? '';
-        $adminIds = explode(',', env('TELEGRAM_ADMIN_IDS', '1502287926'));
+        $adminIds = explode(',', config('services.telegram.admin_ids', '1502287926'));
 
         $state = Cache::get('tg_state_' . $chatId);
         if ($state && isset($state['action'])) {

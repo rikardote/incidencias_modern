@@ -42,6 +42,17 @@ class AdmsController extends Controller
             'query' => $request->query(),
         ]);
 
+        // Solo permitir equipos que ya estén registrados en la base de datos (evita suplantación)
+        $equipoExists = DB::connection(app()->environment('testing') ? config('database.default') : 'biometrico')
+            ->table('equipos')
+            ->where('serial_number', $sn)
+            ->exists();
+
+        if (!$equipoExists) {
+            Log::channel('daily')->warning("[ADMS] Intento de handshake de equipo DESCONOCIDO. SN: {$sn}, IP: " . $request->ip());
+            return response("ERROR: Device not registered", 401);
+        }
+
         // Registrar o actualizar el equipo
         $this->registrarEquipo($sn, $request->ip());
 
@@ -89,6 +100,14 @@ class AdmsController extends Controller
     public function receiveData(Request $request)
     {
         $sn = $request->query('SN', 'unknown');
+        
+        // Verificar que el equipo exista
+        $connection = app()->environment('testing') ? config('database.default') : 'biometrico';
+        $equipoExists = DB::connection($connection)->table('equipos')->where('serial_number', $sn)->exists();
+        if (!$equipoExists) {
+            return response("ERROR: Device not registered", 401);
+        }
+
         $table = $request->query('table', '');
         $rawData = $request->getContent();
 
@@ -154,6 +173,13 @@ class AdmsController extends Controller
     public function getRequest(Request $request)
     {
         $sn = $request->query('SN', 'unknown');
+
+        // Verificar que el equipo exista
+        $connection = app()->environment('testing') ? config('database.default') : 'biometrico';
+        $equipoExists = DB::connection($connection)->table('equipos')->where('serial_number', $sn)->exists();
+        if (!$equipoExists) {
+            return response("ERROR: Device not registered", 401);
+        }
 
         // Actualizar último contacto del equipo
         $this->actualizarUltimoContacto($sn);

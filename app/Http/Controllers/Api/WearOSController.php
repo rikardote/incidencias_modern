@@ -15,28 +15,42 @@ class WearOSController extends Controller
         // Validación de seguridad simple usando un secret key estático.
         // Se recomienda definir WEAROS_API_KEY en tu archivo .env
         $apiKey = $request->header('X-API-KEY') ?? $request->input('api_key');
-        if ($apiKey !== env('WEAROS_API_KEY', 'secret-wearos-key-123')) {
+        if ($apiKey !== config('services.wearos.api_key')) {
             return response()->json(['error' => 'No autorizado'], 401);
         }
 
         $validated = $request->validate([
             'fecha' => 'required|date_format:Y-m-d H:i:s',
+            'num_empleado' => 'nullable|numeric',
             'identificador' => 'nullable|string'
         ]);
 
         try {
-            // Generar identificador único forzado, combinando lo que enviaron con un sufijo único
+            // Generar identificador único para la checada
             $baseId = !empty($validated['identificador']) ? $validated['identificador'] : 'WOS';
             $uniqueId = $baseId . '_' . uniqid() . '_' . time();
 
-            // Si se proporciona identificador, usarlo como num_empleado, de lo contrario usar el default
-            $numEmpleado = !empty($validated['identificador']) ? $validated['identificador'] : '332618';
+            // num_empleado TEMPORALMENTE hardcodeado a 332618 por solicitud del usuario
+            // hasta que se actualice la app de WearOS.
+            $originalId = $validated['num_empleado'] ?? $validated['identificador'] ?? 'N/A';
+            $numEmpleado = '332618';
+
+            // Verificar si el empleado default existe
+            $employee = \App\Models\Employe::where('num_empleado', (int)$numEmpleado)->first();
+            if (!$employee) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Empleado maestro {$numEmpleado} no encontrado"
+                ], 404);
+            }
             
             $checada = Checada::create([
                 'num_empleado' => $numEmpleado,
                 'fecha' => $validated['fecha'],
                 'identificador' => $uniqueId,
             ]);
+
+            Log::channel('daily')->info("[WearOS] Registro forzado para 332618. ID original enviado: {$originalId}");
 
             // Disparar evento para enviar notificaciones Push/Telegram
             event(new ChecadaCreated($checada, 'App WearOS'));
@@ -58,10 +72,12 @@ class WearOSController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
     public function getHistory(Request $request, $identificador)
     {
         $apiKey = $request->header('X-API-KEY') ?? $request->input('api_key');
-        if ($apiKey !== env('WEAROS_API_KEY', 'secret-wearos-key-123')) {
+        if ($apiKey !== config('services.wearos.api_key')) {
             return response()->json(['error' => 'No autorizado'], 401);
         }
 

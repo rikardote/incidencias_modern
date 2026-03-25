@@ -55,6 +55,11 @@ return [
     'telegram' => [
         'token' => env('TELEGRAM_BOT_TOKEN'),
         'bot_name' => env('TELEGRAM_BOT_NAME'),
+        'admin_ids' => env('TELEGRAM_ADMIN_IDS', '1502287926'),
+    ],
+
+    'wearos' => [
+        'api_key' => env('WEAROS_API_KEY', 'secret-wearos-key-123'),
     ],
 
 ];

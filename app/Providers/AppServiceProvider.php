@@ -22,6 +22,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (app()->environment('testing')) {
+            $connection = config('database.default');
+            if ($connection !== 'sqlite') {
+                throw new \RuntimeException(
+                    "CRITICAL SAFETY WARNING: Tests are attempting to run on connection '{$connection}' instead of 'sqlite'. " .
+                    "To prevent accidental database deletion, the application has been halted. " .
+                    "Please ensure you have a .env.testing file or that phpunit.xml is correctly configured."
+                );
+            }
+        }
+
         if (request()->header('x-forwarded-proto') === 'https') {
         URL::forceScheme('https');
     }

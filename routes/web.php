@@ -94,14 +94,6 @@ Route::middleware('auth')->group(function () {
         Route::delete('/profile', [ProfileController::class , 'destroy'])->name('profile.destroy');
     });
 
-Route::get('/debug-auth', function () {
-    return [
-    'check' => auth()->check(),
-    'user' => auth()->user(),
-    'session_id' => session()->getId(),
-    'app_url' => config('app.url'),
-    ];
-});
 
 // ─── ADMS: Servidor Push para equipos ZKTeco ─────────────────────────
 // El equipo se conecta a estos endpoints para enviar datos en tiempo real.

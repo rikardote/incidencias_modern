@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('sistemas.employees', function (Blueprint $table) {
+        Schema::table('employees', function (Blueprint $table) {
             $table->string('password')->nullable()->after('rfc');
             $table->rememberToken()->after('password');
             $table->string('fcm_token')->nullable()->after('remember_token');
@@ -23,7 +23,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('sistemas.employees', function (Blueprint $table) {
+        Schema::table('employees', function (Blueprint $table) {
             $table->dropColumn(['password', 'remember_token', 'fcm_token']);
         });
     }

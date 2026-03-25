@@ -60,8 +60,8 @@ class EmployeeAttendance extends Component
     public function loadChecadas()
     {
         if ($this->isPortal) {
-            $fin = date('Y-m-d');
-            $inicio = date('Y-m-d', strtotime('-1 month'));
+            $fin = now()->format('Y-m-d');
+            $inicio = now()->subMonth()->format('Y-m-d');
             $checadaModel = new Checada();
             
             $registros = $checadaModel->obtenerRegistrosPorEmpleado($this->employee->id, $inicio, $fin);
