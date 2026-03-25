@@ -67,15 +67,25 @@
         </div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div class="flex justify-between h-16">
-            <div class="flex flex-1 items-center">
-                <!-- Logo -->
-                <div class="shrink-0 hidden sm:flex items-center">
-                    <a href="{{ ($isEmployeePortal && $isEmployee) ? route('employee.dashboard') : route('dashboard') }}" class="flex items-center gap-2" wire:navigate>
+            @if($isEmployeePortal)
+                <div class="absolute inset-x-0 top-0 h-16 flex items-center justify-center pointer-events-none">
+                    <a href="{{ route('employee.dashboard') }}" class="flex items-center gap-2 pointer-events-auto" wire:navigate>
                         <x-application-logo class="block h-10 w-auto drop-shadow-sm" />
                     </a>
                 </div>
+            @endif
+
+            <div class="flex flex-1 items-center">
+                <!-- Logo -->
+                @if(!$isEmployeePortal)
+                <div class="shrink-0 hidden sm:flex items-center">
+                    <a href="{{ route('dashboard') }}" class="flex items-center gap-2" wire:navigate>
+                        <x-application-logo class="block h-10 w-auto drop-shadow-sm" />
+                    </a>
+                </div>
+                @endif
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-6 sm:-my-px sm:ms-10 sm:flex">
@@ -195,6 +205,7 @@
             </div>
 
             <!-- QNA INFO (MIDDLE) -->
+            @if(!$isEmployeePortal)
             <div class="flex items-center px-4 shrink-0">
                 @if($activeQna)
                 <div x-data="{ isMaint: {{ \Illuminate\Support\Facades\Cache::get('capture_maintenance', false) ? 'true' : 'false' }} }" 
@@ -228,12 +239,15 @@
                 </div>
                 @endif
             </div>
+            @endif
 
             <!-- Profile Dropdown (Right) -->
             <div class="flex flex-1 items-center justify-end">
                 <div class="hidden sm:flex sm:items-center sm:ms-6 gap-4">
+                    @if(!$isEmployeePortal)
                     {{-- Campana de Notificaciones --}}
                     @livewire('notification-bell')
+                    @endif
                     <!-- Botón LOG (Desktop Icon Only) -->
                     {{-- 
                     <button @click="$store.island.toggleLog()"

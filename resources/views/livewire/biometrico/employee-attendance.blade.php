@@ -24,6 +24,7 @@
             </div>
         </div>
 
+        @if(!$isPortal)
         <div
             class="bg-white dark:bg-gray-800 p-2 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col lg:flex-row items-stretch lg:items-center gap-2">
             {{-- Año --}}
@@ -114,6 +115,7 @@
                 </a>
             </div>
         </div>
+        @endif
     </div>
 
     {{-- Tabla de Checadas --}}

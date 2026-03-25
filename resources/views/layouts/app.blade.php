@@ -5,11 +5,15 @@
     <meta charset="utf-8">
     <script>
         function setDarkModePreference() {
+            @if(request()->is('empleado*'))
+            document.documentElement.classList.remove('dark');
+            @else
             if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark');
             } else {
                 document.documentElement.classList.remove('dark');
             }
+            @endif
         }
         setDarkModePreference();
         document.addEventListener('livewire:navigated', setDarkModePreference);

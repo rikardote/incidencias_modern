@@ -14,9 +14,11 @@ class EmployeeAttendance extends Component
     public $quincenaFin;
     public $año;
     public $checadas = [];
+    public $isPortal = false;
 
-    public function mount($employeeId)
+    public function mount($employeeId, $isPortal = false)
     {
+        $this->isPortal = $isPortal;
         $guard = auth()->guard('employee')->check() ? 'employee' : 'web';
         $user = auth()->guard($guard)->user();
 
@@ -57,6 +59,17 @@ class EmployeeAttendance extends Component
 
     public function loadChecadas()
     {
+        if ($this->isPortal) {
+            $fin = date('Y-m-d');
+            $inicio = date('Y-m-d', strtotime('-1 month'));
+            $checadaModel = new Checada();
+            
+            $registros = $checadaModel->obtenerRegistrosPorEmpleado($this->employee->id, $inicio, $fin);
+            
+            $this->checadas = $registros->sortByDesc('fecha')->values();
+            return;
+        }
+
         $qStart = (int)min($this->quincena, $this->quincenaFin);
         $qEnd = (int)max($this->quincena, $this->quincenaFin);
 
@@ -104,6 +117,10 @@ class EmployeeAttendance extends Component
 
     public function render()
     {
+        if ($this->isPortal) {
+            return view('livewire.biometrico.portal-attendance');
+        }
+
         $años = range(2024, (int)date('Y'));
 
         return view('livewire.biometrico.employee-attendance', [

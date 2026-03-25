@@ -10,10 +10,33 @@
             
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <div class="max-w-xl">
-                    <h3 class="text-lg font-medium text-gray-900">Bienvenido, {{ $empleado->name }} {{ $empleado->father_lastname }}</h3>
-                    <p class="mt-1 text-sm text-gray-600">
-                        A continuación puedes consultar tu información, tus registros biométricos del mes y tu kardex histórico.
-                    </p>
+                    <div class="mb-4">
+                        <h3 class="text-xl font-bold text-gray-900 border-b border-gray-100 pb-2 mb-3">
+                            ¡Bienvenido, {{ $empleado->fullname }}!
+                        </h3>
+                        <p class="text-sm text-gray-600 mb-5">
+                            Desde este portal podrás consultar tu información general y revisar tu historial reciente de registros biométricos.
+                        </p>
+                        
+                        <div class="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg mb-2">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                                      <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-bold text-blue-800">Mantente al tanto de tus checadas</h3>
+                                    <div class="mt-2 text-sm text-blue-700">
+                                        <ul class="list-disc pl-5 space-y-1">
+                                            <li><strong>Notificaciones web:</strong> Acepta los permisos de tu navegador para recibir alertas directamente en tu celular, sin necesidad de tener el portal abierto.</li>
+                                            <li><strong>Bot de Telegram:</strong> Vincula tu cuenta usando el botón inferior y recibe tus checadas al instante en la aplicación de Telegram.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="mt-6 flex flex-col space-y-2">
                         <p><strong>N° Empleado:</strong> {{ $empleado->num_empleado }}</p>
@@ -47,7 +70,7 @@
             <div class="p-4 sm:p-8 bg-white shadow sm:rounded-lg">
                 <div class="w-full">
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Mis Checadas Biométricas</h3>
-                    @livewire('biometrico.employee-attendance', ['employeeId' => $empleado->id])
+                    @livewire('biometrico.employee-attendance', ['employeeId' => $empleado->id, 'isPortal' => true])
                 </div>
             </div>
 
