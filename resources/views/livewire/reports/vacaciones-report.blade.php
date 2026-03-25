@@ -1,4 +1,4 @@
-<div class="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen bg-gray-50 dark:bg-gray-950">
+<div class="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto min-h-screen">
     {{-- Header del Reporte --}}
     {{-- Header del Reporte --}}
     <div class="mb-8 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-6">

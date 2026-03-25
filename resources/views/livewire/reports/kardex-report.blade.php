@@ -1,4 +1,4 @@
-<div class="py-6 px-4 md:px-8 max-w-7xl mx-auto min-h-screen bg-gray-50 dark:bg-gray-950">
+<div class="py-12 px-4 md:px-8 max-w-7xl mx-auto min-h-screen">
     {{-- Header con Info del Empleado --}}
     @if($employee)
     {{-- Header del Reporte --}}
@@ -132,28 +132,27 @@
                 class="h-[42px] px-5 bg-oro hover:bg-[#a57f2c] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md transition-all">
                 Todo
             </button>
+            @if($employee)
+            <a href="{{ route('reports.kardex.pdf', ['num_empleado' => $employee->num_empleado, 'fecha_inicio' => $fecha_inicio, 'fecha_final' => $fecha_final]) }}"
+                target="_blank"
+                class="h-[42px] px-5 bg-[#9b2247] hover:bg-[#7a1b38] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md transition-all flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                Exportar PDF
+            </a>
+            @endif
         </div>
     </div>
 
 {{-- Resultados del Kardex --}}
 @if($results !== null)
-<div class="mb-4 flex items-center justify-between px-2">
-    <div class="flex items-center gap-3">
-        <div class="w-1.5 h-6 bg-[#9b2247] rounded-full"></div>
-        <h3 class="text-sm font-black text-gray-800 dark:text-gray-200 uppercase tracking-widest">
-            Historial de Incidencias (Kardex)
-        </h3>
-    </div>
-
-    <a href="{{ route('reports.kardex.pdf', ['num_empleado' => $employee->num_empleado, 'fecha_inicio' => $fecha_inicio, 'fecha_final' => $fecha_final]) }}"
-        target="_blank"
-        class="flex items-center gap-2 px-4 py-2 bg-[#9b2247] hover:bg-[#7a1b38] text-white rounded-lg shadow-sm transition-all text-xs font-bold uppercase tracking-tight">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-        </svg>
-        Exportar PDF
-    </a>
+<div class="mb-4 flex items-center gap-3 px-2">
+    <div class="w-1.5 h-6 bg-[#9b2247] rounded-full"></div>
+    <h3 class="text-sm font-black text-gray-800 dark:text-gray-200 uppercase tracking-widest">
+        Historial de Incidencias (Kardex)
+    </h3>
 </div>
 
 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
