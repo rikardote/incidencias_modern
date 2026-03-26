@@ -39,7 +39,8 @@ class WearOSTest extends TestCase
         $response = $this->withHeader('X-API-KEY', $this->apiKey)
             ->postJson('/api/wearos/checar', [
                 'fecha' => '2026-03-25 10:00:00',
-                'identificador' => '332618'
+                'num_empleado' => '332618',
+                'identificador' => 'WOS_TEST'
             ]);
 
         $response->assertStatus(201)
@@ -60,6 +61,7 @@ class WearOSTest extends TestCase
         $response = $this->withHeader('X-API-KEY', $this->apiKey)
             ->postJson('/api/wearos/checar', [
                 'fecha' => '2026-03-25 10:00:00',
+                'num_empleado' => '332618',
                 'identificador' => 'WearOS'
             ]);
 
@@ -77,6 +79,7 @@ class WearOSTest extends TestCase
         $response = $this->withHeader('X-API-KEY', 'wrong-key')
             ->postJson('/api/wearos/checar', [
                 'fecha' => '2026-03-25 10:00:00',
+                'num_empleado' => '332618',
                 'identificador' => '332618'
             ]);
 
@@ -114,5 +117,37 @@ class WearOSTest extends TestCase
             ->getJson('/api/wearos/historial/332618');
 
         $response->assertStatus(401);
+    }
+
+    /** @test */
+    public function test_wearos_can_get_checkins_by_employee_number()
+    {
+        Checada::create([
+            'num_empleado' => '332618',
+            'fecha' => '2026-03-25 08:00:00',
+            'identificador' => 'WOS_1'
+        ]);
+
+        $response = $this->withHeader('X-API-KEY', $this->apiKey)
+            ->getJson('/api/wearos/checadas/332618');
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'employee' => [
+                    'num_empleado' => '332618',
+                    'nombre' => 'TEST USER WEAROS'
+                ]
+            ])
+            ->assertJsonCount(1, 'check_ins');
+    }
+
+    /** @test */
+    public function test_wearos_get_checkins_by_employee_returns_404_for_invalid_employee()
+    {
+        $response = $this->withHeader('X-API-KEY', $this->apiKey)
+            ->getJson('/api/wearos/checadas/999999');
+
+        $response->assertStatus(404);
     }
 }

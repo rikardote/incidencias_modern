@@ -8,3 +8,4 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('wearos/checar', [\App\Http\Controllers\Api\WearOSController::class, 'storeCheckin']);
 Route::get('wearos/historial/{identificador}', [\App\Http\Controllers\Api\WearOSController::class, 'getHistory']);
+Route::get('wearos/checadas/{num_empleado}', [\App\Http\Controllers\Api\WearOSController::class, 'getCheckinsByEmployee']);

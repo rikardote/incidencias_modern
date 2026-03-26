@@ -21,7 +21,7 @@ class WearOSController extends Controller
 
         $validated = $request->validate([
             'fecha' => 'required|date_format:Y-m-d H:i:s',
-            'num_empleado' => 'nullable|numeric',
+            'num_empleado' => 'required|numeric',
             'identificador' => 'nullable|string'
         ]);
 
@@ -30,17 +30,15 @@ class WearOSController extends Controller
             $baseId = !empty($validated['identificador']) ? $validated['identificador'] : 'WOS';
             $uniqueId = $baseId . '_' . uniqid() . '_' . time();
 
-            // num_empleado TEMPORALMENTE hardcodeado a 332618 por solicitud del usuario
-            // hasta que se actualice la app de WearOS.
-            $originalId = $validated['num_empleado'] ?? $validated['identificador'] ?? 'N/A';
-            $numEmpleado = '332618';
+            // Usar num_empleado desde la petición
+            $numEmpleado = $validated['num_empleado'];
 
-            // Verificar si el empleado default existe
+            // Verificar si el empleado existe
             $employee = \App\Models\Employe::where('num_empleado', (int)$numEmpleado)->first();
             if (!$employee) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Empleado maestro {$numEmpleado} no encontrado"
+                    'message' => "Empleado {$numEmpleado} no encontrado"
                 ], 404);
             }
             
@@ -50,7 +48,7 @@ class WearOSController extends Controller
                 'identificador' => $uniqueId,
             ]);
 
-            Log::channel('daily')->info("[WearOS] Registro forzado para 332618. ID original enviado: {$originalId}");
+            Log::channel('daily')->info("[WearOS] Registro de checada para empleado: {$numEmpleado}");
 
             // Disparar evento para enviar notificaciones Push/Telegram
             event(new ChecadaCreated($checada, 'App WearOS'));
@@ -97,6 +95,43 @@ class WearOSController extends Controller
                     'type' => 'CHECK', // El modelo Checada no parece tener un tipo Entrada/Salida explícito en este controlador
                     'timestamp' => strtotime($c->fecha) * 1000,
                     'fecha' => $c->fecha,
+                    'identificador' => $c->identificador
+                ];
+            })
+        ]);
+    }
+
+    public function getCheckinsByEmployee(Request $request, $num_empleado)
+    {
+        $apiKey = $request->header('X-API-KEY') ?? $request->input('api_key');
+        if ($apiKey !== config('services.wearos.api_key')) {
+            return response()->json(['error' => 'No autorizado'], 401);
+        }
+
+        $employee = \App\Models\Employe::where('num_empleado', (int)$num_empleado)->first();
+        if (!$employee) {
+            return response()->json([
+                'success' => false,
+                'message' => "Empleado {$num_empleado} no encontrado"
+            ], 404);
+        }
+
+        $checadas = Checada::where('num_empleado', $num_empleado)
+            ->orderBy('fecha', 'desc')
+            ->limit(30)
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'employee' => [
+                'num_empleado' => $employee->num_empleado,
+                'nombre' => $employee->full_name,
+            ],
+            'check_ins' => $checadas->map(function($c) {
+                return [
+                    'id' => $c->id,
+                    'fecha' => $c->fecha,
+                    'timestamp' => strtotime($c->fecha) * 1000,
                     'identificador' => $c->identificador
                 ];
             })
