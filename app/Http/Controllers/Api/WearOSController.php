@@ -118,7 +118,7 @@ class WearOSController extends Controller
 
         $checadas = Checada::where('num_empleado', $num_empleado)
             ->orderBy('fecha', 'desc')
-            ->limit(30)
+            ->limit(20)
             ->get();
 
         return response()->json([
