@@ -46,6 +46,8 @@ class EmployeeImport extends Component
         $this->updated = 0;
         $this->skipped = 0;
 
+        DB::connection()->unsetEventDispatcher();
+        DB::disableQueryLog();
         DB::beginTransaction();
 
         try {

@@ -166,6 +166,10 @@ class BiometricoMonitorDaemon extends Command
                 $this->info("[{$device->location}] 🕒 Se detectaron $nuevos registros nuevos.");
             }
 
+            // Clean up memory aggressively for daemon
+            unset($attendance, $recent);
+            gc_collect_cycles();
+
         } catch (\Exception $e) {
             $this->error("[{$device->location}] Error en sondeo: " . $e->getMessage());
             throw $e;

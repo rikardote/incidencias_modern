@@ -32,6 +32,9 @@ class ImportCurpAndRfcCommand extends Command
 
         $this->info("Iniciando importación...");
 
+        \Illuminate\Support\Facades\DB::connection()->unsetEventDispatcher();
+        \Illuminate\Support\Facades\DB::disableQueryLog();
+
         while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
             // Asegurarse de tener al menos las 3 columnas
             if (count($data) < 3) continue;

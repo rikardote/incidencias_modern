@@ -31,24 +31,26 @@ class InitEmployeePasswords extends Command
             return;
         }
 
-        $employees = Employe::whereNull('password')->orWhere('password', '')->get();
-        $count = $employees->count();
+        $query = Employe::whereNull('password')->orWhere('password', '');
+        $count = $query->count();
 
         $this->info("Procesando {$count} empleados...");
 
         $bar = $this->output->createProgressBar($count);
         $bar->start();
 
-        foreach ($employees as $employee) {
-            $rfc = $employee->rfc;
-            
-            if ($rfc) {
-                $employee->password = Hash::make(strtoupper(trim($rfc)));
-                $employee->save();
+        $query->chunk(200, function ($employees) use ($bar) {
+            foreach ($employees as $employee) {
+                $rfc = $employee->rfc;
+                
+                if ($rfc) {
+                    $employee->password = Hash::make(strtoupper(trim($rfc)));
+                    $employee->save();
+                }
+                
+                $bar->advance();
             }
-            
-            $bar->advance();
-        }
+        });
 
         $bar->finish();
         $this->newLine();

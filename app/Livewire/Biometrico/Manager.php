@@ -128,9 +128,18 @@ class Manager extends Component
             try {
                 $zk = new ZKTeco($dispositivo->ip);
                 
-                socket_set_option($zk->_zkclient, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 1, 'usec' => 500000]);
+                socket_set_option($zk->_zkclient, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 8, 'usec' => 0]);
                 
-                if ($zk->connect()) {
+                $connected = false;
+                for ($i = 0; $i < 3; $i++) {
+                    if ($zk->connect()) {
+                        $connected = true;
+                        break;
+                    }
+                    usleep(500000);
+                }
+                
+                if ($connected) {
                     $checadas = $zk->getAttendance();
                     
                     if (!empty($checadas)) {
@@ -194,11 +203,20 @@ class Manager extends Component
             try {
                 $zk = new ZKTeco($disp['ip']);
                 
-                // Reducir el timeout de 60 segundos (por defecto) a 1.5 segundos
+                // Reducir el timeout de 60 segundos (por defecto) a 5 segundos
                 // para evitar que la interfaz se quede colgada si el dispositivo está offline
-                socket_set_option($zk->_zkclient, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 1, 'usec' => 500000]);
+                socket_set_option($zk->_zkclient, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 5, 'usec' => 0]);
 
-                if ($zk->connect()) {
+                $connected = false;
+                for ($i = 0; $i < 3; $i++) {
+                    if ($zk->connect()) {
+                        $connected = true;
+                        break;
+                    }
+                    usleep(500000);
+                }
+
+                if ($connected) {
                     $time = $zk->getTime();
                     $formattedTime = $time ? date('d/m/Y H:i:s', strtotime($time)) : null;
                     $this->deviceTimes[$disp['id']] = [
