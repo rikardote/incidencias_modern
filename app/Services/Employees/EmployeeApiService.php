@@ -46,6 +46,28 @@ class EmployeeApiService
     }
 
     /**
+     * Get all payroll history for a specific employee.
+     */
+    public function getPayrollHistory($numEmpleado)
+    {
+        return Cache::remember("employee_api_history_{$numEmpleado}", 3600, function () use ($numEmpleado) {
+            try {
+                $response = Http::get("{$this->baseUrl}/employees/search", [
+                    'id_empleado' => $numEmpleado
+                ]);
+
+                if ($response->successful()) {
+                    return $response->json();
+                }
+            } catch (\Exception $e) {
+                \Log::error("Error connecting to Employees API for history: " . $e->getMessage());
+            }
+
+            return [];
+        });
+    }
+
+    /**
      * Search for employees in the external system.
      */
     public function searchEmployees($query)

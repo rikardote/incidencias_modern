@@ -44,12 +44,15 @@ class MenuHandler extends TelegramHandler
                     [['text' => '🎫 Consultar Pases de Salida', 'callback_data' => 'admin_pases_start']],
                     [['text' => '📋 Consultar Incidencias (Mes)', 'callback_data' => 'admin_incs_start']],
                     [['text' => '🕒 Ver Checadas Quincena', 'callback_data' => 'admin_checs_start']],
+                    [['text' => '💰 Consultar Nómina', 'callback_data' => 'admin_payroll_start']],
                 ]
             ])
         ]);
         return true;
     }
 
+    public function handleUserMenu($employee)
+    {
         if (!$employee) {
             $this->sendMessage("👋 <b>¡Bienvenido!</b>\n\nPara consultar tus datos, primero vincula tu cuenta desde el portal institucional.", ['parse_mode' => 'HTML']);
             return true;
@@ -59,6 +62,7 @@ class MenuHandler extends TelegramHandler
             [['text' => '🕒 Mis Checadas (Qna)', 'callback_data' => 'user_checs']],
             [['text' => '🌴 Mis Vacaciones', 'callback_data' => 'user_vaca']],
             [['text' => '📋 Mis Incidencias (Mes)', 'callback_data' => 'user_incs']],
+            [['text' => '💰 Mi Nómina', 'callback_data' => 'user_payroll_start']],
         ];
 
         // Solo personal de Base (ID 1)

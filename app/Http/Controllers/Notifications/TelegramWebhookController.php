@@ -17,6 +17,7 @@ use App\Telegram\Handlers\ManualPunchHandler;
 use App\Telegram\Handlers\ExitPassHandler;
 
 use App\Telegram\Handlers\GeneralIncidenceHandler;
+use App\Telegram\Handlers\PayrollHandler;
 
 class TelegramWebhookController extends Controller
 {
@@ -54,6 +55,7 @@ class TelegramWebhookController extends Controller
             new EconomicDaysHandler($telegram, $chatId),
             new ExitPassHandler($telegram, $chatId),
             new GeneralIncidenceHandler($telegram, $chatId),
+            new PayrollHandler($telegram, $chatId),
             new ManualPunchHandler($telegram, $chatId),
             new MenuHandler($telegram, $chatId),
         ];
