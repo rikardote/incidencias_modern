@@ -32,6 +32,9 @@
                                             <li><strong>Notificaciones web:</strong> Acepta los permisos de tu navegador para recibir alertas directamente en tu celular, sin necesidad de tener el portal abierto.</li>
                                             <li><strong>Bot de Telegram:</strong> Vincula tu cuenta usando el botón inferior y recibe tus checadas al instante en la aplicación de Telegram.</li>
                                         </ul>
+                                        <p class="mt-3 font-semibold bg-blue-100 p-2 rounded-md">
+                                            💡 Puedes activar **uno solo, o ambos** según prefieras. Son independientes.
+                                        </p>
                                     </div>
                                 </div>
                             </div>

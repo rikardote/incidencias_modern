@@ -40,9 +40,6 @@
                 </a>
             @endif
 
-            <a class="text-xs font-bold text-gray-400 dark:text-gray-500 hover:text-[#13322B] dark:hover:text-oro transition-colors uppercase tracking-widest" href="{{ route('employee.login') }}">
-                {{ __('¿Eres Empleado? Entra aquí') }}
-            </a>
 
             <x-primary-button class="w-full sm:w-auto justify-center py-3 px-8 shadow-lg shadow-[#13322B]/20">
                 {{ __('Log in') }}

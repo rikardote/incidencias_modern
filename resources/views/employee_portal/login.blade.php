@@ -38,10 +38,7 @@
             </label>
         </div>
 
-        <div class="flex items-center justify-between mt-4">
-            <a class="text-sm text-gray-600 hover:text-gray-900 underline" href="{{ route('login') }}">
-                {{ __('¿Eres Administrador?') }}
-            </a>
+        <div class="flex items-center justify-end mt-4">
 
             <x-primary-button class="ms-3">
                 {{ __('Iniciar Sesión') }}
