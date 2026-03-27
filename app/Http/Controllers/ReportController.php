@@ -431,10 +431,24 @@ class ReportController extends Controller
         ini_set('memory_limit', '512M');
         
         $employee = Employe::with(['department', 'puesto', 'horario'])->findOrFail($employeeId);
-        $user = auth()->user();
-        if (!$user->admin()) {
-            if (!$user->departments()->where('deparment_id', $employee->deparment_id)->exists()) {
-                abort(403);
+        
+        $user = auth()->guard('web')->user();
+        $isEmployee = false;
+
+        if (!$user && auth()->guard('employee')->check()) {
+            $user = auth()->guard('employee')->user();
+            $isEmployee = true;
+        }
+
+        if (!$user) abort(403);
+
+        if ($isEmployee) {
+            if ($user->id != $employee->id) abort(403, 'No tiene permiso para ver esta información.');
+        } else {
+            if (!$user->admin()) {
+                if (!$user->departments()->where('deparment_id', $employee->deparment_id)->exists()) {
+                    abort(403);
+                }
             }
         }
 
@@ -501,10 +515,25 @@ class ReportController extends Controller
         $num_empleado = str_pad($num_empleado, 6, '0', STR_PAD_LEFT);
         $empleado = Employe::with(['department', 'puesto', 'horario', 'jornada'])->where('num_empleado', $num_empleado)->firstOrFail();
         
-        $user = auth()->user();
-        if (!$user->admin()) {
-            if (!$user->departments()->where('deparment_id', $empleado->deparment_id)->exists()) {
-                abort(403, 'No tienes permiso para ver el reporte de este empleado.');
+        $user = auth()->guard('web')->user();
+        $isEmployee = false;
+
+        if (!$user && auth()->guard('employee')->check()) {
+            $user = auth()->guard('employee')->user();
+            $isEmployee = true;
+        }
+
+        if (!$user) abort(403);
+
+        if ($isEmployee) {
+            if ($user->num_empleado !== $num_empleado) {
+                abort(403, 'No tienes permiso para ver esta información.');
+            }
+        } else {
+            if (!$user->admin()) {
+                if (!$user->departments()->where('deparment_id', $empleado->deparment_id)->exists()) {
+                    abort(403, 'No tienes permiso para ver el reporte de este empleado.');
+                }
             }
         }
 

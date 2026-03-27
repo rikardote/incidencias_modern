@@ -70,9 +70,9 @@
     @endif
 
     <div
-        class="bg-white dark:bg-gray-800 p-2 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
+        class="bg-white dark:bg-gray-800 p-2.5 rounded-[20px] shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col lg:flex-row items-stretch lg:items-center gap-4">
         {{-- Filtros de Fecha --}}
-        <div class="flex items-center gap-2 px-2">
+        <div class="flex items-center gap-2 bg-gray-50/50 dark:bg-gray-900/40 p-1.5 rounded-xl border border-gray-100/50 dark:border-gray-700/50">
             <div wire:ignore class="relative" x-data="{ 
                     flatpickrInstance: null,
                     init() { 
@@ -88,11 +88,22 @@
                         });
                     } 
                 }">
+                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
                 <input type="text" x-ref="input"
-                    class="h-[42px] w-[130px] px-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 focus:ring-[#13322B] cursor-pointer text-center"
+                    class="h-[38px] w-[125px] pl-8 pr-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg text-[11px] font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-[#13322B]/20 outline-none cursor-pointer text-center transition-all shadow-sm"
                     placeholder="Inicio">
             </div>
-            <span class="text-gray-400 font-bold">-</span>
+            
+            <div class="flex items-center justify-center w-6 h-6 rounded-full bg-gray-200/50 dark:bg-gray-700/50">
+                <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+            </div>
+
             <div wire:ignore class="relative" x-data="{ 
                     flatpickrInstance: null,
                     init() { 
@@ -108,16 +119,26 @@
                         });
                     } 
                 }">
+                <div class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
                 <input type="text" x-ref="input"
-                    class="h-[42px] w-[130px] px-3 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 focus:ring-[#13322B] cursor-pointer text-center"
+                    class="h-[38px] w-[125px] pl-8 pr-2 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg text-[11px] font-bold text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-[#13322B]/20 outline-none cursor-pointer text-center transition-all shadow-sm"
                     placeholder="Fin">
             </div>
         </div>
 
-        <div class="flex gap-2">
+        <div class="flex items-center gap-2 flex-1">
             <button wire:click="generate"
-                class="h-[42px] px-5 bg-[#13322B] hover:bg-[#0a1b17] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md transition-all flex items-center justify-center min-w-[120px]">
-                <span wire:loading.remove wire:target="generate">Consultar</span>
+                class="h-[40px] px-6 bg-[#13322B] hover:bg-[#0a1b17] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[#13322B]/10 transition-all flex items-center justify-center gap-2 min-w-[130px] group active:scale-95">
+                <span wire:loading.remove wire:target="generate" class="flex items-center gap-2">
+                    <svg class="w-3.5 h-3.5 transition-transform group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Consultar
+                </span>
                 <span wire:loading wire:target="generate">
                     <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
@@ -129,16 +150,22 @@
                 </span>
             </button>
             <button wire:click="generateAll"
-                class="h-[42px] px-5 bg-oro hover:bg-[#a57f2c] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md transition-all">
+                class="h-[40px] px-5 bg-oro hover:bg-[#a57f2c] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-oro/10 transition-all flex items-center gap-2 active:scale-95 group">
+                <svg class="w-3.5 h-3.5 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9l-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
                 Todo
             </button>
+            
+            <div class="h-6 w-px bg-gray-100 dark:bg-gray-700 mx-1 hidden lg:block"></div>
+
             @if($employee)
             <a href="{{ route('reports.kardex.pdf', ['num_empleado' => $employee->num_empleado, 'fecha_inicio' => $fecha_inicio, 'fecha_final' => $fecha_final]) }}"
                 target="_blank"
-                class="h-[42px] px-5 bg-[#9b2247] hover:bg-[#7a1b38] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md transition-all flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                class="h-[40px] px-5 bg-[#9b2247] hover:bg-[#7a1b38] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[#9b2247]/10 transition-all flex items-center gap-2 ml-auto active:scale-95 group">
+                <svg class="w-3.5 h-3.5 transition-transform group-hover:-translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 Exportar PDF
             </a>

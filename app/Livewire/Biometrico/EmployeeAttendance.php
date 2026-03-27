@@ -19,8 +19,19 @@ class EmployeeAttendance extends Component
     public function mount($employeeId, $isPortal = false)
     {
         $this->isPortal = $isPortal;
-        $guard = auth()->guard('employee')->check() ? 'employee' : 'web';
-        $user = auth()->guard($guard)->user();
+        
+        // Priorizar guard 'web' (Administradores/Jefes de Depto)
+        $user = auth()->guard('web')->user();
+        $guard = 'web';
+
+        if (!$user && auth()->guard('employee')->check()) {
+            $user = auth()->guard('employee')->user();
+            $guard = 'employee';
+        }
+
+        if (!$user) {
+            abort(403, 'No ha iniciado sesión.');
+        }
 
         $query = Employe::with(['department', 'puesto', 'horario']);
 
