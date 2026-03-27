@@ -262,9 +262,11 @@ class Manager extends Component
         });
         $topCodigos = $todosLosCodigos->whereIn('id', $frecuentesIds)->sortBy('code');
         $otrosCodigos = $todosLosCodigos->whereNotIn('id', $topCodigos->pluck('id'));
-
-        $periodos = Periodo::where('year', '>=', (int)date('Y') - 5)
-            ->orderBy('year', 'desc')->orderBy('periodo', 'desc')->get();
+        
+        $periodos = Cache::remember('catalogo_periodos_5yrs', 3600, function() {
+            return Periodo::where('year', '>=', (int)date('Y') - 5)
+                ->orderBy('year', 'desc')->orderBy('periodo', 'desc')->get();
+        });
 
         return view('livewire.incidencias.manager', compact(
             'incidencias', 'topCodigos', 'otrosCodigos', 'periodos', 'medicos', 'enabledDateRanges'

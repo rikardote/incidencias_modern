@@ -11,10 +11,11 @@ class MaintenanceEventTest extends TestCase
     /**
      * A basic feature test example.
      */
-    public function test_example(): void
+    public function test_landing_page_accessible(): void
     {
         $response = $this->get('/');
 
-        $response->assertRedirect('/login');
+        $response->assertStatus(200);
+        $response->assertSee('Bienvenido');
     }
 }

@@ -189,14 +189,9 @@
                         </div>
                     </a>
 
-                    <!-- Mantenimiento -->
-                    <div class="md:col-span-1">
-                        @livewire('system.maintenance-toggle')
-                    </div>
-
-                    <!-- Configuración de Chat -->
-                    <div class="md:col-span-1">
-                        @livewire('system.chat-configuration')
+                    <!-- Card Otras Opciones (Unificado) -->
+                    <div class="md:col-span-2">
+                        <livewire:system.system-settings-manager />
                     </div>
 
             </div>

@@ -61,4 +61,41 @@ class TXTRuleTest extends TestCase
 
         $rule->aplicar($incidencia, $empleado, $data, Inc::TXT);
     }
+
+    public function test_lanza_excepcion_si_excede_limite_mensual_matutino()
+    {
+        $this->expectException(DomainException::class);
+        $this->expectExceptionMessage('Trabajador no puede gozar más de 5 días de T.X.T');
+
+        $helpers = $this->createMock(\App\Services\Incidencias\IncidenciaHelpersService::class);
+        $helpers->method('txtUsadoPorMes')->willReturn(5); // Ya usó 5
+
+        $rule = new TXTRule($helpers);
+        $incidencia = new Incidencia(['total_dias' => 1, 'fecha_inicio' => '2024-01-01']);
+        $empleado = new Employe(['condicion_id' => Inc::CONDICION_BASE, 'num_empleado' => '123', 'jornada_id' => Inc::JORNADA_MAT_DESP[0]]);
+
+        $data = ['cobertura_txt' => 'Sustituto', 'autoriza_txt' => 'Jefe'];
+
+        $rule->aplicar($incidencia, $empleado, $data, Inc::TXT);
+    }
+
+    public function test_permite_exceder_limite_si_configuracion_activa()
+    {
+        // Activar el bypass en la base de datos
+        \App\Models\Configuration::set('unlock_txt_limits', true);
+
+        $helpers = $this->createMock(\App\Services\Incidencias\IncidenciaHelpersService::class);
+        $helpers->method('txtUsadoPorMes')->willReturn(5); // Ya usó 5
+
+        $rule = new TXTRule($helpers);
+        $incidencia = new Incidencia(['total_dias' => 1, 'fecha_inicio' => '2024-01-01']);
+        $empleado = new Employe(['condicion_id' => Inc::CONDICION_BASE, 'num_empleado' => '123', 'jornada_id' => Inc::JORNADA_MAT_DESP[0]]);
+
+        $data = ['cobertura_txt' => 'Sustituto', 'autoriza_txt' => 'Jefe'];
+
+        // No debería lanzar excepción porque está desbloqueado
+        $rule->aplicar($incidencia, $empleado, $data, Inc::TXT);
+        
+        $this->assertTrue(true);
+    }
 }

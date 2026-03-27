@@ -20,31 +20,52 @@ class InitEmployeePasswords extends Command
      *
      * @var string
      */
-    protected $description = 'Initialize employee passwords using their RFC hashed';
+    protected $description = 'Initialize employee passwords using their RFC from the Employees API hashed';
+
+    /**
+     * @var \App\Services\Employees\EmployeeApiService
+     */
+    protected $apiService;
+
+    /**
+     * Create a new command instance.
+     */
+    public function __construct(\App\Services\Employees\EmployeeApiService $apiService)
+    {
+        parent::__construct();
+        $this->apiService = $apiService;
+    }
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        if (!$this->option('force') && !$this->confirm('Esto sobrescribirá las contraseñas vacías de los empleados con su RFC hasheado. ¿Continuar?')) {
+        if (!$this->option('force') && !$this->confirm('Esto sobrescribirá las contraseñas de TODOS los empleados con su RFC (obtenido de la API) hasheado. ¿Continuar?')) {
             return;
         }
 
-        $query = Employe::whereNull('password')->orWhere('password', '');
+        $query = Employe::query();
         $count = $query->count();
 
-        $this->info("Procesando {$count} empleados...");
+        $this->info("Procesando {$count} empleados consultando la API...");
 
         $bar = $this->output->createProgressBar($count);
         $bar->start();
 
-        $query->chunk(200, function ($employees) use ($bar) {
+        $query->chunk(50, function ($employees) use ($bar) {
             foreach ($employees as $employee) {
-                $rfc = $employee->rfc;
+                // Intentar obtener RFC de la API (algunos vienen en 'rfc', otros en 'id_legal')
+                $apiData = $this->apiService->getEmployeeData($employee->num_empleado);
+                $rfc = $apiData['rfc'] ?? $apiData['id_legal'] ?? null;
                 
                 if ($rfc) {
-                    $employee->password = Hash::make(strtoupper(trim($rfc)));
+                    $rfc = strtoupper(trim($rfc));
+                    $employee->password = Hash::make($rfc);
+                    
+                    // Sincronizar RFC local
+                    $employee->rfc = $rfc;
+                    
                     $employee->save();
                 }
                 
@@ -54,6 +75,6 @@ class InitEmployeePasswords extends Command
 
         $bar->finish();
         $this->newLine();
-        $this->info('Contraseñas inicializadas correctamente.');
+        $this->info('Contraseñas inicializadas correctamente usando RFC de la API.');
     }
 }
