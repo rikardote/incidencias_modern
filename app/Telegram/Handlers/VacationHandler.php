@@ -96,16 +96,19 @@ class VacationHandler extends TelegramHandler
             $pending = max(0, $entitlement - $used);
             $totalPending += $pending;
 
-            $rows[] = "📅 **{$p->periodo}-{$p->year}**: {$used} gozados | *{$pending} pend.*";
+            $rows[] = "📅 <b>{$p->periodo}-{$p->year}</b>: {$used} gozados | <i>{$pending} pend.</i>";
         }
 
-        $msg = "🌴 **Reporte de Vacaciones (4 años)**\n";
-        $msg .= "👤 {$employee->num_empleado} - {$employee->full_name}\n";
-        $msg .= "--------------------------------\n";
-        $msg .= implode("\n", $rows);
-        $msg .= "\n--------------------------------\n";
-        $msg .= "📈 **Total Pendiente: {$totalPending} días**";
+            $safeNum = htmlspecialchars($employee->num_empleado);
+            $safeName = htmlspecialchars($employee->full_name);
 
-        $this->sendMessage($msg);
+            $msg = "🌴 <b>Reporte de Vacaciones (4 años)</b>\n";
+            $msg .= "👤 {$safeNum} - {$safeName}\n";
+            $msg .= "--------------------------------\n";
+            $msg .= implode("\n", $rows);
+            $msg .= "\n--------------------------------\n";
+            $msg .= "📈 <b>Total Pendiente: {$totalPending} días</b>";
+
+            $this->sendMessage($msg, ['parse_mode' => 'HTML']);
     }
 }

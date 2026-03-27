@@ -86,15 +86,18 @@ class AttendanceHandler extends TelegramHandler
                 $emoji = ($r->hora_entrada || $r->incidencias) ? "✅" : "❌";
                 if ($r->retardo) $emoji = "⚠️";
 
-                $rows[] = "{$emoji} **{$fechaStr}**: {$entrada} - {$salida}";
+                $rows[] = "{$emoji} <b>{$fechaStr}</b>: {$entrada} - {$salida}";
             }
 
-            $msg = "🕒 **Asistencia Quincena Actual**\n";
-            $msg .= "👤 {$employee->num_empleado} - {$employee->full_name}\n";
+            $safeNum = htmlspecialchars($employee->num_empleado);
+            $safeName = htmlspecialchars($employee->full_name);
+
+            $msg = "🕒 <b>Asistencia Quincena Actual</b>\n";
+            $msg .= "👤 {$safeNum} - {$safeName}\n";
             $msg .= "--------------------------------\n";
             $msg .= implode("\n", $rows);
 
-            $this->sendMessage($msg);
+            $this->sendMessage($msg, ['parse_mode' => 'HTML']);
         } catch (\Exception $e) {
             $this->sendMessage("❌ Error al consultar checadas: " . $e->getMessage());
         }

@@ -18,13 +18,15 @@ class StartHandler extends TelegramHandler
 
                 if ($employeeToLink) {
                     $employeeToLink->update(['telegram_chat_id' => $this->chatId, 'telegram_link_token' => null]);
-                    $this->sendMessage("¡Hola {$employeeToLink->name}! ✅ Vinculación exitosa.");
+                    $safeName = htmlspecialchars($employeeToLink->name);
+                    $this->sendMessage("¡Hola <b>{$safeName}</b>! ✅ Vinculación exitosa.", ['parse_mode' => 'HTML']);
                 } else {
                     $this->sendMessage("❌ Código inválido.");
                 }
             } else {
-                $msg = $alreadyLinked ? "👋 ¡Hola {$alreadyLinked->name}! Cuenta activa." : "👋 Vincúlate en el portal para recibir avisos.";
-                $this->sendMessage($msg);
+                $safeName = $alreadyLinked ? htmlspecialchars($alreadyLinked->name) : '';
+                $msg = $alreadyLinked ? "👋 ¡Hola <b>{$safeName}</b>! Cuenta activa." : "👋 Vincúlate en el portal para recibir avisos.";
+                $this->sendMessage($msg, ['parse_mode' => 'HTML']);
             }
             return true;
         }

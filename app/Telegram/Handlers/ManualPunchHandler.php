@@ -20,7 +20,7 @@ class ManualPunchHandler extends TelegramHandler
 
         if ($data === 'admin_register_start') {
             $this->setSession('waiting_num_empleado');
-            $this->sendMessage("🔢 Escribe el **Número de Empleado**:");
+            $this->sendMessage("🔢 Escribe el <b>Número de Empleado</b>:", ['parse_mode' => 'HTML']);
             return true;
         }
 
@@ -62,11 +62,14 @@ class ManualPunchHandler extends TelegramHandler
             $employeeToRegister = Employe::where('num_empleado', $num)->first();
 
             if (!$employeeToRegister) {
-                $this->sendMessage("❌ Empleado **{$num}** no encontrado.");
+                $safeNum = htmlspecialchars($num);
+                $this->sendMessage("❌ Empleado <b>{$safeNum}</b> no encontrado.", ['parse_mode' => 'HTML']);
                 return true;
             }
 
-            $this->sendMessage("👤 **Empleado**: {$employeeToRegister->full_name}\n\n¿Hora del registro?", [
+            $safeName = htmlspecialchars($employeeToRegister->full_name);
+            $this->sendMessage("👤 <b>Empleado</b>: {$safeName}\n\n¿Hora del registro?", [
+                'parse_mode' => 'HTML',
                 'reply_markup' => json_encode([
                     'inline_keyboard' => [
                         [['text' => '✅ Ahora', 'callback_data' => "time_select_now|{$num}"]],
@@ -104,7 +107,8 @@ class ManualPunchHandler extends TelegramHandler
             $checada = Checada::create(['num_empleado' => $num, 'fecha' => $timestamp->format('Y-m-d H:i:s'), 'identificador' => $identificador]);
             if ($checada) {
                 event(new ChecadaCreated($checada, $location));
-                $this->sendMessage("✅ Registrado: **{$num}** (" . $timestamp->format('g:i A') . ")");
+                $safeNum = htmlspecialchars($num);
+                $this->sendMessage("✅ Registrado: <b>{$safeNum}</b> (" . $timestamp->format('g:i A') . ")", ['parse_mode' => 'HTML']);
             }
         } catch (\Exception $e) {
             $this->sendMessage("❌ Error: Registro duplicado.");

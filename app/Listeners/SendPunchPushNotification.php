@@ -56,10 +56,10 @@ class SendPunchPushNotification implements ShouldQueue
             // --- TELEGRAM NOTIFICATION ---
             if (!empty($empleado->telegram_chat_id)) {
                 $telegram = app(\App\Services\Notifications\TelegramService::class);
-                $title = 'Nueva Checada Biométrico';
-                $body = "Se ha registrado tu checada a las " . \Carbon\Carbon::parse($checada->fecha)->format('g:i A');
+                $safeTitle = htmlspecialchars($title);
+                $safeBody = htmlspecialchars($body);
                 
-                $telegram->sendMessage($empleado->telegram_chat_id, "🔔 *{$title}*\n\n{$body}");
+                $telegram->sendMessage($empleado->telegram_chat_id, "🔔 <b>{$safeTitle}</b>\n\n{$safeBody}", ['parse_mode' => 'HTML']);
                 Log::info("Telegram notification sent to employee {$empleado->num_empleado} (Chat: {$empleado->telegram_chat_id}).");
             }
 

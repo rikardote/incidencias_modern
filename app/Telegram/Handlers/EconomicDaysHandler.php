@@ -99,20 +99,23 @@ class EconomicDaysHandler extends TelegramHandler
                 $rows[] = "• {$fechaStr} ({$inc->total_dias} día/s)";
             }
 
-            $msg = "💵 **Días Económicos Gozados ({$year})**\n";
-            $msg .= "👤 {$employee->num_empleado} - {$employee->full_name}\n";
+            $safeNum = htmlspecialchars($employee->num_empleado);
+            $safeName = htmlspecialchars($employee->full_name);
+
+            $msg = "💵 <b>Días Económicos Gozados ({$year})</b>\n";
+            $msg .= "👤 {$safeNum} - {$safeName}\n";
             $msg .= "--------------------------------\n";
             
             if (count($rows) > 0) {
                 $msg .= implode("\n", $rows);
             } else {
-                $msg .= "_No se registran días económicos en el año actual._";
+                $msg .= "<i>No se registran días económicos en el año actual.</i>";
             }
             
             $msg .= "\n--------------------------------\n";
-            $msg .= "📈 **Total Consumido: {$total} días**";
+            $msg .= "📈 <b>Total Consumido: {$total} días</b>";
 
-            $this->sendMessage($msg);
+            $this->sendMessage($msg, ['parse_mode' => 'HTML']);
         } catch (\Exception $e) {
             $this->sendMessage("❌ Error al consultar económicos: " . $e->getMessage());
         }

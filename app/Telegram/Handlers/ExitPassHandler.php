@@ -95,20 +95,23 @@ class ExitPassHandler extends TelegramHandler
                 $rows[] = "• {$fechaStr}";
             }
 
-            $msg = "🎫 **Pases de Salida ({$year})**\n";
-            $msg .= "👤 {$employee->num_empleado} - {$employee->full_name}\n";
+            $safeNum = htmlspecialchars($employee->num_empleado);
+            $safeName = htmlspecialchars($employee->full_name);
+
+            $msg = "🎫 <b>Pases de Salida ({$year})</b>\n";
+            $msg .= "👤 {$safeNum} - {$safeName}\n";
             $msg .= "--------------------------------\n";
             
             if (count($rows) > 0) {
                 $msg .= implode("\n", $rows);
             } else {
-                $msg .= "_No se registran pases de salida en el año actual._";
+                $msg .= "<i>No se registran pases de salida en el año actual.</i>";
             }
             
             $msg .= "\n--------------------------------\n";
-            $msg .= "📈 **Total: {$total} pases**";
+            $msg .= "📈 <b>Total: {$total} pases</b>";
 
-            $this->sendMessage($msg);
+            $this->sendMessage($msg, ['parse_mode' => 'HTML']);
         } catch (\Exception $e) {
             $this->sendMessage("❌ Error al consultar pases: " . $e->getMessage());
         }
