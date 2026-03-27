@@ -95,7 +95,7 @@ class PayrollHandler extends TelegramHandler
         }
 
         // Tomar las últimas 6
-        $history = array_slice(array_reverse($history), 0, 6);
+        $history = array_slice($history, 0, 6);
         
         $buttons = [];
         foreach ($history as $index => $record) {
@@ -112,7 +112,7 @@ class PayrollHandler extends TelegramHandler
 
     private function showPayrollDetail($num, $index)
     {
-        $history = array_slice(array_reverse($this->api->getPayrollHistory($num)), 0, 6);
+        $history = array_slice($this->api->getPayrollHistory($num), 0, 6);
         $record = $history[$index] ?? null;
 
         if (!$record) {

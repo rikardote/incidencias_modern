@@ -44,7 +44,7 @@ class MenuHandler extends TelegramHandler
                     [['text' => '🎫 Consultar Pases de Salida', 'callback_data' => 'admin_pases_start']],
                     [['text' => '📋 Consultar Incidencias (Mes)', 'callback_data' => 'admin_incs_start']],
                     [['text' => '🕒 Ver Checadas Quincena', 'callback_data' => 'admin_checs_start']],
-                    [['text' => '💰 Consultar Nómina', 'callback_data' => 'admin_payroll_start']],
+                    // [['text' => '💰 Consultar Nómina', 'callback_data' => 'admin_payroll_start']],
                 ]
             ])
         ]);
@@ -62,7 +62,7 @@ class MenuHandler extends TelegramHandler
             [['text' => '🕒 Mis Checadas (Qna)', 'callback_data' => 'user_checs']],
             [['text' => '🌴 Mis Vacaciones', 'callback_data' => 'user_vaca']],
             [['text' => '📋 Mis Incidencias (Mes)', 'callback_data' => 'user_incs']],
-            [['text' => '💰 Mi Nómina', 'callback_data' => 'user_payroll_start']],
+            // [['text' => '💰 Mi Nómina', 'callback_data' => 'user_payroll_start']],
         ];
 
         // Solo personal de Base (ID 1)
