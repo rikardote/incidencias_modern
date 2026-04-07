@@ -39,12 +39,12 @@ docker exec $DB_CONTAINER mysql -u $DB_USER -p$DB_PASS -e "DROP DATABASE IF EXIS
 
 # 2. Importar dump principal
 echo "📥 Importando $SQL_FILE..."
-docker exec -i $DB_CONTAINER mysql -u $DB_USER -p$DB_PASS $DB_NAME < "$SQL_FILE"
+(echo "SET FOREIGN_KEY_CHECKS=0;"; cat "$SQL_FILE"; echo "SET FOREIGN_KEY_CHECKS=1;") | docker exec -i $DB_CONTAINER mysql -u $DB_USER -p$DB_PASS $DB_NAME
 
 # 2.1 Importar biométrico (si existe)
 if [ -f "biometrico.sql" ]; then
     echo "📥 Importando biometrico.sql en la base de datos biometrico..."
-    docker exec -i $DB_CONTAINER mysql -u $DB_USER -p$DB_PASS biometrico < "biometrico.sql"
+    (echo "SET FOREIGN_KEY_CHECKS=0;"; cat "biometrico.sql"; echo "SET FOREIGN_KEY_CHECKS=1;") | docker exec -i $DB_CONTAINER mysql -u $DB_USER -p$DB_PASS biometrico
 else
     echo "⚠️ biometrico.sql no encontrado en la raíz, saltando importación de biométrico."
 fi

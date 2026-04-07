@@ -78,7 +78,7 @@
                                     this.remaining = Math.max(0, this.expiresAt - Math.floor(Date.now() / 1000));
                                     this.timer = setInterval(() => {
                                         this.remaining = Math.max(0, this.expiresAt - Math.floor(Date.now() / 1000));
-                                        if (this.remaining === 0) {
+                                        if (this.expiresAt > 0 && this.remaining === 0) {
                                             clearInterval(this.timer);
                                             window.location.reload();
                                         }
@@ -228,7 +228,7 @@
                                 </div>
 
                                 {{-- Fechas a Aplicar --}}
-                                <div class="flex items-center gap-4 p-4" wire:key="flatpickr-container-{{ $dateMode }}"
+                                <div class="flex items-center gap-4 p-4" wire:key="flatpickr-container-{{ $dateMode }}-{{ md5(json_encode($enabledDateRanges)) }}"
                                     data-ranges="{{ json_encode($enabledDateRanges) }}" x-data="{
                                         init() {
                                             if(this.$refs.fechaInput && this.$refs.fechaInput._flatpickr) {

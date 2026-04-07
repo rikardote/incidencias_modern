@@ -229,7 +229,9 @@ class Manager extends Component
         $exception = auth()->user()->activeCaptureException();
         if ($exception) {
             $qnaId = $exception->qna_id ?? Qna::where('active', '0')->orderBy('year', 'desc')->orderBy('qna', 'desc')->value('id');
-            if ($qnaId) $allowedQnaIds->push($qnaId)->unique();
+            if ($qnaId && !$allowedQnaIds->contains($qnaId)) {
+                $allowedQnaIds->push($qnaId);
+            }
         }
 
         // 2. Cargar Médicos solo si es Incapacidad (Carga diferida)
