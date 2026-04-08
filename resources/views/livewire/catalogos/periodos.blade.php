@@ -41,17 +41,19 @@
 
                             <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 px-4 py-3">
                                 <div class="flex items-center gap-4 min-w-0 w-full xl:w-auto">
-                                    <div class="flex-1 min-w-0">
-                                        <div class="flex items-center gap-2 flex-wrap mb-1">
-                                            <span
-                                                class="px-2.5 py-1 bg-[#13322B]/5 text-[#13322B] dark:bg-oro/10 dark:text-oro text-[10px] font-black rounded-lg uppercase tracking-wider border border-[#13322B]/10 dark:border-oro/20">
-                                                PERIODO {{ $p->periodo }}
-                                            </span>
-                                            <span
-                                                class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase truncate">
-                                                AÑO VACACIONAL {{ $p->year }}
-                                            </span>
+                                    <div class="flex items-center gap-3">
+                                        <!-- Bloque de Año -->
+                                        <div class="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700/50 rounded-xl px-4 py-2 min-w-[70px] shadow-sm">
+                                            <span class="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">AÑO</span>
+                                            <span class="text-lg font-black text-[#9b2247] dark:text-[#e6d194] leading-tight">{{ $p->year }}</span>
                                         </div>
+
+                                        <!-- Bloque de Periodo -->
+                                        <div class="flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700/50 rounded-xl px-4 py-2 min-w-[70px] shadow-sm">
+                                            <span class="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">PERIODO</span>
+                                            <span class="text-lg font-black text-gray-700 dark:text-gray-300 leading-tight">{{ $p->periodo }}</span>
+                                        </div>
+
                                     </div>
                                 </div>
 
