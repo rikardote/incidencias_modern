@@ -64,19 +64,19 @@ class TXTRule implements IncidenciaRuleInterface
 
             if (
                 Inc::esSyfDyf($empleado->jornada_id) &&
-                $total > 1
-            ) {
-                throw new DomainException(
-                    'Trabajador no puede gozar más de 1 día de T.X.T'
-                );
-            }
-
-            if (
-                Inc::esGuardia($empleado->jornada_id) &&
                 $total > 2
             ) {
                 throw new DomainException(
                     'Trabajador no puede gozar más de 2 días de T.X.T'
+                );
+            }
+ 
+            if (
+                Inc::esGuardia($empleado->jornada_id) &&
+                $total > 3
+            ) {
+                throw new DomainException(
+                    'Trabajador no puede gozar más de 3 días de T.X.T'
                 );
             }
         }

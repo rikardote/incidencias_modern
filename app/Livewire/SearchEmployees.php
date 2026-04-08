@@ -334,6 +334,12 @@ class SearchEmployees extends Component
         ->orderBy('num_empleado', 'ASC')
         ->paginate(20);
 
+        // Preload external API data concurrently for the rendered employees to prevent N+1
+        if ($employees->isNotEmpty()) {
+            $numeros = $employees->pluck('num_empleado')->toArray();
+            app(\App\Services\Employees\EmployeeApiService::class)->preloadEmployeesData($numeros);
+        }
+
         return view('livewire.search-employees', array_merge([
             'employees' => $employees,
             'departments' => $availableDepartments,
