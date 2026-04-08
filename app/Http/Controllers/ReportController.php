@@ -39,8 +39,14 @@ class ReportController extends Controller
             })
             ->orderBy('employees.num_empleado')
             ->orderBy('incidencias.id')
-            ->get()
-            ->groupBy('token');
+            ->get();
+
+        $numeros = $incidencias->pluck('employee.num_empleado')->unique()->filter()->toArray();
+        if (!empty($numeros)) {
+            app(\App\Services\Employees\EmployeeApiService::class)->preloadEmployeesData($numeros);
+        }
+
+        $incidencias = $incidencias->groupBy('token');
 
         $mpdf = new Mpdf([
             'orientation' => 'P',
@@ -318,6 +324,11 @@ class ReportController extends Controller
             ->whereIn('id', $employeeIdsToReport)
             ->orderBy('num_empleado')
             ->get();
+
+        $numerosSD = $results->pluck('num_empleado')->unique()->filter()->toArray();
+        if (!empty($numerosSD)) {
+            app(\App\Services\Employees\EmployeeApiService::class)->preloadEmployeesData($numerosSD);
+        }
 
         // 3. Generar PDF con mPDF
         $tempDir = storage_path('app/mpdf');

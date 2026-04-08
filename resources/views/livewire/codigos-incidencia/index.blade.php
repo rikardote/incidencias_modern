@@ -45,10 +45,9 @@
                                     <div class="flex-1 min-w-0">
                                         <div class="flex items-center gap-2 flex-wrap mb-1">
                                             <span
-                                                class="font-mono text-sm font-bold text-[#9b2247] dark:text-[#e6d194] shrink-0">
-                                                [{{ $codigo->code }}]
+                                                class="px-2.5 py-1 bg-[#13322B]/5 text-[#13322B] dark:bg-oro/10 dark:text-oro text-[10px] font-black rounded-lg uppercase tracking-wider border border-[#13322B]/10 dark:border-oro/20">
+                                                {{ $codigo->code }}
                                             </span>
-                                            <span class="text-gray-200 dark:text-gray-600 text-xs font-bold">|</span>
                                             <span
                                                 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase truncate">
                                                 {{ $codigo->description }}
@@ -154,8 +153,8 @@
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Código
                                     (Numérico o Alfanumérico)</label>
                                 <input type="text" wire:model="code" id="code" placeholder="Ej. 10, 48, INT..."
-                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro sm:text-sm">
-                                @error('code') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                    class="mt-1 block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 shadow-sm focus:ring-2 focus:ring-oro/20 focus:border-oro transition-all text-sm uppercase">
+                                @error('code') <span class="text-red-500 text-xs mt-1 block font-bold">{{ $message }}</span> @enderror
                             </div>
 
 
@@ -165,10 +164,10 @@
                                     class="block text-sm font-medium text-gray-700 dark:text-gray-300">Descripción</label>
                                 <input type="text" wire:model="description" id="description"
                                     placeholder="Ej. Permiso Económico"
-                                    class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-oro focus:ring-oro sm:text-sm uppercase">
+                                    class="mt-1 block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 shadow-sm focus:ring-2 focus:ring-oro/20 focus:border-oro transition-all text-sm uppercase">
                                 <p class="text-[10px] text-gray-500 mt-1">La descripción siempre se guardará en
                                     mayúsculas.</p>
-                                @error('description') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                                @error('description') <span class="text-red-500 text-xs mt-1 block font-bold">{{ $message }}</span> @enderror
                             </div>
 
                         </div>

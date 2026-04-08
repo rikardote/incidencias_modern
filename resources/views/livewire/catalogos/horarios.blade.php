@@ -44,6 +44,12 @@
                                     <div class="flex-1 min-w-0">
                                         <div class="flex items-center gap-2 flex-wrap mb-1">
                                             <span
+                                                class="px-2.5 py-1 bg-[#13322B]/5 text-[#13322B] dark:bg-oro/10 dark:text-oro text-[10px] font-black rounded-lg uppercase tracking-wider border border-[#13322B]/10 dark:border-oro/20 flex items-center justify-center">
+                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                                </svg>
+                                            </span>
+                                            <span
                                                 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase truncate">
                                                 {{ $item->horario }}
                                             </span>

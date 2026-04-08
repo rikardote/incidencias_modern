@@ -24,21 +24,13 @@
                     <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase">
                         {{ $employee->fullname }}
                     </span>
-                    <span
-                        class="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter {{ $employee->gender === 'Masculino' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400' }}">
-                        {{ $employee->gender }}
-                    </span>
+
                 </div>
                 <div class="flex items-center gap-2 mt-0.5 flex-wrap">
                     <span class="text-[11px] text-gray-500 dark:text-gray-400">
                         {{ $employee->department->description ?? 'Sin depto.' }}
                     </span>
-                    @if($employee->puesto)
-                    <span class="text-gray-200 dark:text-gray-600 text-xs">·</span>
-                    <span class="text-[11px] text-[#13322B]/60 dark:text-[#e6d194]/60">
-                        {{ $employee->puesto->puesto }}
-                    </span>
-                    @endif
+
                 </div>
             </div>
         </div>

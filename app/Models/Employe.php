@@ -114,6 +114,40 @@ class Employe extends Authenticatable
         }
     }
 
+    public function getEdadAttribute(): string
+    {
+        $curp = $this->curp;
+        if (!$curp && $this->rfc) {
+            $curp = $this->rfc;
+        }
+
+        if ($curp && strlen($curp) >= 10) {
+            $year = substr($curp, 4, 2);
+            $month = substr($curp, 6, 2);
+            $day = substr($curp, 8, 2);
+
+            if (is_numeric($year) && is_numeric($month) && is_numeric($day)) {
+                $currentYear2 = (int) date('y');
+                $fullYear = (int) $year > $currentYear2 ? 1900 + (int) $year : 2000 + (int) $year;
+                
+                try {
+                    $dob = \Carbon\Carbon::createFromFormat('Y-m-d', "$fullYear-$month-$day");
+                    
+                    // Si la edad calculada es menor a 15, asumimos que nació el siglo pasado (19XX en lugar de 20XX)
+                    if ($dob->age < 15) {
+                        $dob->subYears(100);
+                    }
+                    
+                    return $dob->age . ' años';
+                } catch (\Exception $e) {
+                    // Ignore exception
+                }
+            }
+        }
+        
+        return 'N/A';
+    }
+
     /**
      * Compatibility with Admin layouts/logic
      */

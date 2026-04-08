@@ -77,6 +77,12 @@
                                         {{ $this->employee->sindicato }}
                                     </span>
                                 </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-black text-gray-400 uppercase">Edad</span>
+                                    <span class="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-tight">
+                                        {{ $this->employee->edad }}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 

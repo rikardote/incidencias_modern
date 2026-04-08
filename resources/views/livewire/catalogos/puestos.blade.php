@@ -1,7 +1,7 @@
 <div>
     <x-slot name="header">
         <h2 class="font-bold text-xl text-gray-800 dark:text-gray-200 leading-tight tracking-wide">
-            {{ __('Periodos Vacacionales') }}
+            {{ __('Gestión de Puestos') }}
         </h2>
     </x-slot>
 
@@ -19,7 +19,7 @@
                             </svg>
                         </div>
                         <input wire:model.live.debounce.300ms="search" type="text"
-                            placeholder="Buscar periodo o año..."
+                            placeholder="Buscar puesto o clave..."
                             class="w-full pl-10 h-11 rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 shadow-sm focus:ring-2 focus:ring-oro/20 focus:border-oro transition-all text-sm">
                     </div>
 
@@ -28,15 +28,15 @@
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
                         </svg>
-                        Nuevo Periodo
+                        Nuevo Puesto
                     </button>
                 </div>
 
                 <div class="p-6">
                     <div wire:loading.class="opacity-50" wire:target="search"
                         class="transition-opacity duration-200 flex flex-col gap-3">
-                        @forelse($periodos as $p)
-                        <div wire:key="periodo-{{ $p->id }}"
+                        @forelse($puestos as $item)
+                        <div wire:key="puesto-{{ $item->id }}"
                             class="group bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md hover:border-[#13322B]/30 dark:hover:border-[#e6d194]/20 transition-all duration-200 overflow-hidden">
 
                             <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4 px-4 py-3">
@@ -45,18 +45,18 @@
                                         <div class="flex items-center gap-2 flex-wrap mb-1">
                                             <span
                                                 class="px-2.5 py-1 bg-[#13322B]/5 text-[#13322B] dark:bg-oro/10 dark:text-oro text-[10px] font-black rounded-lg uppercase tracking-wider border border-[#13322B]/10 dark:border-oro/20">
-                                                PERIODO {{ $p->periodo }}
+                                                {{ $item->clave }}
                                             </span>
                                             <span
                                                 class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase truncate">
-                                                AÑO VACACIONAL {{ $p->year }}
+                                                {{ $item->puesto }}
                                             </span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="shrink-0 flex flex-wrap items-center justify-around sm:justify-end gap-1 w-full xl:w-auto border-t xl:border-t-0 border-gray-100 dark:border-gray-700 pt-3 xl:pt-0">
-                                    <button wire:click="edit({{ $p->id }})"
+                                    <button wire:click="edit({{ $item->id }})"
                                         class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -67,7 +67,7 @@
 
                                     <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700 mx-1"></div>
 
-                                    <button onclick="confirmDeletePeriodo('{{ $p->id }}')"
+                                    <button onclick="confirmDeletePuesto('{{ $item->id }}')"
                                         class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -82,16 +82,16 @@
                         <div class="py-16 text-center">
                             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gray-50 dark:bg-gray-800 text-gray-400 mb-4">
                                 <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                 </svg>
                             </div>
-                            <p class="text-sm text-gray-400 italic">No se encontraron periodos vacacionales.</p>
+                            <p class="text-sm text-gray-400 italic">No se encontraron puestos registrados.</p>
                         </div>
                         @endforelse
                     </div>
 
                     <div class="mt-8 px-2">
-                        {{ $periodos->links() }}
+                        {{ $puestos->links() }}
                     </div>
                 </div>
             </div>
@@ -116,11 +116,11 @@
                         <div class="p-2 bg-white/10 rounded-lg backdrop-blur-md text-[#e6d194]">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
                         </div>
                         <h3 class="text-lg font-black uppercase tracking-widest">
-                            {{ $periodoId ? 'Editar Periodo' : 'Nuevo Periodo Vacacional' }}
+                            {{ $puestoId ? 'Editar Puesto' : 'Nuevo Puesto' }}
                         </h3>
                     </div>
                     <button wire:click="$set('showModal', false)"
@@ -133,22 +133,20 @@
                 </div>
 
                 <form wire:submit.prevent="save" class="flex flex-col h-full overflow-hidden">
-                    <div class="px-8 py-6 space-y-6">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label for="year" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Año</label>
-                                <input type="number" wire:model="year" id="year" placeholder="2024"
-                                    class="mt-1 block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 shadow-sm focus:ring-2 focus:ring-oro/20 focus:border-oro transition-all text-sm">
-                                @error('year') <span class="text-red-500 text-xs mt-1 block font-bold">{{ $message }}</span> @enderror
-                            </div>
-                            <div>
-                                <label for="periodo" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Cve Periodo (1 o 2)</label>
-                                <input type="number" wire:model="periodo" id="periodo" placeholder="1"
-                                    class="mt-1 block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 shadow-sm focus:ring-2 focus:ring-oro/20 focus:border-oro transition-all text-sm">
-                                @error('periodo') <span class="text-red-500 text-xs mt-1 block font-bold">{{ $message }}</span> @enderror
-                            </div>
+                    <div class="px-8 py-6 space-y-4">
+                        <div>
+                            <label for="clave" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Clave del Puesto</label>
+                            <input type="text" wire:model="clave" id="clave" placeholder="Ej. M02035"
+                                class="mt-1 block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 shadow-sm focus:ring-2 focus:ring-oro/20 focus:border-oro transition-all text-sm uppercase">
+                            @error('clave') <span class="text-red-500 text-xs mt-1 block font-bold">{{ $message }}</span> @enderror
                         </div>
 
+                        <div>
+                            <label for="puesto" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre del Puesto</label>
+                            <input type="text" wire:model="puesto" id="puesto" placeholder="Ej. ENFERMERA"
+                                class="mt-1 block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 text-gray-900 dark:text-gray-100 shadow-sm focus:ring-2 focus:ring-oro/20 focus:border-oro transition-all text-sm uppercase">
+                            @error('puesto') <span class="text-red-500 text-xs mt-1 block font-bold">{{ $message }}</span> @enderror
+                        </div>
                     </div>
 
                     <div class="px-8 py-5 bg-gray-50 dark:bg-gray-900/80 flex flex-row-reverse rounded-b-2xl border-t dark:border-gray-700 backdrop-blur-md gap-4">
@@ -168,7 +166,7 @@
     @endif
 
     <script shadow>
-        function confirmDeletePeriodo(id) {
+        function confirmDeletePuesto(id) {
             Swal.fire({
                 title: '¿Estás seguro?',
                 text: "Esta acción no se puede deshacer.",

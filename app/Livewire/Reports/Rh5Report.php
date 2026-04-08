@@ -57,8 +57,15 @@ class Rh5Report extends Component
             ->whereHas('codigo', function($q) {
                 $q->whereNotIn('code', [902, 903, 904]);
             })
-            ->get()
-            ->groupBy('employee.num_empleado');
+            ->get();
+
+        // Precargar en caché los datos de la API para evitar N+1 durante el mapeo
+        $numeros = $incidencias->pluck('employee.num_empleado')->unique()->filter()->toArray();
+        if (!empty($numeros)) {
+            app(\App\Services\Employees\EmployeeApiService::class)->preloadEmployeesData($numeros);
+        }
+
+        $incidencias = $incidencias->groupBy('employee.num_empleado');
 
         $this->results = [];
         foreach ($incidencias as $numEmpleado => $items) {

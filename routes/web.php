@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/catalogos/periodos', \App\Livewire\Catalogos\Periodos::class)->name('catalogos.periodos');
     Route::get('/catalogos/horarios', \App\Livewire\Catalogos\Horarios::class)->name('catalogos.horarios');
     Route::get('/catalogos/jornadas', \App\Livewire\Catalogos\Jornadas::class)->name('catalogos.jornadas');
+    Route::get('/catalogos/puestos', \App\Livewire\Catalogos\Puestos::class)->name('catalogos.puestos');
 
     // Búsqueda de empleados para el switcher de incidencias
     Route::get('/api/employees/search', function (\Illuminate\Http\Request $request) {
