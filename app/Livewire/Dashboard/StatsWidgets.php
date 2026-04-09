@@ -22,10 +22,21 @@ class StatsWidgets extends Component
     public function refreshStats()
     {
         // 1. Empleados Activos
-        $this->activeEmployeesCount = Employe::active()->count();
+        $query = Employe::active();
+        if (auth()->check() && !auth()->user()->admin()) {
+            $query->whereIn('deparment_id', auth()->user()->departments->pluck('id'));
+        }
+        $this->activeEmployeesCount = $query->count();
 
         // 2. Incidencias del día
-        $this->todayIncidenciasCount = Incidencia::whereDate('created_at', today())->count();
+        $incidenciaQuery = Incidencia::whereDate('created_at', today());
+        if (auth()->check() && !auth()->user()->admin()) {
+            $deptIds = auth()->user()->departments->pluck('id');
+            $incidenciaQuery->whereHas('employee', function($q) use ($deptIds) {
+                $q->whereIn('deparment_id', $deptIds);
+            });
+        }
+        $this->todayIncidenciasCount = $incidenciaQuery->count();
 
         // 3. Estatus Técnico
         $this->systemStatus = $this->checkTechnicalStatus();

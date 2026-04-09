@@ -66,7 +66,7 @@ class LiveCaptureLog extends Component
                 ->whereNull('incidencias.deleted_at');
 
             if (!$user->admin()) {
-                $deptIds = $user->departments()->pluck('deparment_id');
+                $deptIds = $user->departments->pluck('id');
                 $latestTokensQuery->whereIn('employees.deparment_id', $deptIds);
             }
 

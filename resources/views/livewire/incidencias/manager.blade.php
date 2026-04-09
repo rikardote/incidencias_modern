@@ -63,26 +63,32 @@
                         @php
                         $activeException = auth()->user()->captureExceptions()->where('expires_at', '>',
                         now())->first();
-                        $expiresAtUnix = $activeException ? $activeException->expires_at->timestamp : 0;
+                        $remainingSecondsFromServer = $activeException ? max(0, $activeException->expires_at->timestamp - now()->timestamp) : 0;
                         @endphp
                         <div class="bg-oro/10 border-b border-oro/20 px-5 py-2 flex items-center justify-between"
                             x-data="{
-                                expiresAt: {{ $expiresAtUnix }},
+                                serverRemaining: {{ $remainingSecondsFromServer }},
                                 remaining: 0,
+                                startTime: 0,
                                 timer: null,
                                 get minutes() { return String(Math.floor(this.remaining / 60)).padStart(2, '0') },
                                 get seconds() { return String(this.remaining % 60).padStart(2, '0') },
                                 get urgent()  { return this.remaining <= 30 },
                                 get warning() { return this.remaining <= 120 && this.remaining > 30 },
                                 init() {
-                                    this.remaining = Math.max(0, this.expiresAt - Math.floor(Date.now() / 1000));
-                                    this.timer = setInterval(() => {
-                                        this.remaining = Math.max(0, this.expiresAt - Math.floor(Date.now() / 1000));
-                                        if (this.expiresAt > 0 && this.remaining === 0) {
-                                            clearInterval(this.timer);
-                                            window.location.reload();
-                                        }
-                                    }, 1000);
+                                    this.remaining = this.serverRemaining;
+                                    this.startTime = Math.floor(Date.now() / 1000);
+                                    if (this.remaining > 0) {
+                                        this.timer = setInterval(() => {
+                                            let now = Math.floor(Date.now() / 1000);
+                                            let elapsed = now - this.startTime;
+                                            this.remaining = Math.max(0, this.serverRemaining - elapsed);
+                                            if (this.remaining === 0) {
+                                                clearInterval(this.timer);
+                                                window.location.reload();
+                                            }
+                                        }, 1000);
+                                    }
                                 }
                              }">
                             <div class="flex items-center gap-2">

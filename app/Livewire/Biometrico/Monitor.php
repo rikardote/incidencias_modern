@@ -33,7 +33,7 @@ class Monitor extends Component
             ->limit(50);
 
         if (!$user->admin()) {
-            $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
+            $departmentIds = $user->departments->pluck('id')->toArray();
             $query->whereHas('employee', function ($q) use ($departmentIds) {
                 $q->whereIn('deparment_id', $departmentIds);
             });
@@ -83,7 +83,7 @@ class Monitor extends Component
         
         // Si el usuario no es admin, validar que tenga acceso al departamento del empleado
         if (!$user->admin()) {
-            $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
+            $departmentIds = $user->departments->pluck('id')->toArray();
             $employeeDepartmentId = $checadaModel->employee->deparment_id ?? null;
             
             if (!$employeeDepartmentId || !in_array($employeeDepartmentId, $departmentIds)) {

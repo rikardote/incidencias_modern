@@ -1,4 +1,4 @@
-<div wire:poll.15s="refreshStats" noprogress wire:ignore.self class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div wire:poll.15s="refreshStats" noprogress wire:ignore.self class="grid grid-cols-1 {{ auth()->user()->admin() ? 'md:grid-cols-3' : 'md:grid-cols-2' }} gap-6 mb-8">
     {{-- Widget Empleados Activos --}}
     <div class="relative group overflow-hidden bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col justify-between transition-all hover:shadow-2xl hover:-translate-y-1">
         <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -7,7 +7,7 @@
             </svg>
         </div>
         <div>
-            <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 block">Fuerza Laboral</span>
+            <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1 block">Plantilla Laboral</span>
             <h3 class="text-4xl font-black text-gray-900 dark:text-white">{{ number_format($activeEmployeesCount) }}</h3>
             <p class="text-xs font-bold text-[#13322B] dark:text-[#e6d194] mt-1 flex items-center gap-2">
                 <span class="flex h-2 w-2 relative">
@@ -43,6 +43,7 @@
     </div>
 
     {{-- Widget Estatus Técnico --}}
+    @if(auth()->user()->admin())
     <div class="relative group overflow-hidden bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 flex flex-col justify-between transition-all hover:shadow-2xl hover:-translate-y-1">
         <div>
             <span class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3 block">Estatus del Sistema</span>
@@ -106,4 +107,5 @@
             <span class="text-[8px] font-mono text-gray-400">{{ php_uname('n') }}</span>
         </div>
     </div>
+    @endif
 </div>
