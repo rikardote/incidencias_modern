@@ -109,30 +109,33 @@
                                 $isWeekend = $date->isWeekend();
 
                                 if ($reg) {
-                                    $horarioEntrada = strtotime($first->horario_entrada);
-                                    $horarioSalida = strtotime($first->horario_salida);
-                                    $esJornadaVespertina = $first->es_jornada_vespertina == 1;
-                                    $horaMedia = $esJornadaVespertina ? $horarioEntrada + (($horarioSalida - $horarioEntrada) / 2) : strtotime('12:00:00');
-                                    $hE = $reg->hora_entrada ? strtotime($reg->hora_entrada) : null;
+                                    // Determinación de Entrada vs Salida basada en proximidad horaria
+                                    $tieneUnaSolaChecada = $reg->hora_entrada && $reg->hora_entrada === $reg->hora_salida;
+                                    $tieneSalidaDistinta = $reg->hora_salida && !$tieneUnaSolaChecada;
                                     
-                                    $entradaDisp = '';
-                                    $salidaDisp = '';
-                                    if ($hE && $hE > $horaMedia) {
-                                        $entradaDisp = 'OMIT'; 
-                                        $salidaDisp = $reg->hora_salida ? substr($reg->hora_salida, 0, 5) : '';
+                                    $isExitOnly = false;
+                                    if ($tieneUnaSolaChecada && $first->horario_entrada && $first->horario_salida) {
+                                        $punchTime = strtotime($reg->hora_entrada);
+                                        $diffEntrada = abs($punchTime - strtotime($first->horario_entrada));
+                                        $diffSalida = abs($punchTime - strtotime($first->horario_salida));
+                                        if ($diffSalida < $diffEntrada) {
+                                            $isExitOnly = true;
+                                        }
+                                    }
+
+                                    if ($isExitOnly) {
+                                        $entradaDisp = 'OMIT';
+                                        $salidaDisp = substr($reg->hora_entrada, 0, 5);
                                     } else {
                                         $entradaDisp = $reg->hora_entrada ? substr($reg->hora_entrada, 0, 5) : '';
-                                        $salidaDisp = ($reg->hora_salida && $reg->hora_salida !== $reg->hora_entrada) ? substr($reg->hora_salida, 0, 5) : '';
+                                        $salidaDisp = $tieneSalidaDistinta ? substr($reg->hora_salida, 0, 5) : '';
                                     }
                                 }
                             @endphp
                             <td class="{{ $isWeekend ? 'weekend' : '' }}">
                                 @if($reg)
                                     <div class="time-box">
-                                        @if($entradaDisp === 'OMIT')
-                                            <span style="color: #ef4444; font-weight: bold;">OMIT</span>
-                                            @if($salidaDisp)<br>{{ $salidaDisp }}@endif
-                                        @elseif($entradaDisp)
+                                        @if($entradaDisp)
                                             <span class="{{ $reg->retardo ? 'retardo' : '' }}">{{ $entradaDisp }}</span>
                                             @if($salidaDisp)<br>{{ $salidaDisp }}@endif
                                         @else

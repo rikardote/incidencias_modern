@@ -279,70 +279,48 @@
                     <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-100 dark:divide-gray-700">
                         @foreach($registrosEmpleado as $registro)
                         @php
-                        // Lógica de procesamiento de checadas (heredada de legacy)
-                        $horarioEntrada = $registrosEmpleado->first()->horario_entrada ?
-                        strtotime($registrosEmpleado->first()->horario_entrada) : null;
-                        $horarioSalida = $registrosEmpleado->first()->horario_salida ?
-                        strtotime($registrosEmpleado->first()->horario_salida) : null;
-                        $esJornadaVespertina = $registrosEmpleado->first()->es_jornada_vespertina == 1;
+                        // Determinación de Entrada vs Salida basada en proximidad horaria al turno asignado
+                        $tieneUnaSolaChecada = $registro->hora_entrada && $registro->hora_entrada === $registro->hora_salida;
+                        $tieneSalida = $registro->hora_salida && !$tieneUnaSolaChecada;
 
-                        $horaMedia = ($esJornadaVespertina && $horarioEntrada && $horarioSalida)
-                        ? $horarioEntrada + (($horarioSalida - $horarioEntrada) / 2)
-                        : strtotime('12:00:00');
-
-                        $medioDia = $horaMedia;
-                        $horaEntrada = $registro->hora_entrada ? strtotime($registro->hora_entrada) : null;
-                        $horaSalida = $registro->hora_salida ? strtotime($registro->hora_salida) : null;
-                        $tieneUnaSolaChecada = $registro->hora_entrada && $registro->hora_entrada ===
-                        $registro->hora_salida;
-                        $estaChecadaDespuesMedioDia = $horaEntrada && $horaEntrada > $medioDia;
-
-                        $checadasDelDia = $registrosEmpleado->where('fecha', $registro->fecha)->sortBy('hora_entrada');
-                        $tieneMasDeUnaChecada = $checadasDelDia->count() > 1;
-                        $esLaPrimeraChecadaDelDia = $checadasDelDia->first() === $registro;
-                        $esLaUltimaChecadaDelDia = $checadasDelDia->last() === $registro;
-
-                        $conteoChecadasDespuesMedioDia = 0;
-                        foreach ($checadasDelDia as $c) {
-                        $checadaHora = $c->hora_entrada ? strtotime($c->hora_entrada) : null;
-                        if ($checadaHora && $checadaHora > $medioDia) $conteoChecadasDespuesMedioDia++;
+                        $isExitOnly = false;
+                        if ($tieneUnaSolaChecada && $registrosEmpleado->first()->horario_entrada && $registrosEmpleado->first()->horario_salida) {
+                            // Si solo hay una checada, vemos si está más cerca de la entrada o de la salida
+                            $punchTime = strtotime($registro->hora_entrada);
+                            $diffEntrada = abs($punchTime - strtotime($registrosEmpleado->first()->horario_entrada));
+                            $diffSalida = abs($punchTime - strtotime($registrosEmpleado->first()->horario_salida));
+                            
+                            if ($diffSalida < $diffEntrada) {
+                                $isExitOnly = true;
+                            }
                         }
 
-                        $esSalidaPorHorario = $estaChecadaDespuesMedioDia;
-                        if ($estaChecadaDespuesMedioDia && $conteoChecadasDespuesMedioDia > 1) {
-                        $primeraChecadaPostMediodia = $checadasDelDia->first(fn($c) => strtotime($c->hora_entrada) >
-                        $medioDia);
-                        $esPrimeraChecadaDespuesMediodia = ($primeraChecadaPostMediodia === $registro);
-                        $esSalidaPorHorario = !$esPrimeraChecadaDespuesMediodia || $tieneUnaSolaChecada;
-                        }
+                        $mostrarOmisionEntrada = $isExitOnly;
+                        $entradaVisual = $isExitOnly ? null : $registro->hora_entrada;
+                        $salidaVisual = $isExitOnly ? $registro->hora_entrada : ($tieneSalida ? $registro->hora_salida : null);
 
-                        $mostrarOmisionEntrada = ($estaChecadaDespuesMedioDia && ($esLaPrimeraChecadaDelDia ||
-                        (isset($esPrimeraChecadaDespuesMediodia) && $esPrimeraChecadaDespuesMediodia)));
-
-                        if ($esJornadaVespertina && $esLaPrimeraChecadaDelDia && $horaEntrada) {
-                        if (abs($horaEntrada - $horarioEntrada) / 60 <= 90) $mostrarOmisionEntrada=false; }
-                            $jornadaTerminada=!\Carbon\Carbon::parse($registro->fecha)->isToday() ||
+                        $jornadaTerminada = !\Carbon\Carbon::parse($registro->fecha)->isToday() ||
                             (\Carbon\Carbon::parse($registro->fecha)->isToday() && now()->format('H:i:s') >
                             $registrosEmpleado->first()->horario_salida);
 
-                            $rowClass = '';
-                            if ($registro->retardo && strpos($registro->incidencias ?? '', '7') === false) $rowClass =
-                            'bg-red-50/50 dark:bg-red-900/20';
+                        $rowClass = '';
+                        if ($registro->retardo && strpos($registro->incidencias ?? '', '7') === false)
+                            $rowClass = 'bg-red-50/50 dark:bg-red-900/20';
 
-                            $hasColoredInc = false;
-                            if ($registro->incidencias) {
+                        $hasColoredInc = false;
+                        if ($registro->incidencias) {
                             $incList = explode(',', $registro->incidencias);
-                            foreach($incList as $inc) {
-                            if (!in_array($inc, $incidenciasSinColor)) {
-                            $hasColoredInc = true;
-                            break;
+                            foreach ($incList as $inc) {
+                                if (!in_array($inc, $incidenciasSinColor)) {
+                                    $hasColoredInc = true;
+                                    break;
+                                }
                             }
-                            }
-                            }
-                            if ($hasColoredInc) $rowClass = 'bg-amber-50/50 dark:bg-amber-900/20';
+                        }
+                        if ($hasColoredInc) $rowClass = 'bg-amber-50/50 dark:bg-amber-900/20';
 
-                            $isWeekend = \Carbon\Carbon::parse($registro->fecha)->isWeekend();
-                            if ($isWeekend && empty($rowClass)) $rowClass = 'bg-slate-50/40 dark:bg-black/20';
+                        $isWeekend = \Carbon\Carbon::parse($registro->fecha)->isWeekend();
+                        if ($isWeekend && empty($rowClass)) $rowClass = 'bg-slate-50/40 dark:bg-black/20';
                             @endphp
 
                             <tr @click="if(window.isMaintenance) { Swal.fire('Mantenimiento', 'Captura suspendida temporalmente.', 'error'); return; } if(window.isLocked) { Swal.fire('Cerrado', 'Esta quincena está cerrada para modificaciones.', 'warning'); return; } openModal({{ $registro->employee_id }}, {{ $num_empleado }}, '{{ trim(addslashes($registro->apellido_paterno . ' ' . $registro->apellido_materno . ' ' . $registro->nombre)) }}', '{{ $registro->fecha }}', '{{ \Carbon\Carbon::parse($registro->fecha)->translatedFormat('d \d\e F, Y') }}')"
@@ -353,40 +331,24 @@
                                 </td>
 
                                 <td class="px-3 py-1.5 whitespace-nowrap">
-                                    @if($esJornadaVespertina && $esLaPrimeraChecadaDelDia && $registro->hora_entrada)
-                                    <div class="flex items-center">
-                                        <span
-                                            class="{{ $registro->retardo && strpos($registro->incidencias ?? '', '7') === false ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-gray-700 dark:text-gray-300' }}">
-                                            {{ substr($registro->hora_entrada, 0, 5) }}
-                                        </span>
-                                        @if($registro->retardo && strpos($registro->incidencias ?? '', '7') === false)
-                                        <span
-                                            class="ml-1 bg-rose-500 text-white text-[8px] font-black px-1 rounded flex items-center justify-center min-w-[14px]">R</span>
-                                        @endif
-                                    </div>
-                                    @elseif($mostrarOmisionEntrada)
+                                    @if($mostrarOmisionEntrada)
                                     <span class="text-rose-500 font-bold" title="Omisión de entrada">──:──</span>
-                                    @elseif($registro->hora_entrada)
+                                    @elseif($entradaVisual)
                                     <div class="flex items-center">
-                                        <span
-                                            class="{{ $registro->retardo && strpos($registro->incidencias ?? '', '7') === false ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-gray-700 dark:text-gray-300' }}">
-                                            {{ substr($registro->hora_entrada, 0, 5) }}
+                                        <span class="{{ $registro->retardo && strpos($registro->incidencias ?? '', '7') === false ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-gray-700 dark:text-gray-300' }}">
+                                            {{ substr($entradaVisual, 0, 5) }}
                                         </span>
                                         @if($registro->retardo && strpos($registro->incidencias ?? '', '7') === false)
-                                        <span class="ml-1 bg-rose-500 text-white text-[8px] px-1 rounded">R</span>
+                                        <span class="ml-1 bg-rose-500 text-white text-[8px] font-black px-1 rounded flex items-center justify-center min-w-[14px]">R</span>
                                         @endif
                                     </div>
                                     @endif
                                 </td>
                                 <td class="px-3 py-1.5 whitespace-nowrap">
-                                    @if(($estaChecadaDespuesMedioDia && $esSalidaPorHorario) || ($registro->hora_salida
-                                    && !$tieneUnaSolaChecada))
-                                    <span class="text-gray-700 dark:text-gray-300">{{ substr($registro->hora_salida, 0,
-                                        5) }}</span>
-                                    @elseif(($tieneUnaSolaChecada || ($registro->hora_entrada &&
-                                    !$registro->hora_salida)) && $jornadaTerminada)
-                                    <span class="text-rose-400 dark:text-rose-300/60 opacity-60 italic text-[10px]">Sin
-                                        salida</span>
+                                    @if($salidaVisual)
+                                    <span class="text-gray-700 dark:text-gray-300">{{ substr($salidaVisual, 0, 5) }}</span>
+                                    @elseif($entradaVisual && $jornadaTerminada)
+                                    <span class="text-rose-400 dark:text-rose-300/60 opacity-60 italic text-[10px]">Sin salida</span>
                                     @endif
                                 </td>
                                 <td class="px-3 py-1.5 text-center">
