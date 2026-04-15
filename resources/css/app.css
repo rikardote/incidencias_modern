@@ -193,3 +193,11 @@ html.dark .swal2-title,
 html.dark .swal2-html-container {
     color: #f3f4f6 !important;
 }
+
+/* -----------------------
+   Flatpickr & Tailwind Fix
+   ----------------------- */
+.flatpickr-day.hidden {
+    visibility: hidden !important;
+    display: inline-block !important;
+}

@@ -250,7 +250,6 @@
                                                 mode: '{{ $dateMode }}',
                                                 dateFormat: 'Y-m-d',
                                                 showMonths: ('{{ $dateMode }}' === 'range' && window.innerWidth > 640) ? 2 : 1,
-                                                locale: { rangeSeparator: '||' },
                                                 enable: allowedRanges,
                                                 disableMobile: true,
                                                 onChange: function(selectedDates, dateStr) {
