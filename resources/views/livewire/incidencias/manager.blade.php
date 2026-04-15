@@ -414,6 +414,7 @@
                                                                 placeholder="Seleccionar" readonly
                                                                 class="block w-full h-9 px-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-[#9b2247]/30 outline-none transition-all cursor-pointer">
                                                         </div>
+                                                        @error('fecha_expedida') <span class="text-red-500 text-[10px] font-bold mt-1 ml-1 block">{{ $message }}</span> @enderror
                                                     </div>
                                                     <div>
                                                         <label
@@ -422,6 +423,7 @@
                                                         <input type="text" wire:model="num_licencia"
                                                             placeholder="00000000"
                                                             class="block w-full h-9 px-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-[#9b2247]/30 outline-none transition-all">
+                                                        @error('num_licencia') <span class="text-red-500 text-[10px] font-bold mt-1 ml-1 block">{{ $message }}</span> @enderror
                                                     </div>
                                                 </div>
 
@@ -432,6 +434,7 @@
                                                     <input type="text" wire:model="diagnostico"
                                                         placeholder="Descripción breve..."
                                                         class="block w-full h-9 px-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-[#9b2247]/30 outline-none transition-all">
+                                                    @error('diagnostico') <span class="text-red-500 text-[10px] font-bold mt-1 ml-1 block">{{ $message }}</span> @enderror
                                                 </div>
 
                                                 <div class="mt-4">
@@ -486,9 +489,20 @@
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    @error('medico_id') <span class="text-red-500 text-[10px] font-bold mt-1 ml-1 block">{{ $message }}</span> @enderror
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+                                    @endif
+
+                                    {{-- Admin Controls for Incapacidad --}}
+                                    @if($isIncapacidad && auth()->user()->admin())
+                                    <div class="px-5 mb-4">
+                                        <label class="flex items-center gap-2 cursor-pointer group">
+                                            <input type="checkbox" wire:model="saltar_validacion_inca" class="w-4 h-4 rounded border-gray-300 text-[#9b2247] focus:ring-[#9b2247]">
+                                            <span class="text-[10px] font-black text-gray-400 group-hover:text-[#9b2247] uppercase tracking-widest transition-colors">Saltar validación de exceso (ADMIN)</span>
+                                        </label>
                                     </div>
                                     @endif
 
@@ -520,6 +534,7 @@
                                                     <label
                                                         class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Periodo
                                                         a Disfrutar</label>
+
                                                     <div class="relative" x-data="{
                                                         open: false,
                                                         toggle() { this.open = !this.open },
@@ -548,9 +563,20 @@
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    @error('periodo_id') <span class="text-red-500 text-[10px] font-bold mt-1 ml-1 block">{{ $message }}</span> @enderror
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+                                    @endif
+                                    
+                                    {{-- Admin Controls for Licencias --}}
+                                    @if($isLicencia && auth()->user()->admin())
+                                    <div class="px-5 mb-4">
+                                        <label class="flex items-center gap-2 cursor-pointer group">
+                                            <input type="checkbox" wire:model="saltar_validacion_lic" class="w-4 h-4 rounded border-gray-300 text-oro focus:ring-oro">
+                                            <span class="text-[10px] font-black text-gray-400 group-hover:text-oro uppercase tracking-widest transition-colors">Saltar validación de tope (ADMIN)</span>
+                                        </label>
                                     </div>
                                     @endif
                                 </div>{{-- fin wire:key dynamic-fields --}}
@@ -566,7 +592,7 @@
                                     x-on:topbar-end.window="if($event.detail === 'error') triggerError()">
 
                                     <div class="p-4 bg-gray-50/50 dark:bg-gray-900/50">
-                                        <button type="submit" :disabled="!$wire.codigo"
+                                        <button type="submit" :disabled="!$wire.codigo" wire:loading.attr="disabled"
                                             class="w-full text-white font-black uppercase py-4 px-6 rounded-2xl text-sm tracking-[0.2em] transition-all duration-300 shadow-lg active:scale-[0.98] will-change-transform flex items-center justify-center gap-3 overflow-hidden group relative disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
                                             :class="isError 
                                             ? 'bg-red-600 hover:bg-red-700 shadow-red-200 dark:shadow-red-900/20 animate-shake-button' 
@@ -575,23 +601,33 @@
                                                 class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer">
                                             </div>
 
-                                            <span x-show="!isError" class="flex items-center gap-2">
-                                                <svg class="w-5 h-5 transition-transform group-hover:scale-110"
-                                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2.5" d="M5 13l4 4L19 7" />
-                                                </svg>
-                                                Guardar Incidencia
+                                            <span wire:loading.remove wire:target="store">
+                                                <span x-show="!isError" class="flex items-center gap-2">
+                                                    <svg class="w-5 h-5 transition-transform group-hover:scale-110"
+                                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2.5" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    Guardar Incidencia
+                                                </span>
+
+                                                <span x-show="isError" x-cloak class="flex items-center gap-2">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2.5"
+                                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                    </svg>
+                                                    Revisar Datos
+                                                </span>
                                             </span>
 
-                                            <span x-show="isError" x-cloak class="flex items-center gap-2">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                                        stroke-width="2.5"
-                                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                            <span wire:loading wire:target="store" class="flex items-center gap-2">
+                                                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                                 </svg>
-                                                Revisar Datos
+                                                Procesando...
                                             </span>
                                         </button>
                                     </div>

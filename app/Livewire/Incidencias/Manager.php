@@ -30,6 +30,10 @@ class Manager extends Component
     public $medico_id, $fecha_expedida, $diagnostico, $num_licencia;
     public $periodo_id, $autoriza_txt, $cobertura_txt;
     
+    // Flags para saltar validaciones (Admin)
+    public $saltar_validacion_inca = false;
+    public $saltar_validacion_lic = false;
+    
     // Banderas de UI
     public $isLicencia = false;
     public $isIncapacidad = false;
@@ -132,15 +136,42 @@ class Manager extends Component
             'fechas_seleccionadas' => 'required|string',
         ];
 
+        $messages = [
+            'codigo.required' => 'Debe seleccionar un código',
+            'fechas_seleccionadas.required' => 'Debe seleccionar al menos una fecha',
+        ];
+
+        if ($this->isIncapacidad) {
+            $rules['medico_id'] = 'required';
+            $rules['fecha_expedida'] = 'required|date';
+            $rules['diagnostico'] = 'required|string|max:255';
+            $rules['num_licencia'] = 'required|string|max:50';
+            
+            $messages['medico_id.required'] = 'El médico es obligatorio';
+            $messages['fecha_expedida.required'] = 'La fecha expedida es obligatoria';
+            $messages['diagnostico.required'] = 'El diagnóstico es obligatorio';
+            $messages['num_licencia.required'] = 'El número de licencia es obligatorio';
+        }
+
+        if ($this->isVacacional) {
+            $rules['periodo_id'] = 'required';
+            $messages['periodo_id.required'] = 'El periodo vacacional es obligatorio';
+        }
+
+        if ($this->isTxt) {
+            $rules['cobertura_txt'] = 'required|string|max:255';
+            $rules['autoriza_txt'] = 'required|string|max:255';
+            
+            $messages['cobertura_txt.required'] = 'El sustituto es obligatorio';
+            $messages['autoriza_txt.required'] = 'Quién autorizó es obligatorio';
+        }
+
         if ($this->isComision) {
             $rules['motivo_comision'] = 'required|string|max:500';
-            $messages = [
-                'motivo_comision.required' => 'El motivo de la comisión es obligatorio',
-            ];
-            $this->validate($rules, $messages);
-        } else {
-            $this->validate($rules);
+            $messages['motivo_comision.required'] = 'El motivo de la comisión es obligatorio';
         }
+
+        $this->validate($rules, $messages);
 
         try {
             $token = sha1(time() . '_' . $this->employee->id);
@@ -155,6 +186,8 @@ class Manager extends Component
                 'autoriza_txt' => $this->autoriza_txt,
                 'cobertura_txt' => $this->cobertura_txt,
                 'motivo_comision' => $this->isComision ? $this->motivo_comision : null,
+                'saltar_validacion_inca' => $this->saltar_validacion_inca ? "1" : "0",
+                'saltar_validacion_lic' => $this->saltar_validacion_lic ? "1" : "0",
                 'token' => $token,
             ];
 
