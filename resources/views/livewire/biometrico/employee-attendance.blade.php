@@ -108,7 +108,7 @@
             </div>
 
             <div class="flex items-center gap-2">
-                <a href="{{ route('biometrico.individual.pdf', ['employeeId' => $employee->id, 'year' => $año, 'quincena' => $quincena, 'quincenaFin' => $quincenaFin]) }}"
+                <a href="{{ route('biometrico.individual.pdf', ['numEmpleado' => $employee->num_empleado, 'year' => $año, 'quincena' => $quincena, 'quincenaFin' => $quincenaFin]) }}"
                     target="_blank"
                     class="h-[42px] px-5 bg-[#9b2247] hover:bg-[#7a1b38] text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-md transition-all flex items-center justify-center gap-2">
                     PDF

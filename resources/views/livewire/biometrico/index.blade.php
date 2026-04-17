@@ -128,7 +128,7 @@
     @if($this->centro_seleccionado)
     <div class="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
         @forelse($empleados as $num_empleado => $registrosEmpleado)
-        <div
+        <div wire:key="emp-{{ $num_empleado }}-{{ $this->quincena_seleccionada }}"
             class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col hover:shadow-md transition-shadow">
             {{-- Header de la Card del Empleado (Layout de Expediente Premium) --}}
             <div
@@ -149,7 +149,7 @@
 
                         {{-- Nombre Amplio y Flexible --}}
                         <div class="min-w-0 flex-1 pt-0.5">
-                            <a @if(\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin()) href="#" onclick="Swal.fire('Mantenimiento', 'La captura está suspendida.', 'error'); return false;" @else href="{{ route('employees.incidencias', ['employeeId' => $registrosEmpleado->first()->employee_id]) }}" target="_blank" @endif
+                            <a @if(\Illuminate\Support\Facades\Cache::get('capture_maintenance', false) && !auth()->user()->admin()) href="#" onclick="Swal.fire('Mantenimiento', 'La captura está suspendida.', 'error'); return false;" @else href="{{ route('employees.incidencias', ['numEmpleado' => $num_empleado]) }}" target="_blank" @endif
                                 class="group block">
                                 <h3
                                     class="font-black text-gray-900 dark:text-gray-100 text-[11px] leading-tight uppercase group-hover:text-[#9b2247] transition-colors line-clamp-2">
@@ -323,7 +323,7 @@
                         if ($isWeekend && empty($rowClass)) $rowClass = 'bg-slate-50/40 dark:bg-black/20';
                             @endphp
 
-                            <tr @click="if(window.isMaintenance) { Swal.fire('Mantenimiento', 'Captura suspendida temporalmente.', 'error'); return; } if(window.isLocked) { Swal.fire('Cerrado', 'Esta quincena está cerrada para modificaciones.', 'warning'); return; } openModal({{ $registro->employee_id }}, {{ $num_empleado }}, '{{ trim(addslashes($registro->apellido_paterno . ' ' . $registro->apellido_materno . ' ' . $registro->nombre)) }}', '{{ $registro->fecha }}', '{{ \Carbon\Carbon::parse($registro->fecha)->translatedFormat('d \d\e F, Y') }}')"
+                            <tr wire:key="reg-{{ $num_empleado }}-{{ $registro->fecha }}-{{ $registro->incidencias ?? 'none' }}" @click="if(window.isMaintenance) { Swal.fire('Mantenimiento', 'Captura suspendida temporalmente.', 'error'); return; } if(window.isLocked) { Swal.fire('Cerrado', 'Esta quincena está cerrada para modificaciones.', 'warning'); return; } openModal({{ $registro->employee_id }}, {{ $num_empleado }}, '{{ trim(addslashes($registro->apellido_paterno . ' ' . $registro->apellido_materno . ' ' . $registro->nombre)) }}', '{{ $registro->fecha }}', '{{ \Carbon\Carbon::parse($registro->fecha)->translatedFormat('d \d\e F, Y') }}')"
                                 class="{{ $rowClass }} {{ !$isLocked ? 'hover:bg-slate-100 dark:hover:bg-gray-700 cursor-pointer' : 'cursor-default' }} transition-colors group">
                                 <td
                                     class="px-3 py-1.5 font-medium text-gray-500 dark:text-gray-300 whitespace-nowrap {{ $isWeekend ? 'opacity-40' : '' }}">

@@ -46,7 +46,7 @@
     </div>
 
     <div class="mt-6 flex justify-end">
-        <a href="{{ route('employees.incidencias', $info['empleado']->id) }}"
+        <a href="{{ route('employees.incidencias', $info['empleado']->num_empleado) }}"
             class="w-full md:w-auto text-center inline-flex items-center justify-center gap-2 px-4 py-2.5 text-[10px] md:text-xs font-bold text-guinda hover:text-white hover:bg-guinda rounded-lg border border-guinda/20 transition-all">
             Gestionar Incidencias
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

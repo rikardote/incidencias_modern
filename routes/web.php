@@ -11,10 +11,10 @@ Route::get('/dashboard', function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/employees', [\App\Http\Controllers\EmployeeController::class , 'index'])->name('employees.index');
-    Route::get('/employees/{employeeId}/incidencias', \App\Livewire\Incidencias\Manager::class)->name('employees.incidencias');
-    Route::get('/employees/{employeeId}/vacaciones', \App\Livewire\Reports\VacacionesReport::class)->name('employees.vacaciones');
-    Route::get('/employees/{employeeId}/kardex', \App\Livewire\Reports\KardexReport::class)->name('employees.kardex');
-    Route::get('/employees/{employeeId}/estadisticas', \App\Livewire\Reports\EmployeeStatistics::class)->name('employees.estadisticas');
+    Route::get('/employees/{numEmpleado}/incidencias', \App\Livewire\Incidencias\Manager::class)->name('employees.incidencias');
+    Route::get('/employees/{numEmpleado}/vacaciones', \App\Livewire\Reports\VacacionesReport::class)->name('employees.vacaciones');
+    Route::get('/employees/{numEmpleado}/kardex', \App\Livewire\Reports\KardexReport::class)->name('employees.kardex');
+    Route::get('/employees/{numEmpleado}/estadisticas', \App\Livewire\Reports\EmployeeStatistics::class)->name('employees.estadisticas');
     Route::get('/qnas', [\App\Http\Controllers\QnaController::class , 'index'])->name('qnas.index');
 
     // Reportes
@@ -33,8 +33,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/biometrico/sync', \App\Livewire\Biometrico\Manager::class)->name('biometrico.sync');
     Route::get('/biometrico/monitoreo', \App\Livewire\Biometrico\Monitor::class)->name('biometrico.monitor');
     Route::get('/biometrico/exportar', [\App\Http\Controllers\BiometricoController::class , 'exportar'])->name('biometrico.exportar');
-    Route::get('/employees/{employeeId}/biometrico', \App\Livewire\Biometrico\EmployeeAttendance::class)->name('employees.biometrico');
-    Route::get('/employees/{employeeId}/biometrico/pdf/{year}/{quincena}/{quincenaFin?}', [\App\Http\Controllers\ReportController::class , 'biometricoIndividualPdf'])->name('biometrico.individual.pdf');
+    Route::get('/employees/{numEmpleado}/biometrico', \App\Livewire\Biometrico\EmployeeAttendance::class)->name('employees.biometrico');
+    Route::get('/employees/{numEmpleado}/biometrico/pdf/{year}/{quincena}/{quincenaFin?}', [\App\Http\Controllers\ReportController::class , 'biometricoIndividualPdf'])->name('biometrico.individual.pdf');
 
     // Usuarios (solo admins, logic in component)
     Route::get('/usuarios', \App\Livewire\Users\Index::class)->name('users.index');

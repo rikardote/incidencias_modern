@@ -73,7 +73,7 @@
                 <span class="text-[8px] font-black uppercase tracking-tighter">Incidencias</span>
             </button>
             @else
-            <a href="{{ route('employees.incidencias', $employee->id) }}" wire:navigate
+            <a href="{{ route('employees.incidencias', $employee->num_empleado) }}" wire:navigate
                 class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-[#9b2247] dark:text-[#e6d194] hover:bg-[#9b2247]/10 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -100,7 +100,7 @@
                 <span class="text-[8px] font-black uppercase tracking-tighter">Biométrico</span>
             </button>
             @else
-            <a href="{{ route('employees.biometrico', $employee->id) }}" wire:navigate
+            <a href="{{ route('employees.biometrico', $employee->num_empleado) }}" wire:navigate
                 class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-gray-400 hover:text-[#13322B] dark:hover:text-[#e6d194] hover:bg-[#13322B]/5 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -127,7 +127,7 @@
                 <span class="text-[8px] font-black uppercase tracking-tighter">Vacaciones</span>
             </button>
             @else
-            <a href="{{ route('employees.vacaciones', $employee->id) }}" wire:navigate
+            <a href="{{ route('employees.vacaciones', $employee->num_empleado) }}" wire:navigate
                 class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-oro hover:bg-oro/10 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -140,7 +140,7 @@
             <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
 
             {{-- Kardex --}}
-            <a href="{{ route('employees.kardex', $employee->id) }}" wire:navigate
+            <a href="{{ route('employees.kardex', $employee->num_empleado) }}" wire:navigate
                 class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-[#13322B] dark:text-[#e6d194] hover:bg-[#13322B]/10 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -152,7 +152,7 @@
             <div class="hidden sm:block w-px h-6 bg-gray-100 dark:bg-gray-700"></div>
 
             {{-- Estadística --}}
-            <a href="{{ route('employees.estadisticas', $employee->id) }}" wire:navigate
+            <a href="{{ route('employees.estadisticas', $employee->num_empleado) }}" wire:navigate
                 class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-colors">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

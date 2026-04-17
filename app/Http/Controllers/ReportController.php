@@ -437,11 +437,11 @@ class ReportController extends Controller
         ]);
     }
 
-    public function biometricoIndividualPdf(Request $request, $employeeId, $year, $quincena, $quincenaFin = null)
+    public function biometricoIndividualPdf(Request $request, $numEmpleado, $year, $quincena, $quincenaFin = null)
     {
         ini_set('memory_limit', '512M');
         
-        $employee = Employe::with(['department', 'puesto', 'horario'])->findOrFail($employeeId);
+        $employee = Employe::with(['department', 'puesto', 'horario'])->where('num_empleado', $numEmpleado)->firstOrFail();
         
         $user = auth()->guard('web')->user();
         $isEmployee = false;

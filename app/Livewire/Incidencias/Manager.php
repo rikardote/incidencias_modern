@@ -40,7 +40,9 @@ class Manager extends Component
     public $isVacacional = false;
     public $isTxt = false;
     public $isComision = false;
+    public $isOtorgado = false;
     public $motivo_comision;
+    public $otorgado;
 
     // Propiedades para optimización (No se envían al cliente en cada request si son pesadas)
     protected $medicos = [];
@@ -62,10 +64,10 @@ class Manager extends Component
         // Refresco automático
     }
 
-    public function mount($employeeId)
+    public function mount($numEmpleado)
     {
-        $this->employeeId = $employeeId;
-        $this->employee = Employe::with(['department', 'puesto', 'horario', 'jornada'])->findOrFail($employeeId);
+        $this->employee = Employe::with(['department', 'puesto', 'horario', 'jornada'])->where('num_empleado', $numEmpleado)->firstOrFail();
+        $this->employeeId = $this->employee->id;
 
         $user = auth()->user();
         
@@ -85,7 +87,8 @@ class Manager extends Component
 
     public function cambiarEmpleado($id)
     {
-        return $this->redirect(route('employees.incidencias', ['employeeId' => $id]), navigate: true);
+        $emp = Employe::findOrFail($id);
+        return $this->redirect(route('employees.incidencias', ['numEmpleado' => $emp->num_empleado]), navigate: true);
     }
 
     public function updatedCodigo($value)
@@ -107,6 +110,7 @@ class Manager extends Component
             $this->isVacacional  = IncConstants::esVacacional($codeInt);
             $this->isTxt         = ($codeInt === IncConstants::TXT);
             $this->isComision    = IncConstants::esComisionOficial($codeInt);
+            $this->isOtorgado    = ($codeInt === 901);
             $this->dateMode = ($this->isLicencia || $this->isIncapacidad || $this->isVacacional || $this->isComision) ? 'range' : 'multiple';
         }
     }
@@ -118,7 +122,9 @@ class Manager extends Component
         $this->isVacacional = false;
         $this->isTxt = false;
         $this->isComision = false;
+        $this->isOtorgado = false;
         $this->motivo_comision = null;
+        $this->otorgado = null;
     }
 
     public function store(IncidenciasService $service)
@@ -175,6 +181,11 @@ class Manager extends Component
             $messages['motivo_comision.required'] = 'El motivo de la comisión es obligatorio';
         }
 
+        if ($this->isOtorgado) {
+            $rules['otorgado'] = 'required|string|max:255';
+            $messages['otorgado.required'] = 'El motivo de la omisión es obligatorio';
+        }
+
         $this->validate($rules, $messages);
 
         try {
@@ -190,6 +201,7 @@ class Manager extends Component
                 'autoriza_txt' => $this->autoriza_txt,
                 'cobertura_txt' => $this->cobertura_txt,
                 'motivo_comision' => $this->isComision ? $this->motivo_comision : null,
+                'otorgado' => $this->isOtorgado ? $this->otorgado : null,
                 'saltar_validacion_inca' => $this->saltar_validacion_inca ? "1" : "0",
                 'saltar_validacion_lic' => $this->saltar_validacion_lic ? "1" : "0",
                 'token' => $token,
@@ -228,6 +240,7 @@ class Manager extends Component
 
             $this->dispatch('toast', ['icon' => 'success', 'title' => 'Incidencia Capturada']);
             $this->dispatch('reset-calendar');
+            event(new NewIncidenciaBatchCreated());
             $this->fechas_seleccionadas = ''; 
         } catch (\Exception $e) {
             $this->dispatch('toast', ['icon' => 'error', 'title' => $e->getMessage()]);
@@ -250,10 +263,8 @@ class Manager extends Component
 
         try {
             $service->eliminarPorToken($token);
-            
-
-
             $this->dispatch('toast', ['icon' => 'success', 'title' => 'Incidencia Eliminada']);
+            event(new NewIncidenciaBatchCreated());
         } catch (\Exception $e) {
             $this->dispatch('toast', ['icon' => 'error', 'title' => $e->getMessage()]);
         }

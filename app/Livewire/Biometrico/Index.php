@@ -33,6 +33,7 @@ class Index extends Component
     }
 
     #[On('refreshBiometrico')]
+    #[On('echo-presence:chat,NewIncidenciaBatchCreated')]
     public function refresh()
     {
         // El componente se refrescará automáticamente al llamar a este método vía evento

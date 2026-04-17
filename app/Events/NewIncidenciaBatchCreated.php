@@ -3,12 +3,12 @@
 namespace App\Events;
 
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class NewIncidenciaBatchCreated
+class NewIncidenciaBatchCreated implements ShouldBroadcastNow
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -19,9 +19,13 @@ class NewIncidenciaBatchCreated
 
     public function broadcastOn(): array
     {
-        // Usamos el canal 'chat' que ya está validado en tu terminal
         return [
-            new PrivateChannel('chat'),
+            new PresenceChannel('chat'),
         ];
+    }
+
+    public function broadcastAs(): string
+    {
+        return 'NewIncidenciaBatchCreated';
     }
 }

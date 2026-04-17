@@ -41,12 +41,18 @@ class AusentismoReport extends Component
             $this->departments = [];
         }
 
-        $this->loading = false;
+        $this->loading = true;
     }
 
     public function setDepartment($deptId)
     {
         $this->selectedDepartment = $deptId;
+        $this->loading = true;
+    }
+
+    public function updated($propertyName)
+    {
+        $this->loading = true;
     }
 
     public function loadData()

@@ -26,7 +26,7 @@ class LiveCaptureLog extends Component
      * Escucha el evento de Reverb en el canal privado 'chat'.
      * Se activa instantáneamente cuando se dispara desde el Manager.
      */
-    #[On('echo-private:chat,NewIncidenciaBatchCreated')]
+    #[On('echo-presence:chat,NewIncidenciaBatchCreated')]
     #[On('live-log-refresh')]
     public function refreshLog()
     {

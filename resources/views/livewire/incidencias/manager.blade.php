@@ -325,6 +325,44 @@
                                     </div>
                                     @endif
 
+                                    {{-- Campos de Omisión de Entrada/Salida (código 901) --}}
+                                    @if($isOtorgado)
+                                    <div
+                                        class="p-5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm relative overflow-hidden group">
+                                        <div
+                                            class="absolute top-0 left-0 w-1 h-full bg-[#13322B] dark:bg-[#e6d194]">
+                                        </div>
+
+                                        <div class="flex items-start gap-4">
+                                            <div
+                                                class="w-10 h-10 rounded-xl bg-[#13322B]/10 flex items-center justify-center shrink-0">
+                                                <svg class="w-5 h-5 text-[#13322B] dark:text-[#e6d194]" fill="none"
+                                                    stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <h4
+                                                    class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-4">
+                                                    Detalles de otorgado</h4>
+
+                                                <div>
+                                                    <label
+                                                        class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Especifique el Motivo</label>
+                                                    <input type="text" wire:model="otorgado"
+                                                        placeholder="Describa el motivo por el cual es otorgado..."
+                                                        class="block w-full h-9 px-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-[#13322B]/30 outline-none transition-all">
+                                                    @error('otorgado') <span
+                                                        class="text-red-500 text-[10px] font-bold mt-1 ml-1 block">{{
+                                                        $message }}</span> @enderror
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+
                                     {{-- Campos de TXT (código 900) --}}
                                     @if($isTxt)
                                     <div
@@ -429,16 +467,6 @@
 
                                                 <div class="mt-4">
                                                     <label
-                                                        class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Diagnóstico
-                                                        / Motivo</label>
-                                                    <input type="text" wire:model="diagnostico"
-                                                        placeholder="Descripción breve..."
-                                                        class="block w-full h-9 px-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-[#9b2247]/30 outline-none transition-all">
-                                                    @error('diagnostico') <span class="text-red-500 text-[10px] font-bold mt-1 ml-1 block">{{ $message }}</span> @enderror
-                                                </div>
-
-                                                <div class="mt-4">
-                                                    <label
                                                         class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Médico
                                                         Expedidor</label>
                                                     <div class="relative" x-data="{
@@ -474,10 +502,8 @@
                                                                 <div @click.stop="select('{{ $medico->id }}')"
                                                                     x-show="String({{ json_encode($medico->fullname) }}).toLowerCase().includes(search.toLowerCase()) || '{{ $medico->num_empleado }}'.includes(search)"
                                                                     class="px-3 py-2 rounded-lg cursor-pointer text-[10px] font-bold transition-all {{ $medico_id == $medico->id ? 'bg-[#9b2247]/10 text-[#9b2247]' : 'text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700' }} mb-1 last:mb-0">
-                                                                    <div class="flex items-center justify-between">
-                                                                        <span>{{ $medico->fullname }}</span>
-                                                                        <span class="text-[8px] opacity-50">{{
-                                                                            $medico->num_empleado }}</span>
+                                                                    <div class="flex items-center">
+                                                                        <span>{{ $medico->num_empleado }} - {{ $medico->fullname }}</span>
                                                                     </div>
                                                                 </div>
                                                                 @endforeach
@@ -490,6 +516,16 @@
                                                         </div>
                                                     </div>
                                                     @error('medico_id') <span class="text-red-500 text-[10px] font-bold mt-1 ml-1 block">{{ $message }}</span> @enderror
+                                                </div>
+
+                                                <div class="mt-4">
+                                                    <label
+                                                        class="block text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Diagnóstico
+                                                        / Motivo</label>
+                                                    <input type="text" wire:model="diagnostico"
+                                                        placeholder="Descripción breve..."
+                                                        class="block w-full h-9 px-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-700 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-[#9b2247]/30 outline-none transition-all">
+                                                    @error('diagnostico') <span class="text-red-500 text-[10px] font-bold mt-1 ml-1 block">{{ $message }}</span> @enderror
                                                 </div>
                                             </div>
                                         </div>

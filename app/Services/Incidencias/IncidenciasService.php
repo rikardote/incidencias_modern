@@ -78,6 +78,7 @@ class IncidenciasService
                 $incidencia->fecha_capturado = \Carbon\Carbon::now();
                 $incidencia->capturado_por = $this->helpers->capturadoPor(auth()->user()->id);
                 $incidencia->motivo_comision = $data['motivo_comision'] ?? null;
+                $incidencia->otorgado = $data['otorgado'] ?? null;
 
                 $esLicencia = Inc::esLicencia($codeReal);
                 $esIncapacidad = Inc::esIncapacidad($codeReal);

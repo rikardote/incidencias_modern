@@ -15,9 +15,10 @@ class EmployeeStatistics extends Component
     public $employeeId;
     public $year;
 
-    public function mount($employeeId)
+    public function mount($numEmpleado)
     {
-        $this->employeeId = $employeeId;
+        $emp = Employe::where('num_empleado', $numEmpleado)->firstOrFail();
+        $this->employeeId = $emp->id;
         $this->year = date('Y');
     }
 

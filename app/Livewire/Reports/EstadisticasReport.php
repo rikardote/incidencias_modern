@@ -43,21 +43,26 @@ class EstadisticasReport extends Component
 
         $this->codigos = CodigoDeIncidencia::orderBy('code')->get();
 
-        // No cargamos datos al iniciar si no queremos saturar, 
-        // pero la gente suele querer ver el reporte vacío o cargado al entrar.
-        // Lo dejamos vacío y pedimos que le den al botón Generar.
-        $this->loading = false;
+        // Lo dejamos vacío y pedimos que le den al botón Generar indicando loading = true (esperando)
+        $this->loading = true;
         $this->detailedData = null; // null means not generated yet
     }
 
     public function setDepartment($deptId)
     {
         $this->selectedDepartment = $deptId;
+        $this->loading = true;
     }
 
     public function setCode($codeId)
     {
         $this->selectedCode = $codeId;
+        $this->loading = true;
+    }
+
+    public function updated($propertyName)
+    {
+        $this->loading = true;
     }
 
     public function loadData()

@@ -20,7 +20,7 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <a href="{{ route('employees.kardex', $this->employee->id) }}" wire:navigate
+                <a href="{{ route('employees.kardex', $this->employee->num_empleado) }}" wire:navigate
                     class="h-[42px] px-5 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-black uppercase tracking-widest border border-gray-100 dark:border-gray-700 hover:border-oro transition-all shadow-sm flex items-center justify-center">
                     Ver Kárdex
                 </a>

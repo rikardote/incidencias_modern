@@ -16,13 +16,16 @@ class KardexReport extends Component
     public $employee = null;
     public $results = null;
 
-    public function mount($employeeId = null)
+    public function mount($numEmpleado = null)
     {
         $this->fecha_inicio = date('Y') . '-01-01';
         $this->fecha_final = date('Y-m-d');
 
-        if ($employeeId) {
-            $this->cambiarEmpleado($employeeId);
+        if ($numEmpleado) {
+            $emp = Employe::where('num_empleado', $numEmpleado)->first();
+            if ($emp) {
+                $this->cambiarEmpleado($emp->id);
+            }
         }
     }
 

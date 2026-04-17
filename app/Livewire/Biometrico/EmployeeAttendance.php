@@ -16,7 +16,7 @@ class EmployeeAttendance extends Component
     public $checadas = [];
     public $isPortal = false;
 
-    public function mount($employeeId, $isPortal = false)
+    public function mount($numEmpleado, $isPortal = false)
     {
         $this->isPortal = $isPortal;
         
@@ -37,7 +37,7 @@ class EmployeeAttendance extends Component
 
         if ($guard === 'employee') {
             // Un empleado logueado solo puede verse a sí mismo
-            if ($user->id != $employeeId) {
+            if ($user->num_empleado != $numEmpleado) {
                 abort(403, 'No tiene permiso para ver esta información.');
             }
             $this->employee = $user;
@@ -47,7 +47,7 @@ class EmployeeAttendance extends Component
                 $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
                 $query->whereIn('deparment_id', $departmentIds);
             }
-            $this->employee = $query->findOrFail($employeeId);
+            $this->employee = $query->where('num_empleado', $numEmpleado)->firstOrFail();
         }
         
         $this->año = (int)date('Y');
