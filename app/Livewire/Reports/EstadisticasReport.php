@@ -109,6 +109,11 @@ class EstadisticasReport extends Component
 
         $incidencias = $query->orderBy('fecha_inicio', 'desc')->get();
 
+        if ($incidencias->isNotEmpty()) {
+            $numeros = $incidencias->pluck('employee.num_empleado')->unique()->filter()->toArray();
+            app(\App\Services\Employees\EmployeeApiService::class)->preloadEmployeesData($numeros);
+        }
+
         $statsByJornada = $incidencias->groupBy(function ($inc) {
             return $inc->employee->jornada->jornada ?? 'SIN JORNADA ASIGNADA';
         })->map(function ($group) {

@@ -27,6 +27,8 @@ class ExcesoIncapacidadesReport extends Component
             $departmentIds = $user->departments()->pluck('deparment_id')->toArray();
             $this->departments = Department::whereIn('id', $departmentIds)->orderBy('code')->get();
         }
+        $this->loading = false;
+        $this->data = null; // null means not generated
     }
 
     public function setDepartment($deptId)
@@ -49,6 +51,10 @@ class ExcesoIncapacidadesReport extends Component
         }
 
         $empleados = $query->get();
+        if ($empleados->isNotEmpty()) {
+            app(\App\Services\Employees\EmployeeApiService::class)->preloadEmployeesData($empleados->pluck('num_empleado')->toArray());
+        }
+        
         $this->data = [];
 
         if ($empleados->isEmpty()) {
