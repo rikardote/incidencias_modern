@@ -36,7 +36,11 @@ class IncapacidadExcesoAlertTest extends TestCase
         ]);
 
         $codigo55 = CodigoDeIncidencia::create(['code' => '55', 'description' => 'EG']);
-        DB::statement('PRAGMA foreign_keys = OFF;');
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = OFF;');
+        } else {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        }
         DB::table('puestos')->insert(['id' => 24, 'puesto' => 'MEDICO']);
 
         $doctor = Employe::create([
@@ -82,7 +86,11 @@ class IncapacidadExcesoAlertTest extends TestCase
         ]);
 
         $codigo55 = CodigoDeIncidencia::create(['code' => '55', 'description' => 'EG']);
-        DB::statement('PRAGMA foreign_keys = OFF;');
+        if (DB::getDriverName() === 'sqlite') {
+            DB::statement('PRAGMA foreign_keys = OFF;');
+        } else {
+            DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+        }
         DB::table('puestos')->insert(['id' => 24, 'puesto' => 'MEDICO']);
 
         $doctor = Employe::create([

@@ -90,6 +90,10 @@ class Manager extends Component
 
     public function updatedCodigo($value)
     {
+        // Limpiamos la fecha si el usuario cambia de incidencia a media captura
+        $this->fechas_seleccionadas = '';
+        $this->dispatch('reset-calendar');
+
         if(!$value) {
             $this->resetFlags();
             return;
@@ -257,8 +261,8 @@ class Manager extends Component
 
     public function render()
     {
-        // 1. Obtener IDs de Qnas permitidas (cacheado 10 min)
-        $allowedQnaIds = Cache::remember('active_qna_ids', 600, fn() => Qna::where('active', '1')->pluck('id'));
+        // 1. Obtener IDs de Qnas permitidas (sin caché agresivo para reflejar cierres inmediatos)
+        $allowedQnaIds = Qna::where('active', '1')->pluck('id');
         $exception = auth()->user()->activeCaptureException();
         if ($exception) {
             $qnaId = $exception->qna_id ?? Qna::where('active', '0')->orderBy('year', 'desc')->orderBy('qna', 'desc')->value('id');
@@ -270,9 +274,20 @@ class Manager extends Component
         // 2. Cargar Médicos solo si es Incapacidad (Carga diferida)
         $medicos = [];
         if ($this->isIncapacidad) {
-            $medicos = Cache::remember('medicos_list', 3600, function() {
+            $medicos = Cache::remember('medicos_list_array_v2', 3600, function() {
                 $doctorPuestos = ['24','25','28','30','56','57','58','59','60','61','62','63','64','65','66','67','68','87','88','101','95','96','97','98'];
-                return Employe::whereIn('puesto_id', $doctorPuestos)->orderBy('name')->get();
+                $empleados = Employe::whereIn('puesto_id', $doctorPuestos)->orderBy('name')->get();
+                
+                // Mapeamos a stdClass para que en los re-renders de Livewire no se disparen los accessors 
+                // de Eloquent. Usamos los valores crudos de la BD para evitar consultar por completo la API externa.
+                return $empleados->map(function($emp) {
+                    $rawName = $emp->getRawOriginal('name') . ' ' . $emp->getRawOriginal('father_lastname') . ' ' . $emp->getRawOriginal('mother_lastname');
+                    return (object) [
+                        'id' => $emp->id,
+                        'fullname' => strtoupper(trim(preg_replace('/\s+/', ' ', $rawName))),
+                        'num_empleado' => $emp->num_empleado, // Este accesor es local y seguro
+                    ];
+                })->toArray();
             });
         }
 

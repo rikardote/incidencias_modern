@@ -25,7 +25,8 @@ class SegmentadorQuincenal
             $qnaId = $qnaResolver ? $qnaResolver($actual->format('Y-m-d')) : qna_year($actual->format('Y-m-d'));
             
             if (!$qnaId) {
-                throw new \DomainException("La incidencia toca fechas cuya Quincena correspondiente aún no ha sido aperturada por el administrador del sistema (" . $actual->format('m/Y') . ").");
+                $qnaCalculada = str_pad(($actual->month * 2) - ($actual->day <= 15 ? 1 : 0), 2, '0', STR_PAD_LEFT);
+                throw new \DomainException("La incidencia toca fechas cuya quincena \"{$qnaCalculada}/{$actual->year}\" esta cerrada o no ha sido aperturada.");
             }
 
             $finQna = ($actual->day <= 15) ? $actual->copy()->day(15) : $actual->copy()->day($actual->daysInMonth);
