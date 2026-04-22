@@ -95,15 +95,15 @@ class SearchEmployees extends Component
         $this->name = $employee->name;
         $this->father_lastname = $employee->father_lastname;
         $this->mother_lastname = $employee->mother_lastname;
-        $this->curp = $employee->curp;  // Atributo con prioridad API
-        $this->rfc = $employee->rfc;    // Atributo con prioridad API
+        $this->curp = $employee->api_curp;
+        $this->rfc = $employee->api_rfc;
         $this->deparment_id = $employee->deparment_id;
         $this->condicion_id = $employee->condicion_id;
         $this->puesto_id = $employee->puesto_id;
         $this->horario_id = $employee->horario_id;
         $this->jornada_id = $employee->jornada_id;
-        $this->num_plaza = $employee->num_plaza;   // Prioridad API
-        $this->num_seguro = $employee->num_seguro; // Prioridad API
+        $this->num_plaza = $employee->api_num_plaza;
+        $this->num_seguro = $employee->api_num_seguro;
 
         // Sincronizar puesto con API si existe información más reciente (Ej. A6 -> A8)
         $externalData = $employee->external_data;
@@ -202,7 +202,7 @@ class SearchEmployees extends Component
 
                 $this->dispatch('swal', [
                     'title' => '¡Registro localizado!',
-                    'text' => "Se encontró a {$existing->fullname} con este número. Los campos han sido rellenados automáticamente.",
+                    'text' => "Se encontró a {$existing->api_fullname} con este número. Los campos han sido rellenados automáticamente.",
                     'icon' => 'info',
                     'timer' => 5000
                 ]);

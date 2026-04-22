@@ -24,7 +24,7 @@ class EmployeeApiService
     {
         return Cache::remember("employee_api_data_{$numEmpleado}", 3600, function () use ($numEmpleado) {
             try {
-                $response = Http::get("{$this->baseUrl}/employees/search", [
+                $response = Http::timeout(3)->get("{$this->baseUrl}/employees/search", [
                     'id_empleado' => $numEmpleado,
                     'latest' => true
                 ]);
@@ -44,13 +44,6 @@ class EmployeeApiService
         });
     }
 
-    /**
-     * Preload multiple employees data into cache concurrently using Http::pool.
-     * This avoids N+1 API sequential requests when rendering lists.
-     * 
-     * @param array $numerosEmpleado
-     * @return void
-     */
     public function preloadEmployeesData(array $numerosEmpleado)
     {
         $missing = [];
@@ -68,7 +61,7 @@ class EmployeeApiService
                 $responses = Http::pool(function (\Illuminate\Http\Client\Pool $pool) use ($missing) {
                     $requests = [];
                     foreach ($missing as $num) {
-                        $requests[] = $pool->as("emp_{$num}")->get("{$this->baseUrl}/employees/search", [
+                        $requests[] = $pool->as("emp_{$num}")->timeout(3)->get("{$this->baseUrl}/employees/search", [
                             'id_empleado' => $num,
                             'latest' => true
                         ]);
@@ -76,10 +69,11 @@ class EmployeeApiService
                     return $requests;
                 });
 
-                // Guardar las respuestas exitosas en caché usando la misma clave que getEmployeeData
+                // Guardar las respuestas en caché usando la misma clave que getEmployeeData
                 foreach ($responses as $key => $response) {
+                    $num = str_replace('emp_', '', $key);
+                    
                     if ($response instanceof \Illuminate\Http\Client\Response && $response->successful()) {
-                        $num = str_replace('emp_', '', $key);
                         $data = $response->json();
                         
                         if (!empty($data)) {
@@ -89,10 +83,18 @@ class EmployeeApiService
                             // Para evitar golpear la API constantemente si el empleado no existe
                             Cache::put("employee_api_data_{$num}", [], 3600);
                         }
+                    } else {
+                        // Si la petición falla (timeout, error 500, no resuelve host), guardamos un arreglo vacío
+                        // para evitar que el fallback secuencial intente hacer peticiones de nuevo.
+                        Cache::put("employee_api_data_{$num}", [], 300); // Caché de error por 5 minutos
                     }
                 }
             } catch (\Exception $e) {
                 \Log::error("Error in preloadEmployeesData: " . $e->getMessage());
+                // En caso de fallo total del pool, marcamos todos como fallidos temporalmente
+                foreach ($missing as $num) {
+                    Cache::put("employee_api_data_{$num}", [], 300);
+                }
             }
         }
     }

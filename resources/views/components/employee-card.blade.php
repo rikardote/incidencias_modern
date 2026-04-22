@@ -9,8 +9,8 @@
             <div
                 class="shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-[#13322B]/10 to-[#9b2247]/10 dark:from-[#13322B]/30 dark:to-[#9b2247]/30 border border-[#13322B]/5 dark:border-[#e6d194]/10 flex items-center justify-center shadow-sm">
                 <span class="text-xs font-black text-[#13322B] dark:text-[#e6d194] leading-none tracking-tighter">
-                    {{ strtoupper(mb_substr($employee->name, 0, 1)) }}{{
-                    strtoupper(mb_substr($employee->father_lastname, 0, 1)) }}
+                    {{ strtoupper(mb_substr($employee->api_name, 0, 1)) }}{{
+                    strtoupper(mb_substr($employee->api_father_lastname, 0, 1)) }}
                 </span>
             </div>
 
@@ -22,7 +22,7 @@
                     </span>
                     <span class="text-gray-200 dark:text-gray-600 text-xs">|</span>
                     <span class="text-sm font-semibold text-gray-900 dark:text-gray-100 uppercase">
-                        {{ $employee->fullname }}
+                        {{ $employee->api_fullname }}
                     </span>
 
                 </div>

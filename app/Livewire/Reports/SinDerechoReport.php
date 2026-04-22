@@ -118,7 +118,6 @@ class SinDerechoReport extends Component
             ->get();
 
         if ($this->results->isNotEmpty()) {
-            app(\App\Services\Employees\EmployeeApiService::class)->preloadEmployeesData($this->results->pluck('num_empleado')->toArray());
         }
 
         $this->dispatch('toast', icon: 'success', title: 'Reporte Generado');

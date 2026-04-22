@@ -98,11 +98,12 @@ class Employe extends Authenticatable
     }
     public function getGenderAttribute(): string
     {
-        if (!$this->curp || strlen($this->curp) < 11) {
+        $curp = $this->api_curp;
+        if (!$curp || strlen($curp) < 11) {
             return 'No definido';
         }
 
-        $genderChar = strtoupper($this->curp[10]);
+        $genderChar = strtoupper($curp[10]);
 
         switch ($genderChar) {
             case 'H':
@@ -116,9 +117,9 @@ class Employe extends Authenticatable
 
     public function getEdadAttribute(): string
     {
-        $curp = $this->curp;
-        if (!$curp && $this->rfc) {
-            $curp = $this->rfc;
+        $curp = $this->api_curp;
+        if (!$curp && $this->api_rfc) {
+            $curp = $this->api_rfc;
         }
 
         if ($curp && strlen($curp) >= 10) {
@@ -191,95 +192,91 @@ class Employe extends Authenticatable
     /**
      * Accessors for common external fields with API priority
      */
-    public function getNameAttribute($value)
-    {
-        return strtoupper(($this->external_data['nombre'] ?? null) ?: $value);
-    }
-
-    public function getFatherLastnameAttribute($value)
-    {
-        return strtoupper(($this->external_data['apellido_1'] ?? null) ?: $value);
-    }
-
-    public function getMotherLastnameAttribute($value)
-    {
-        return strtoupper(($this->external_data['apellido_2'] ?? null) ?: $value);
-    }
-
     /**
-     * Override the 'puesto' relationship/attribute to prioritize API data
+     * Explicit API Accessors for /employees module
      */
-    public function getPuestoAttribute($value)
+    public function getApiNameAttribute()
+    {
+        return strtoupper($this->external_data['nombre'] ?? $this->getRawOriginal('name'));
+    }
+
+    public function getApiFatherLastnameAttribute()
+    {
+        return strtoupper($this->external_data['apellido_1'] ?? $this->getRawOriginal('father_lastname'));
+    }
+
+    public function getApiMotherLastnameAttribute()
+    {
+        return strtoupper($this->external_data['apellido_2'] ?? $this->getRawOriginal('mother_lastname'));
+    }
+
+    public function getApiFullnameAttribute()
+    {
+        return trim("{$this->api_name} {$this->api_father_lastname} {$this->api_mother_lastname}");
+    }
+
+    public function getApiPuestoAttribute()
     {
         $externalData = $this->external_data;
         if ($externalData && !empty($externalData['n_puesto_plaza'])) {
             $apiName = trim($externalData['n_puesto_plaza']);
             $local = \App\Models\Puesto::where('puesto', $apiName)->first();
+            if ($local) return $local;
             
-            if ($local) {
-                return $local;
-            }
-            
-            // Return a generic object if not found locally yet
             return (object)[
                 'id' => 0,
                 'puesto' => $apiName,
                 'clave' => $externalData['id_puesto_plaza'] ?? 'SYNC'
             ];
         }
-
-        return $this->getRelationValue('puesto');
+        return $this->puesto;
     }
 
-    public function getCurpAttribute($value)
+    public function getApiCurpAttribute()
     {
-        return ($this->external_data['id_c_u_r_p_st'] ?? null) ?: $value;
+        return $this->external_data['id_c_u_r_p_st'] ?? $this->getRawOriginal('curp');
     }
 
-    public function getRfcAttribute($value)
+    public function getApiRfcAttribute()
     {
-        return ($this->external_data['id_legal'] ?? null) ?: $value;
+        return $this->external_data['id_legal'] ?? $this->getRawOriginal('rfc');
     }
 
-    public function getNumPlazaAttribute($value)
+    public function getApiNumPlazaAttribute()
     {
-        return ($this->external_data['id_plaza'] ?? null) ?: $value;
+        return $this->external_data['id_plaza'] ?? $this->getRawOriginal('num_plaza');
     }
 
-    public function getNumSeguroAttribute($value)
+    public function getApiNumSeguroAttribute()
     {
-        return ($this->external_data['numero_ss'] ?? null) ?: $value;
+        return $this->external_data['numero_ss'] ?? $this->getRawOriginal('num_seguro');
     }
 
-    public function getNivelAttribute()
+    public function getApiNivelAttribute()
     {
         return ($this->external_data['id_nivel'] ?? null) ?: 'N/A';
     }
 
-    public function getSubNivelAttribute()
+    public function getApiSubNivelAttribute()
     {
         return ($this->external_data['id_sub_nivel'] ?? null) ?: 'N/A';
     }
 
-    public function getFormaPagoAttribute()
+    public function getApiFormaPagoAttribute()
     {
         return ($this->external_data['id_forma_pago'] ?? null) ?: 'N/A';
     }
 
-    public function getSindicatoAttribute()
+    public function getApiSindicatoAttribute()
     {
         $externalData = $this->external_data;
         if (!$externalData) return 'Ninguno';
 
         $nomina = $externalData['nomina_data'] ?? [];
-
         foreach (self::SINDICATOS_MAP as $key => $name) {
             $val = $externalData[$key] ?? ($nomina[$key] ?? 0);
-            if ((float)$val > 0) {
-                return $name;
-            }
+            if ((float)$val > 0) return $name;
         }
-
         return 'Ninguno';
     }
 

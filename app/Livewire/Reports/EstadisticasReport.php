@@ -116,7 +116,6 @@ class EstadisticasReport extends Component
 
         if ($incidencias->isNotEmpty()) {
             $numeros = $incidencias->pluck('employee.num_empleado')->unique()->filter()->toArray();
-            app(\App\Services\Employees\EmployeeApiService::class)->preloadEmployeesData($numeros);
         }
 
         $statsByJornada = $incidencias->groupBy(function ($inc) {

@@ -43,7 +43,6 @@ class ReportController extends Controller
 
         $numeros = $incidencias->pluck('employee.num_empleado')->unique()->filter()->toArray();
         if (!empty($numeros)) {
-            app(\App\Services\Employees\EmployeeApiService::class)->preloadEmployeesData($numeros);
         }
 
         $incidencias = $incidencias->groupBy('token');
@@ -327,7 +326,6 @@ class ReportController extends Controller
 
         $numerosSD = $results->pluck('num_empleado')->unique()->filter()->toArray();
         if (!empty($numerosSD)) {
-            app(\App\Services\Employees\EmployeeApiService::class)->preloadEmployeesData($numerosSD);
         }
 
         // 3. Generar PDF con mPDF

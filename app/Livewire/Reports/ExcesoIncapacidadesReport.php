@@ -52,7 +52,6 @@ class ExcesoIncapacidadesReport extends Component
 
         $empleados = $query->get();
         if ($empleados->isNotEmpty()) {
-            app(\App\Services\Employees\EmployeeApiService::class)->preloadEmployeesData($empleados->pluck('num_empleado')->toArray());
         }
         
         $this->data = [];

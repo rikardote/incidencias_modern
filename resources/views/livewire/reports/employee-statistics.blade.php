@@ -61,7 +61,7 @@
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-black text-gray-400 uppercase">Puesto Oficial</span>
                                     <span class="text-xs font-bold text-gray-800 dark:text-gray-200">{{
-                                        $this->employee->puesto->puesto ?? 'SIN PUESTO' }}</span>
+                                        $this->employee->api_puesto->puesto ?? 'SIN PUESTO' }}</span>
                                 </div>
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-black text-gray-400 uppercase">Jornada / Horario</span>
@@ -74,7 +74,7 @@
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-black text-gray-400 uppercase">Sindicato</span>
                                     <span class="text-xs font-black text-[#9b2247] dark:text-oro uppercase tracking-tight">
-                                        {{ $this->employee->sindicato }}
+                                        {{ $this->employee->api_sindicato }}
                                     </span>
                                 </div>
                                 <div class="flex flex-col gap-1">
@@ -93,22 +93,37 @@
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-black text-gray-400 uppercase">No. Plaza</span>
                                     <span class="text-xs font-bold text-gray-700 dark:text-gray-300 font-mono">{{
-                                        $this->employee->num_plaza ?? 'N/A' }}</span>
+                                        $this->employee->api_num_plaza ?? 'N/A' }}</span>
                                 </div>
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-black text-gray-400 uppercase">NS Seguros</span>
                                     <span class="text-xs font-bold text-gray-700 dark:text-gray-300 font-mono">{{
-                                        $this->employee->num_seguro ?? 'N/A' }}</span>
+                                        $this->employee->api_num_seguro ?? 'N/A' }}</span>
                                 </div>
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-black text-gray-400 uppercase">CURP</span>
                                     <span class="text-xs font-bold text-[#9b2247] dark:text-oro font-mono">{{
-                                        $this->employee->curp ?? 'N/A' }}</span>
+                                        $this->employee->api_curp ?? 'N/A' }}</span>
                                 </div>
                                 <div class="flex flex-col gap-1">
                                     <span class="text-[9px] font-black text-gray-400 uppercase">RFC</span>
                                     <span class="text-xs font-bold text-[#9b2247] dark:text-oro font-mono">{{
-                                        $this->employee->rfc ?? 'N/A' }}</span>
+                                        $this->employee->api_rfc ?? 'N/A' }}</span>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-black text-gray-400 uppercase">Nivel</span>
+                                    <span class="text-xs font-bold text-gray-700 dark:text-gray-300">{{
+                                        $this->employee->api_nivel }}</span>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-black text-gray-400 uppercase">Subnivel</span>
+                                    <span class="text-xs font-bold text-gray-700 dark:text-gray-300">{{
+                                        $this->employee->api_sub_nivel }}</span>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <span class="text-[9px] font-black text-gray-400 uppercase">Forma de Pago</span>
+                                    <span class="text-xs font-bold text-gray-700 dark:text-gray-300">{{
+                                        $this->employee->api_forma_pago }}</span>
                                 </div>
                             </div>
                         </div>
