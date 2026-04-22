@@ -97,6 +97,9 @@ class Manager extends Component
         $this->fechas_seleccionadas = '';
         $this->dispatch('reset-calendar');
 
+        // Resetear siempre los campos extras para evitar persistencia de datos de otros códigos
+        $this->resetExtraFields();
+
         if(!$value) {
             $this->resetFlags();
             return;
@@ -113,6 +116,19 @@ class Manager extends Component
             $this->isOtorgado    = ($codeInt === 901);
             $this->dateMode = ($this->isLicencia || $this->isIncapacidad || $this->isVacacional || $this->isComision) ? 'range' : 'multiple';
         }
+    }
+
+    private function resetExtraFields()
+    {
+        $this->medico_id = null;
+        $this->fecha_expedida = null;
+        $this->diagnostico = null;
+        $this->num_licencia = null;
+        $this->periodo_id = null;
+        $this->autoriza_txt = null;
+        $this->cobertura_txt = null;
+        $this->motivo_comision = null;
+        $this->otorgado = null;
     }
 
     private function resetFlags()
