@@ -27,6 +27,101 @@ class IncidenciasService
     {
         $this->helpers = $helpers ?: app(\App\Services\Incidencias\IncidenciaHelpersService::class);
     }
+    public function validarCaptura(array $data)
+    {
+        // 1. Validar existencia básica de empleado
+        if (empty($data['empleado_id'])) return;
+        $empleado = Employe::find($data['empleado_id']);
+        if (!$empleado) throw new \DomainException('Empleado no encontrado');
+
+        // 2. Validar Código (si existe)
+        if (!empty($data['codigo'])) {
+            $incidenciaCodigo = CodigoDeIncidencia::find($data['codigo']);
+            if (!$incidenciaCodigo) throw new \DomainException('Código de incidencia no válido');
+            
+            $codeReal = (int)$incidenciaCodigo->code;
+
+            // --- REGLAS DE ELEGIBILIDAD INMEDIATA (SIN FECHAS) ---
+            
+            // Regla: TXT (900) solo para Base (1)
+            if ($codeReal == Inc::TXT && (int)$empleado->condicion_id !== 1) {
+                throw new \DomainException('Solo el personal de BASE puede cubrir T.X.T.');
+            }
+
+            // Regla: Licencia con Goce (41) solo para Base (1)
+            if ($codeReal == 41 && (int)$empleado->condicion_id !== 1) {
+                throw new \DomainException('Las licencias con goce de sueldo (41) solo aplican para personal de BASE.');
+            }
+
+            // Regla: Onomástico (30) - Validar si tiene derecho (Opcional, pero se puede añadir aquí)
+            // ----------------------------------------------------
+        }
+
+        // Mapear campos de captura rápida a nombres internos si es necesario
+        $fInicio = $data['fecha_inicio'] ?? $data['datepicker_inicial'] ?? null;
+        $fFinal = $data['fecha_final'] ?? $data['datepicker_final'] ?? null;
+
+        // 3. Validar Fecha Inicio (Solo si está completa: 10 chars)
+        if (!empty($fInicio) && strlen($fInicio) === 10) {
+            $inicio = $this->helpers->fechaYmd($fInicio);
+            $qna = $this->helpers->qnaDesdeFecha($inicio);
+            
+            if ($qna) {
+                $qnaModel = Qna::find($qna);
+                if ($qnaModel && ($qnaModel->active != '1' || ($qnaModel->cierre && now()->greaterThan($qnaModel->cierre)))) {
+                    if (!auth()->user()->canCaptureInClosedQna($qna)) {
+                        throw new \DomainException("La quincena Q{$qnaModel->qna}/{$qnaModel->year} está cerrada para captura.");
+                    }
+                }
+            }
+        }
+
+        // 4. Validar Fecha Final y Traslapes (Solo si todo existe y está completo)
+        if (!empty($fInicio) && strlen($fInicio) === 10 && !empty($fFinal) && strlen($fFinal) === 10 && !empty($data['codigo'])) {
+            $inicio = $this->helpers->fechaYmd($fInicio);
+            $fin = $this->helpers->fechaYmd($fFinal);
+
+            if (strtotime($fin) < strtotime($inicio)) {
+                throw new \DomainException('La fecha final no puede ser anterior a la inicial');
+            }
+
+            // Validar traslapes
+            $duplicadosRule = new DuplicadosRule();
+            if ($conflict = $duplicadosRule->yaCapturado($empleado, $inicio, $fin, $incidenciaCodigo->code)) {
+                $esMismoCodigo = ($conflict->code == $incidenciaCodigo->code);
+                throw new \DomainException($esMismoCodigo ? 'Incidencia Duplicada' : 'Traslape con Código ' . $conflict->code);
+            }
+
+            // Correr resto de reglas específicas (Incapacidades, etc)
+            $incidencia = new Incidencia();
+            $incidencia->employee_id = $empleado->id;
+            $incidencia->codigodeincidencia_id = $incidenciaCodigo->id;
+            $incidencia->fecha_inicio = $inicio;
+            $incidencia->fecha_final = $fin;
+            $incidencia->total_dias = \Carbon\Carbon::parse($inicio)->diffInDays(\Carbon\Carbon::parse($fin)) + 1;
+
+            $reglasEspecificas = [
+                new OnomasticoRule(),
+                new LicenciaConGoceRule($this->helpers),
+                new IncapacidadRule($this->helpers),
+                new VacacionesRule(),
+                new PaseSalidaRule(),
+                new TXTRule($this->helpers),
+            ];
+
+            foreach ($reglasEspecificas as $regla) {
+                try {
+                    $regla->aplicar($incidencia, $empleado, $data, $codeReal);
+                } catch (\DomainException $e) {
+                    // Solo lanzamos si no es una excepción de campos faltantes que aún no se capturan
+                    if (!str_contains($e->getMessage(), 'Debe') && !str_contains($e->getMessage(), 'seleccionar')) {
+                        throw $e;
+                    }
+                }
+            }
+        }
+    }
+
     public function crearIncidencias(array $data)
     {
         $empleado = Employe::findOrFail($data['empleado_id']);

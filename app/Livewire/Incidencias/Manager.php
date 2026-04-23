@@ -9,6 +9,7 @@ use App\Models\Qna;
 use App\Models\Periodo;
 use App\Services\Incidencias\IncidenciasService;
 use App\Constants\Incidencias as IncConstants;
+use Livewire\Attributes\Computed;
 use App\Events\NewIncidenciaBatchCreated; // Importado para tiempo real
 use Livewire\Component;
 use Livewire\Attributes\On;
@@ -21,6 +22,9 @@ class Manager extends Component
     public $employeeId;
     public $employee;
     
+    // Stepper SPA
+    public $currentStep = 1;
+
     // Formulario de Captura
     public $codigo;
     public $fechas_seleccionadas;
@@ -89,6 +93,114 @@ class Manager extends Component
     {
         $emp = Employe::findOrFail($id);
         return $this->redirect(route('employees.incidencias', ['numEmpleado' => $emp->num_empleado]), navigate: true);
+    }
+
+    // ─── Stepper Navigation ───
+    public function nextStep()
+    {
+        if ($this->currentStep === 1 && !$this->codigo) {
+            $this->dispatch('toast', ['icon' => 'error', 'title' => 'Seleccione un código de incidencia']);
+            return;
+        }
+        if ($this->currentStep === 2 && !$this->fechas_seleccionadas) {
+            $this->dispatch('toast', ['icon' => 'error', 'title' => 'Seleccione al menos una fecha']);
+            return;
+        }
+        if ($this->currentStep < 3) {
+            $this->currentStep++;
+        }
+    }
+
+    public function previousStep()
+    {
+        if ($this->currentStep > 1) {
+            $this->currentStep--;
+        }
+    }
+
+    public function goToStep($step)
+    {
+        // Only allow going back or to current step
+        if ($step <= $this->currentStep) {
+            $this->currentStep = $step;
+        }
+    }
+
+    public function selectCode($id)
+    {
+        $this->codigo = $id;
+        $this->updatedCodigo($id);
+        $this->nextStep();
+    }
+
+    // ─── Code Categories ───
+    public static function getCodeCategories()
+    {
+        return [
+            'retardos' => [
+                'label' => 'Retardos',
+                'icon' => 'clock',
+                'color' => 'blue',
+                'codes' => [1, 2, 3, 4, 5, 7, 21, 24],
+            ],
+            'faltas' => [
+                'label' => 'Faltas / Inasistencias',
+                'icon' => 'x-circle',
+                'color' => 'red',
+                'codes' => [10, 11, 12, 13, 14, 15, 30, 31, 33, 34, 35],
+            ],
+            'omisiones' => [
+                'label' => 'Omisiones / Justificaciones',
+                'icon' => 'clipboard',
+                'color' => 'amber',
+                'codes' => [8, 9, 16, 18, 19, 20, 22, 23, 25, 26, 27, 28],
+            ],
+            'incapacidades' => [
+                'label' => 'Incapacidades',
+                'icon' => 'heart-pulse',
+                'color' => 'rose',
+                'codes' => [53, 54, 55],
+            ],
+            'licencias' => [
+                'label' => 'Licencias',
+                'icon' => 'file-text',
+                'color' => 'emerald',
+                'codes' => [40, 41, 42, 46, 47, 48, 49, 100],
+            ],
+            'vacaciones' => [
+                'label' => 'Vacaciones',
+                'icon' => 'sun',
+                'color' => 'cyan',
+                'codes' => [60, 62, 63],
+            ],
+            'especiales' => [
+                'label' => 'Especiales',
+                'icon' => 'settings',
+                'color' => 'purple',
+                'codes' => [17, 29, 51, 61, 75, 76, 77, 79, 900, 901, 902, 905, 906, 907, 908, 909, 910, 911, 912, 913, 914, 915, 916],
+            ],
+            'suspensiones' => [
+                'label' => 'Suspensiones',
+                'icon' => 'ban',
+                'color' => 'gray',
+                'codes' => [78, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96],
+            ],
+        ];
+    }
+
+    // ─── Computed: Selected code info ───
+    #[Computed]
+    public function selectedCode()
+    {
+        if (!$this->codigo) return null;
+        return CodigoDeIncidencia::find($this->codigo);
+    }
+
+    // ─── Computed: Has extra fields ───
+    #[Computed]
+    public function hasExtraFields()
+    {
+        return $this->isIncapacidad || $this->isVacacional || $this->isTxt || $this->isComision || $this->isOtorgado;
     }
 
     public function updatedCodigo($value)
@@ -257,7 +369,11 @@ class Manager extends Component
             $this->dispatch('toast', ['icon' => 'success', 'title' => 'Incidencia Capturada']);
             $this->dispatch('reset-calendar');
             event(new NewIncidenciaBatchCreated());
-            $this->fechas_seleccionadas = ''; 
+            $this->fechas_seleccionadas = '';
+            $this->currentStep = 1;
+            $this->codigo = null;
+            $this->resetFlags();
+            $this->resetExtraFields();
         } catch (\Exception $e) {
             $this->dispatch('toast', ['icon' => 'error', 'title' => $e->getMessage()]);
         }
@@ -327,6 +443,12 @@ class Manager extends Component
             ->whereIn('qna_id', $allowedQnaIds)
             ->orderBy('fecha_inicio', 'desc')->get();
 
+        // Group incidencias by QNA for timeline
+        $groupedIncidencias = $incidencias->groupBy(function ($inc) {
+            $qna = $inc->qna;
+            return $qna ? str_pad($qna->qna, 2, '0', STR_PAD_LEFT) . '/' . $qna->year : 'Sin QNA';
+        });
+
         $todosLosCodigos = Cache::remember('catalogo_codigos_incidencia', 3600, fn() => CodigoDeIncidencia::orderBy('code')->get());
         $frecuentesIds = Cache::remember('codigos_frecuentes_3yrs', 86400, function() {
             return Incidencia::select('codigodeincidencia_id', DB::raw('count(*) as count'))
@@ -339,6 +461,22 @@ class Manager extends Component
         });
         $topCodigos = $todosLosCodigos->whereIn('id', $frecuentesIds)->sortBy('code');
         $otrosCodigos = $todosLosCodigos->whereNotIn('id', $topCodigos->pluck('id'));
+
+        // Build categorized codes
+        $categories = self::getCodeCategories();
+        $categorizedCodes = [];
+        foreach ($categories as $key => $cat) {
+            $codesInCat = $todosLosCodigos->filter(fn($c) => in_array((int)$c->code, $cat['codes']));
+            if ($codesInCat->isNotEmpty()) {
+                $categorizedCodes[$key] = [
+                    'label' => $cat['label'],
+                    'icon' => $cat['icon'],
+                    'color' => $cat['color'],
+                    'codes' => $codesInCat,
+                    'frecuentes' => $codesInCat->filter(fn($c) => in_array($c->id, $frecuentesIds)),
+                ];
+            }
+        }
         
         $periodos = Cache::remember('catalogo_periodos_5yrs', 3600, function() {
             return Periodo::where('year', '>=', (int)date('Y') - 5)
@@ -346,7 +484,7 @@ class Manager extends Component
         });
 
         return view('livewire.incidencias.manager', compact(
-            'incidencias', 'topCodigos', 'otrosCodigos', 'periodos', 'medicos', 'enabledDateRanges'
+            'incidencias', 'groupedIncidencias', 'topCodigos', 'otrosCodigos', 'categorizedCodes', 'periodos', 'medicos', 'enabledDateRanges'
         ))->layout('layouts.app');
     }
 

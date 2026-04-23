@@ -12,6 +12,7 @@ Route::get('/dashboard', function () {
 Route::middleware('auth')->group(function () {
     Route::get('/employees', [\App\Http\Controllers\EmployeeController::class , 'index'])->name('employees.index');
     Route::get('/employees/{numEmpleado}/incidencias', \App\Livewire\Incidencias\Manager::class)->name('employees.incidencias');
+    Route::get('/incidencias/rapida', \App\Livewire\Incidencias\Rapida::class)->name('incidencias.rapida');
     Route::get('/employees/{numEmpleado}/vacaciones', \App\Livewire\Reports\VacacionesReport::class)->name('employees.vacaciones');
     Route::get('/employees/{numEmpleado}/kardex', \App\Livewire\Reports\KardexReport::class)->name('employees.kardex');
     Route::get('/employees/{numEmpleado}/estadisticas', \App\Livewire\Reports\EmployeeStatistics::class)->name('employees.estadisticas');
