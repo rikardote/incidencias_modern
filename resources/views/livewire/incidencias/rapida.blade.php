@@ -87,9 +87,9 @@
                     <input type="text" id="field-fecha_inicio" wire:model.live="fecha_inicio" placeholder="DD/MM/AA"
                         wire:keydown.enter="store"
                         @if(!$selectedEmployee || !$selectedCodigo) disabled @endif
-                        x-data @input.stop="$el.value = $el.value.replace(/\D/g, '').replace(/(\d{2})(\d{2})?(\d{2,4})?/, (match, d, m, y) => {
+                        x-data @input.stop="$el.value = $el.value.replace(/\D/g, '').replace(/(\d{2})(\d{2})?(\d{2})?/, (match, d, m, y) => {
                             let res = d || ''; if (m) res += '/' + m; if (y) res += '/' + y; return res;
-                        }).substr(0, 10); $wire.set('fecha_inicio', $el.value)"
+                        }).substr(0, 8); $wire.set('fecha_inicio', $el.value)"
                         class="w-full h-9 px-2 bg-white dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-700 rounded-xl text-xs font-black text-center text-gray-700 dark:text-gray-200 outline-none focus:border-cyan-500 transition-all {{ (!$selectedEmployee || !$selectedCodigo) ? 'opacity-20 cursor-not-allowed' : '' }}">
                 </div>
 
@@ -98,9 +98,9 @@
                     <input type="text" id="field-fecha_final" wire:model.live="fecha_final" placeholder="DD/MM/AA"
                         wire:keydown.enter="store"
                         @if(!$selectedEmployee || !$selectedCodigo || !$fecha_inicio) disabled @endif
-                        x-data @input.stop="$el.value = $el.value.replace(/\D/g, '').replace(/(\d{2})(\d{2})?(\d{2,4})?/, (match, d, m, y) => {
+                        x-data @input.stop="$el.value = $el.value.replace(/\D/g, '').replace(/(\d{2})(\d{2})?(\d{2})?/, (match, d, m, y) => {
                             let res = d || ''; if (m) res += '/' + m; if (y) res += '/' + y; return res;
-                        }).substr(0, 10); $wire.set('fecha_final', $el.value)"
+                        }).substr(0, 8); $wire.set('fecha_final', $el.value)"
                         class="w-full h-9 px-2 bg-white dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-700 rounded-xl text-xs font-black text-center text-gray-700 dark:text-gray-200 outline-none focus:border-cyan-500 transition-all {{ (!$selectedEmployee || !$selectedCodigo || !$fecha_inicio) ? 'opacity-20 cursor-not-allowed' : '' }}">
                 </div>
 
@@ -108,28 +108,48 @@
                 <div class="col-span-3">
                     @if($is_vacaciones)
                         <label class="block text-[9px] font-black text-cyan-500 uppercase mb-1.5 ml-1 tracking-widest text-center">Periodo Vacacional</label>
-                        <div class="relative" x-data="{ open: false }">
-                            <button @click="open = !open" 
-                                class="w-full h-9 px-3 bg-white dark:bg-gray-900 border-2 border-cyan-100 dark:border-cyan-500/20 rounded-xl flex items-center justify-between text-[10px] font-black text-cyan-700 dark:text-cyan-400 uppercase focus:border-cyan-500 outline-none transition-all">
-                                <span>{{ $periodo_id ? collect($periodos)->firstWhere('id', $periodo_id)?->periodo . ' / ' . collect($periodos)->firstWhere('id', $periodo_id)?->year : 'Seleccionar periodo...' }}</span>
-                                <svg class="w-3 h-3 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
-                            </button>
-                            <div x-show="open" @click.away="open = false" 
-                                class="absolute left-0 right-0 top-11 z-50 bg-white dark:bg-gray-800 shadow-2xl rounded-xl border border-cyan-100 dark:border-gray-700 overflow-hidden max-h-48 overflow-y-auto ring-4 ring-black/5">
-                                @foreach($periodos as $p)
-                                    <button wire:click="$set('periodo_id', '{{ $p->id }}'); open = false" 
-                                        class="w-full px-4 py-2 text-left hover:bg-cyan-50 dark:hover:bg-cyan-500/10 border-b border-gray-50 dark:border-gray-700 last:border-0 transition-colors">
-                                        <div class="text-[10px] font-black text-gray-700 dark:text-gray-200 uppercase">{{ $p->periodo }} / {{ $p->year }}</div>
-                                    </button>
-                                @endforeach
-                            </div>
+                        <div class="relative" x-data="{ 
+                            open: false, 
+                            highlightedIndex: 0,
+                            itemsCount: {{ count($periodos) }},
+                            selectItem(index) {
+                                let buttons = $el.querySelectorAll('.periodo-item');
+                                if (buttons[index]) buttons[index].click();
+                            }
+                        }">
+                            @if($periodo_id)
+                                <div class="h-9 flex items-center justify-between px-3 bg-cyan-50 dark:bg-cyan-500/10 border-2 border-cyan-200 dark:border-cyan-500/30 rounded-xl">
+                                    <span class="text-[10px] font-black text-cyan-600 dark:text-cyan-400 uppercase truncate">{{ $periodo_selected_name }}</span>
+                                    <button wire:click="$set('periodo_id', null); $set('periodo_selected_name', '')" class="text-cyan-400 hover:text-rose-500 font-black">×</button>
+                                </div>
+                            @else
+                                <input type="text" id="field-periodo" wire:model.live="periodo_search" placeholder="Ejem: 01/24" 
+                                    @focus="open = true; highlightedIndex = 0" @click.away="open = false" 
+                                    @keydown.down.prevent="highlightedIndex = (highlightedIndex + 1) % itemsCount"
+                                    @keydown.up.prevent="highlightedIndex = (highlightedIndex - 1 + itemsCount) % itemsCount"
+                                    @keydown.enter.prevent="if(open && itemsCount > 0) { selectItem(highlightedIndex); } else { $wire.store(); }"
+                                    class="w-full h-9 px-3 bg-white dark:bg-gray-900 border-2 border-cyan-100 dark:border-cyan-500/20 rounded-xl text-[10px] font-black text-gray-700 dark:text-gray-200 outline-none focus:border-cyan-500 transition-all uppercase">
+                                
+                                @if(count($periodos) > 0)
+                                    <div x-show="open" class="absolute left-0 right-0 top-11 z-50 bg-white dark:bg-gray-800 shadow-2xl rounded-xl border border-cyan-100 dark:border-gray-700 overflow-hidden max-h-48 overflow-y-auto">
+                                        @foreach($periodos as $idx => $p)
+                                            <button wire:click="selectPeriodo('{{ $p['id'] }}', '{{ $p['name'] }}')" 
+                                                class="periodo-item w-full px-4 py-2 text-left border-b border-gray-50 dark:border-gray-700 last:border-0 transition-colors"
+                                                :class="highlightedIndex === {{ $idx }} ? 'bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600' : 'text-gray-600 dark:text-gray-300'"
+                                                @mouseenter="highlightedIndex = {{ $idx }}">
+                                                <div class="text-[10px] font-black uppercase">{{ $p['name'] }}</div>
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            @endif
                         </div>
                     @endif
                 </div>
 
                 {{-- Botón Guardar --}}
                 <div class="col-span-1">
-                    <button wire:click="store" 
+                    <button wire:click="store" id="field-save_button"
                         @if(!$selectedEmployee || !$selectedCodigo || !$fecha_inicio) disabled @endif
                         class="w-full h-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center transition-all active:scale-95 disabled:opacity-10 group">
                         <i class="fa fa-plus text-sm group-hover:rotate-90 transition-transform"></i>
@@ -142,7 +162,15 @@
             <div class="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700/50 animate-fadeIn">
                 <div class="grid grid-cols-12 gap-3 items-end">
                     @if($is_incapacidad)
-                        <div class="col-span-4 relative">
+                        <div class="col-span-4 relative" x-data="{ 
+                            open: true, 
+                            highlightedIndex: 0,
+                            itemsCount: {{ count($medicos) }},
+                            selectItem(index) {
+                                let buttons = $el.querySelectorAll('.medico-item');
+                                if (buttons[index]) buttons[index].click();
+                            }
+                        }">
                             <label class="block text-[8px] font-black text-rose-500 uppercase mb-1 ml-1 tracking-widest">Médico Expeditor</label>
                             @if($medico_id)
                                 <div class="h-8 px-3 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-xl flex items-center justify-between">
@@ -151,13 +179,21 @@
                                 </div>
                             @else
                                 <input type="text" id="field-medico_search" wire:model.live.debounce.300ms="medico_search" placeholder="Buscar médico..." 
-                                    wire:keydown.enter="store"
-                                    class="w-full h-8 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl text-[9px] font-bold outline-none focus:border-rose-400 transition-all">
+                                    @focus="open = true; highlightedIndex = 0" 
+                                    @click.away="open = false"
+                                    @keydown.down.prevent="highlightedIndex = (highlightedIndex + 1) % itemsCount"
+                                    @keydown.up.prevent="highlightedIndex = (highlightedIndex - 1 + itemsCount) % itemsCount"
+                                    @keydown.enter.prevent="if(open && itemsCount > 0) { selectItem(highlightedIndex); } else { $wire.store(); }"
+                                    class="w-full h-8 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl text-[9px] font-bold outline-none focus:border-rose-400 transition-all uppercase">
+                                
                                 @if(count($medicos) > 0)
-                                    <div class="absolute left-0 right-0 top-14 z-50 bg-white dark:bg-gray-800 shadow-2xl rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden ring-4 ring-black/5">
-                                        @foreach($medicos as $m)
-                                            <button wire:click="selectMedico('{{ $m['id'] }}', '{{ $m['fullname'] }}')" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-500/10 border-b border-gray-50 dark:border-gray-700 last:border-0 transition-colors">
-                                                <div class="text-[9px] font-black text-gray-700 dark:text-gray-200 uppercase truncate">{{ $m['fullname'] }}</div>
+                                    <div x-show="open" class="absolute left-0 right-0 top-14 z-50 bg-white dark:bg-gray-800 shadow-2xl rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden ring-4 ring-black/5">
+                                        @foreach($medicos as $idx => $m)
+                                            <button wire:click="selectMedico('{{ $m['id'] }}', '{{ $m['fullname'] }}')" 
+                                                class="medico-item w-full px-3 py-2 text-left border-b border-gray-50 dark:border-gray-700 last:border-0 transition-colors"
+                                                :class="highlightedIndex === {{ $idx }} ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-600' : 'text-gray-700 dark:text-gray-200'"
+                                                @mouseenter="highlightedIndex = {{ $idx }}">
+                                                <div class="text-[9px] font-black uppercase truncate">{{ $m['fullname'] }}</div>
                                             </button>
                                         @endforeach
                                     </div>
@@ -175,9 +211,9 @@
                         <div class="col-span-2">
                             <label class="block text-[8px] font-black text-gray-400 uppercase mb-1 ml-1 tracking-widest">Fecha Expedida</label>
                             <input type="text" id="field-fecha_expedida" wire:model="fecha_expedida" wire:keydown.enter="store" placeholder="DD/MM/AA"
-                                x-data @input.stop="$el.value = $el.value.replace(/\D/g, '').replace(/(\d{2})(\d{2})?(\d{2,4})?/, (match, d, m, y) => {
+                                x-data @input.stop="$el.value = $el.value.replace(/\D/g, '').replace(/(\d{2})(\d{2})?(\d{2})?/, (match, d, m, y) => {
                                     let res = d || ''; if (m) res += '/' + m; if (y) res += '/' + y; return res;
-                                }).substr(0, 10); $wire.set('fecha_expedida', $el.value)"
+                                }).substr(0, 8); $wire.set('fecha_expedida', $el.value)"
                                 class="w-full h-8 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl text-[9px] font-bold outline-none focus:border-rose-400 text-center">
                         </div>
                     @endif

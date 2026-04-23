@@ -42,6 +42,8 @@ class Rapida extends Component
     public $is_txt = false;
     public $is_comision = false;
     public $is_otorgado = false;
+    public $periodo_search = '';
+    public $periodo_selected_name = '';
 
     // Historial de sesión
     public $recentCaptures = [];
@@ -165,6 +167,13 @@ class Rapida extends Component
                     $this->dispatch('focus-next', ['field' => 'fecha_inicio']);
                 }
             }
+        }
+    }
+
+    public function updatedFechaInicio($value)
+    {
+        if ($value && strlen($value) >= 8) {
+            $this->dispatch('focus-next', ['field' => 'fecha_final']);
         }
     }
 
@@ -308,6 +317,16 @@ class Rapida extends Component
         session()->put('recent_captures_v2', $this->recentCaptures);
     }
 
+    public function selectPeriodo($id, $name)
+    {
+        $this->periodo_id = $id;
+        $this->periodo_selected_name = $name;
+        $this->periodo_search = ''; 
+        $this->validateRealTime();
+        // Después de elegir periodo, saltamos al botón de guardar (o código si prefieres)
+        $this->dispatch('focus-next', ['field' => 'save_button']);
+    }
+
     public function selectMedico($id, $name)
     {
         $this->medico_id = $id;
@@ -324,6 +343,8 @@ class Rapida extends Component
         $this->fecha_inicio = '';
         $this->fecha_final = '';
         $this->periodo_id = null;
+        $this->periodo_search = '';
+        $this->periodo_selected_name = '';
         
         $this->medico_id = null;
         $this->medico_selected_name = '';
@@ -379,9 +400,27 @@ class Rapida extends Component
 
         $periodos = [];
         if ($this->is_vacaciones) {
-            $periodos = Cache::remember('catalogo_periodos_5yrs', 3600, function() {
-                return Periodo::where('year', '>=', (int)date('Y') - 5)->orderBy('year', 'desc')->orderBy('periodo', 'desc')->get();
+            $allPeriodos = Cache::remember('catalogo_periodos_5yrs_v2', 3600, function() {
+                return Periodo::where('year', '>=', (int)date('Y') - 5)
+                    ->orderBy('year', 'desc')
+                    ->orderBy('periodo', 'desc')
+                    ->get(['id', 'periodo', 'year'])
+                    ->map(function($p) {
+                        return [
+                            'id' => $p->id,
+                            'name' => $p->periodo . '/' . $p->year
+                        ];
+                    });
             });
+
+            if ($this->periodo_search) {
+                $search = $this->periodo_search;
+                $periodos = $allPeriodos->filter(function($p) use ($search) {
+                    return str_contains($p['name'], $search);
+                })->take(10);
+            } else {
+                $periodos = $allPeriodos->take(10);
+            }
         }
 
         return view('livewire.incidencias.rapida', [
