@@ -1,301 +1,334 @@
 <div>
-    <div class="max-w-[1600px] mx-auto p-4 lg:p-8 space-y-8">
-        {{-- ═══ ENCABEZADO DE SECCIÓN ═══ --}}
-        <div class="flex items-center justify-between">
-            <div>
-                <h2 class="text-2xl font-black text-gray-800 dark:text-white tracking-tight flex items-center gap-3">
-                    <span class="w-10 h-10 rounded-2xl bg-[#13322B] flex items-center justify-center text-xl shadow-lg shadow-[#13322B]/20">⚡</span>
-                    Incidencias Rápida <span class="text-xs font-bold text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1 rounded-full uppercase tracking-widest ml-2">Grid Mode</span>
-                </h2>
-                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1 ml-1">Interfaz de alta velocidad para captura masiva</p>
+    <div class="max-w-[1600px] mx-auto p-4 lg:p-6 space-y-4">
+        {{-- ═══ CABECERA DE EMPLEADO (MINIMALISTA) ═══ --}}
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-4 flex flex-wrap items-center gap-6 transition-all">
+            <div class="w-48 space-y-0.5">
+                <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1"># Empleado</label>
+                <input type="text" 
+                    wire:model.live="employee_input"
+                    wire:click="clearEmployee"
+                    onclick="this.select()"
+                    id="field-employee"
+                    class="w-full h-10 px-4 bg-gray-50 dark:bg-gray-900/50 rounded-xl border-2 border-transparent focus:border-emerald-500/50 text-base font-black text-[#13322B] dark:text-emerald-400 outline-none transition-all uppercase">
             </div>
-            
+
+            <div class="flex-1 space-y-0.5">
+                <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Nombre del Trabajador</label>
+                <div class="h-10 flex items-center px-4 bg-gray-50/30 dark:bg-gray-900/20 rounded-xl border border-gray-100 dark:border-gray-700">
+                    @if($selectedEmployee)
+                        <span class="text-sm font-black text-gray-700 dark:text-gray-200 uppercase truncate">
+                            {{ $selectedEmployee->fullname }}
+                        </span>
+                        <span class="ml-3 px-2 py-0.5 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[9px] font-black rounded-lg uppercase tracking-tighter">
+                            {{ $selectedEmployee->puesto->nombre ?? 'Activo' }}
+                        </span>
+                    @else
+                        <span class="text-xs font-bold text-gray-300 italic uppercase tracking-widest">Esperando selección...</span>
+                    @endif
+                </div>
+            </div>
+
             <div class="flex items-center gap-3">
-                <div class="px-4 py-2 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm flex items-center gap-3">
-                    <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Estado:</span>
-                    <span class="flex items-center gap-2 text-[10px] font-black text-emerald-500 uppercase">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Listo para Capturar
-                    </span>
+                <div class="text-right">
+                    <p class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Sesión</p>
+                    <p class="text-sm font-black text-emerald-500 leading-none">{{ count($displayCaptures) }}</p>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-lg">
+                    ⚡
                 </div>
             </div>
         </div>
 
-        {{-- ═══ GRID DE CAPTURA (ESTILO EXCEL) ═══ --}}
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700">
-            {{-- Header del Grid --}}
-            <div class="grid grid-cols-12 gap-0 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50 rounded-t-2xl overflow-hidden">
-                <div class="col-span-2 px-6 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest border-r border-gray-100 dark:border-gray-700 rounded-tl-2xl"># Empleado</div>
-                <div class="col-span-2 px-6 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest border-r border-gray-100 dark:border-gray-700">Código</div>
-                <div class="col-span-2 px-6 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest border-r border-gray-100 dark:border-gray-700 text-center">Fecha Inicio</div>
-                <div class="col-span-2 px-6 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest border-r border-gray-100 dark:border-gray-700 text-center">Fecha Final</div>
-                <div class="col-span-3 px-6 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest border-r border-gray-100 dark:border-gray-700">Periodo (Vac)</div>
-                <div class="col-span-1 px-6 py-3 text-[10px] font-black text-gray-400 uppercase tracking-widest text-center rounded-tr-2xl">Acción</div>
-            </div>
-
-            {{-- Fila de Captura Activa --}}
-            <div class="relative group z-20 transition-all duration-200 {{ $errors->has('general') ? 'bg-rose-50/20' : '' }}">
-                <div class="grid grid-cols-12 gap-0 items-center">
-                    {{-- Empleado --}}
-                    <div class="col-span-2 border-r border-gray-100 dark:border-gray-700 relative">
-                        <input type="text" 
-                            wire:model.live="employee_input"
-                            id="field-employee"
-                            placeholder="33xxxx"
-                            class="w-full h-14 px-6 bg-transparent text-sm font-black text-[#13322B] dark:text-emerald-400 placeholder-gray-300 outline-none focus:bg-emerald-50/30 transition-all uppercase rounded-bl-2xl"
-                        >
-                        {{-- Info flotante Empleado --}}
-                        @if($selectedEmployee)
-                            <div class="absolute left-6 top-[85%] z-30 bg-[#13322B] dark:bg-emerald-600 shadow-xl rounded-lg px-3 py-1 animate-fadeIn ring-2 ring-white dark:ring-gray-800">
-                                <div class="text-[9px] font-black text-white uppercase whitespace-nowrap">{{ $selectedEmployee->fullname }}</div>
-                            </div>
-                        @endif
+        {{-- ═══ BLOQUE DE CAPTURA (NUEVA BARRA DE ACCIÓN) ═══ --}}
+        <div class="relative z-30 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-cyan-100 dark:border-cyan-500/20 p-4 transition-all">
+            {{-- Banner de Errores (Alta Visibilidad) --}}
+            @if($errors->any())
+                <div class="mb-4 -mx-4 -mt-4 p-3 bg-rose-50/80 dark:bg-rose-500/10 border-b border-rose-100 dark:border-rose-500/20 rounded-t-2xl flex items-center gap-3 animate-fadeIn">
+                    <div class="flex-shrink-0 w-6 h-6 rounded-full bg-rose-500 text-white flex items-center justify-center text-xs font-black shadow-lg shadow-rose-500/20">!</div>
+                    <div class="flex-1">
+                        <p class="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest leading-none">Error de Captura</p>
+                        <p class="text-[9px] font-bold text-rose-500/80 uppercase mt-0.5">{{ $errors->first() }}</p>
                     </div>
+                    <button onclick="this.parentElement.remove()" class="text-rose-300 hover:text-rose-500 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
+                    </button>
+                </div>
+            @endif
 
-                    {{-- Código --}}
-                    <div class="col-span-2 border-r border-gray-100 dark:border-gray-700 relative">
-                        <input type="text" 
-                            wire:model.live="codigo_input" 
-                            placeholder="Cód." 
-                            @if(!$selectedEmployee) disabled @endif
-                            class="w-full h-14 px-6 bg-transparent text-sm font-black uppercase placeholder:text-gray-300 outline-none focus:bg-emerald-50/20 transition-all text-center {{ !$selectedEmployee ? 'opacity-10 cursor-not-allowed' : 'text-gray-700 dark:text-gray-200' }} {{ $errors->has('general') && $codigo_input ? 'text-rose-600' : '' }}">
-                        
-                        {{-- Burbuja de Código --}}
-                        @if($selectedCodigo && !$errors->has('general'))
-                            <div class="absolute left-6 top-[85%] z-50 bg-emerald-600 shadow-xl rounded-lg px-4 py-1.5 animate-fadeIn whitespace-nowrap border-2 border-white dark:border-gray-800">
-                                <div class="text-[10px] font-black text-white uppercase tracking-tighter">
-                                    {{ $selectedCodigo->description }}
-                                </div>
-                            </div>
-                        @endif
-                        
-                        <div wire:loading wire:target="codigo_input" class="absolute right-2 top-4">
-                            <span class="flex h-3 w-3 relative">
-                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+            <div class="grid grid-cols-12 gap-3 items-end">
+                {{-- Código --}}
+                <div class="col-span-1">
+                    <label class="block text-[9px] font-black text-cyan-600 dark:text-cyan-400 uppercase mb-1.5 ml-1 tracking-widest">Código</label>
+                    <input type="text" id="field-codigo" wire:model.live.debounce.300ms="codigo_input" 
+                        wire:keydown.enter="store"
+                        onclick="this.value=''; @this.set('codigo_input', '')"
+                        placeholder="00"
+                        @if(!$selectedEmployee) disabled @endif
+                        class="w-full h-9 px-2 bg-cyan-50/30 dark:bg-cyan-900/20 border-2 border-cyan-100 dark:border-cyan-500/30 rounded-xl text-xs font-black text-cyan-700 dark:text-cyan-400 uppercase outline-none focus:border-cyan-500 transition-all text-center {{ !$selectedEmployee ? 'opacity-20 cursor-not-allowed' : '' }}">
+                </div>
+
+                {{-- Descripción (Informativa) --}}
+                <div class="col-span-3">
+                    <label class="block text-[9px] font-black text-gray-400 uppercase mb-1.5 ml-1 tracking-widest">Incidencia</label>
+                    <div class="h-9 flex items-center px-3 bg-gray-50/50 dark:bg-gray-900/30 rounded-xl border border-gray-100 dark:border-gray-700">
+                        @if($selectedCodigo)
+                            <span class="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase truncate">
+                                {{ $selectedCodigo->description }}
                             </span>
-                        </div>
-                    </div>
-
-                    {{-- Fechas (BLOQUEADAS SI HAY ERROR O NO HAY CÓDIGO) --}}
-                    <div class="col-span-2 border-r border-gray-100 dark:border-gray-700">
-                        <input type="text" wire:model.live="fecha_inicio" placeholder="D/M/A" 
-                            @if(!$selectedEmployee || !$selectedCodigo || $errors->has('general')) disabled @endif
-                            x-data @input.stop="$el.value = $el.value.replace(/\D/g, '').replace(/(\d{2})(\d{2})?(\d{2,4})?/, (match, d, m, y) => {
-                                let res = d || '';
-                                if (m) res += '/' + m;
-                                if (y) res += '/' + y;
-                                return res;
-                            }).substr(0, 10); $wire.set('fecha_inicio', $el.value)"
-                            class="w-full h-14 px-4 bg-transparent text-xs font-black text-center text-gray-700 dark:text-gray-200 outline-none focus:bg-cyan-50/20 transition-all {{ (!$selectedEmployee || !$selectedCodigo || $errors->has('general')) ? 'opacity-5 cursor-not-allowed select-none' : '' }}">
-                    </div>
-
-                    <div class="col-span-2 border-r border-gray-100 dark:border-gray-700">
-                        <input type="text" wire:model.live="fecha_final" placeholder="D/M/A" 
-                            @if(!$selectedEmployee || !$selectedCodigo || !$fecha_inicio || $errors->has('general')) disabled @endif
-                            x-data @input.stop="$el.value = $el.value.replace(/\D/g, '').replace(/(\d{2})(\d{2})?(\d{2,4})?/, (match, d, m, y) => {
-                                let res = d || '';
-                                if (m) res += '/' + m;
-                                if (y) res += '/' + y;
-                                return res;
-                            }).substr(0, 10); $wire.set('fecha_final', $el.value)"
-                            class="w-full h-14 px-4 bg-transparent text-xs font-black text-center text-gray-700 dark:text-gray-200 outline-none focus:bg-cyan-50/20 transition-all {{ (!$selectedEmployee || !$selectedCodigo || !$fecha_inicio || $errors->has('general')) ? 'opacity-5 cursor-not-allowed select-none' : '' }}">
-                    </div>
-
-                    {{-- Periodo (Vacaciones) --}}
-                    <div class="col-span-3 border-r border-gray-100 dark:border-gray-700 relative">
-                        @if($is_vacaciones)
-                            <select wire:model="periodo_id" 
-                                @if(!$selectedEmployee || !$selectedCodigo || !$fecha_inicio || !$fecha_final || $errors->has('general')) disabled @endif
-                                class="w-full h-14 px-6 bg-transparent text-[11px] font-black text-cyan-600 dark:text-cyan-400 uppercase tracking-widest outline-none appearance-none {{ (!$selectedEmployee || !$selectedCodigo || !$fecha_inicio || !$fecha_final || $errors->has('general')) ? 'opacity-5 cursor-not-allowed' : '' }}">
-                                <option value="">Seleccione Periodo...</option>
-                                @foreach($periodos as $p)
-                                    <option value="{{ $p->id }}">{{ $p->nombre }} ({{ $p->year }})</option>
-                                @endforeach
-                            </select>
                         @else
-                            <div class="w-full h-14 px-6 flex items-center text-[10px] font-black text-gray-300 uppercase tracking-widest italic">No aplica</div>
+                            <span class="text-[9px] font-bold text-gray-300 italic uppercase">Esperando código...</span>
                         @endif
                     </div>
-
-                    {{-- Botón Guardar --}}
-                    <div class="col-span-1 relative">
-                        <button wire:click="store" 
-                            @if(!$selectedEmployee || !$selectedCodigo || !$fecha_inicio || !$fecha_final || $errors->has('general')) disabled @endif
-                            class="w-full h-14 flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white transition-all group-hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/20 rounded-br-2xl {{ (!$selectedEmployee || !$selectedCodigo || !$fecha_inicio || !$fecha_final || $errors->has('general')) ? 'opacity-5 grayscale cursor-not-allowed' : '' }}">
-                            <span class="text-xl font-black">↵</span>
-                        </button>
-                    </div>
                 </div>
 
-                {{-- Barra de Error Persistente --}}
-                @if($errors->has('general'))
-                    <div class="bg-rose-600 px-6 py-2 border-t border-rose-500 animate-slideDown flex items-center gap-3">
-                        <span class="text-lg">🚫</span>
-                        <div class="text-[11px] font-black text-white uppercase tracking-widest">
-                            Error de Validación: <span class="text-rose-100 ml-2">{{ $errors->first('general') }}</span>
+                {{-- Fechas --}}
+                <div class="col-span-2">
+                    <label class="block text-[9px] font-black text-gray-400 uppercase mb-1.5 ml-1 tracking-widest">Inicio</label>
+                    <input type="text" id="field-fecha_inicio" wire:model.live="fecha_inicio" placeholder="DD/MM/AA"
+                        wire:keydown.enter="store"
+                        @if(!$selectedEmployee || !$selectedCodigo) disabled @endif
+                        x-data @input.stop="$el.value = $el.value.replace(/\D/g, '').replace(/(\d{2})(\d{2})?(\d{2,4})?/, (match, d, m, y) => {
+                            let res = d || ''; if (m) res += '/' + m; if (y) res += '/' + y; return res;
+                        }).substr(0, 10); $wire.set('fecha_inicio', $el.value)"
+                        class="w-full h-9 px-2 bg-white dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-700 rounded-xl text-xs font-black text-center text-gray-700 dark:text-gray-200 outline-none focus:border-cyan-500 transition-all {{ (!$selectedEmployee || !$selectedCodigo) ? 'opacity-20 cursor-not-allowed' : '' }}">
+                </div>
+
+                <div class="col-span-2">
+                    <label class="block text-[9px] font-black text-gray-400 uppercase mb-1.5 ml-1 tracking-widest">Final</label>
+                    <input type="text" id="field-fecha_final" wire:model.live="fecha_final" placeholder="DD/MM/AA"
+                        wire:keydown.enter="store"
+                        @if(!$selectedEmployee || !$selectedCodigo || !$fecha_inicio) disabled @endif
+                        x-data @input.stop="$el.value = $el.value.replace(/\D/g, '').replace(/(\d{2})(\d{2})?(\d{2,4})?/, (match, d, m, y) => {
+                            let res = d || ''; if (m) res += '/' + m; if (y) res += '/' + y; return res;
+                        }).substr(0, 10); $wire.set('fecha_final', $el.value)"
+                        class="w-full h-9 px-2 bg-white dark:bg-gray-900 border-2 border-gray-100 dark:border-gray-700 rounded-xl text-xs font-black text-center text-gray-700 dark:text-gray-200 outline-none focus:border-cyan-500 transition-all {{ (!$selectedEmployee || !$selectedCodigo || !$fecha_inicio) ? 'opacity-20 cursor-not-allowed' : '' }}">
+                </div>
+
+                {{-- Selectores Dinámicos (Periodo) --}}
+                <div class="col-span-3">
+                    @if($is_vacaciones)
+                        <label class="block text-[9px] font-black text-cyan-500 uppercase mb-1.5 ml-1 tracking-widest text-center">Periodo Vacacional</label>
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" 
+                                class="w-full h-9 px-3 bg-white dark:bg-gray-900 border-2 border-cyan-100 dark:border-cyan-500/20 rounded-xl flex items-center justify-between text-[10px] font-black text-cyan-700 dark:text-cyan-400 uppercase focus:border-cyan-500 outline-none transition-all">
+                                <span>{{ $periodo_id ? collect($periodos)->firstWhere('id', $periodo_id)?->periodo . ' / ' . collect($periodos)->firstWhere('id', $periodo_id)?->year : 'Seleccionar periodo...' }}</span>
+                                <svg class="w-3 h-3 transition-transform" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
+                            </button>
+                            <div x-show="open" @click.away="open = false" 
+                                class="absolute left-0 right-0 top-11 z-50 bg-white dark:bg-gray-800 shadow-2xl rounded-xl border border-cyan-100 dark:border-gray-700 overflow-hidden max-h-48 overflow-y-auto ring-4 ring-black/5">
+                                @foreach($periodos as $p)
+                                    <button wire:click="$set('periodo_id', '{{ $p->id }}'); open = false" 
+                                        class="w-full px-4 py-2 text-left hover:bg-cyan-50 dark:hover:bg-cyan-500/10 border-b border-gray-50 dark:border-gray-700 last:border-0 transition-colors">
+                                        <div class="text-[10px] font-black text-gray-700 dark:text-gray-200 uppercase">{{ $p->periodo }} / {{ $p->year }}</div>
+                                    </button>
+                                @endforeach
+                            </div>
                         </div>
-                    </div>
-                @endif
+                    @endif
+                </div>
+
+                {{-- Botón Guardar --}}
+                <div class="col-span-1">
+                    <button wire:click="store" 
+                        @if(!$selectedEmployee || !$selectedCodigo || !$fecha_inicio) disabled @endif
+                        class="w-full h-9 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl shadow-lg shadow-emerald-500/20 flex items-center justify-center transition-all active:scale-95 disabled:opacity-10 group">
+                        <i class="fa fa-plus text-sm group-hover:rotate-90 transition-transform"></i>
+                    </button>
+                </div>
             </div>
 
-            {{-- ═══ SUB-REGLONES PARA CAMPOS EXTRA (INLINE) ═══ --}}
-            
-            {{-- Extra: Incapacidad --}}
-            @if($is_incapacidad)
-                <div class="bg-rose-50/30 dark:bg-rose-500/5 border-t border-rose-100 dark:border-rose-500/10 px-6 py-4 animate-fadeIn">
-                    <div class="flex items-center gap-6">
-                        <div class="flex items-center gap-2 min-w-[200px]">
-                            <span class="text-xs">🩺</span>
-                            <h4 class="text-[9px] font-black text-rose-800 dark:text-rose-400 uppercase tracking-widest">Incapacidad:</h4>
+            {{-- Fila Secundaria (Especiales: Médicos, TXT, etc.) --}}
+            @if($is_incapacidad || $is_txt || $is_comision || $is_otorgado)
+            <div class="mt-4 pt-4 border-t border-gray-50 dark:border-gray-700/50 animate-fadeIn">
+                <div class="grid grid-cols-12 gap-3 items-end">
+                    @if($is_incapacidad)
+                        <div class="col-span-4 relative">
+                            <label class="block text-[8px] font-black text-rose-500 uppercase mb-1 ml-1 tracking-widest">Médico Expeditor</label>
+                            @if($medico_id)
+                                <div class="h-8 px-3 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-xl flex items-center justify-between">
+                                    <span class="text-[9px] font-black text-emerald-700 dark:text-emerald-400 uppercase truncate">{{ $medico_selected_name }}</span>
+                                    <button wire:click="$set('medico_id', null); $set('medico_selected_name', '')" class="text-emerald-400 hover:text-rose-500 font-black">×</button>
+                                </div>
+                            @else
+                                <input type="text" id="field-medico_search" wire:model.live.debounce.300ms="medico_search" placeholder="Buscar médico..." 
+                                    wire:keydown.enter="store"
+                                    class="w-full h-8 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl text-[9px] font-bold outline-none focus:border-rose-400 transition-all">
+                                @if(count($medicos) > 0)
+                                    <div class="absolute left-0 right-0 top-14 z-50 bg-white dark:bg-gray-800 shadow-2xl rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden ring-4 ring-black/5">
+                                        @foreach($medicos as $m)
+                                            <button wire:click="selectMedico('{{ $m['id'] }}', '{{ $m['fullname'] }}')" class="w-full px-3 py-2 text-left hover:bg-rose-50 dark:hover:bg-rose-500/10 border-b border-gray-50 dark:border-gray-700 last:border-0 transition-colors">
+                                                <div class="text-[9px] font-black text-gray-700 dark:text-gray-200 uppercase truncate">{{ $m['fullname'] }}</div>
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            @endif
                         </div>
-                        <div class="flex-1 grid grid-cols-12 gap-4">
-                            <div class="col-span-6">
-                                <select wire:model="medico_id" class="w-full h-9 px-3 bg-white dark:bg-gray-900 border border-rose-200/50 dark:border-rose-500/20 rounded-xl text-[10px] font-bold outline-none">
-                                    <option value="">Seleccione Médico...</option>
-                                    @foreach($medicos as $m)
-                                        <option value="{{ $m->id }}">{{ strtoupper($m->fullname) }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-span-2">
-                                <input type="text" wire:model="num_licencia" placeholder="Folio" class="w-full h-9 px-3 bg-white dark:bg-gray-900 border border-rose-200/50 dark:border-rose-500/20 rounded-xl text-[10px] font-bold outline-none">
-                            </div>
-                            <div class="col-span-2">
-                                <input type="text" wire:model="fecha_expedida" placeholder="Fecha Exp." 
-                                    x-data @input.stop="$el.value = $el.value.replace(/\D/g, '').replace(/(\d{2})(\d{2})?(\d{2,4})?/, (match, d, m, y) => {
-                                        let res = d || '';
-                                        if (m) res += '/' + m;
-                                        if (y) res += '/' + y;
-                                        return res;
-                                    }).substr(0, 10); $wire.set('fecha_expedida', $el.value)"
-                                    class="w-full h-9 px-3 bg-white dark:bg-gray-900 border border-rose-200/50 dark:border-rose-500/20 rounded-xl text-[10px] font-bold outline-none">
-                            </div>
-                            <div class="col-span-12 mt-1">
-                                <input type="text" wire:model="diagnostico" placeholder="Diagnóstico médico detallado..." class="w-full h-9 px-3 bg-white dark:bg-gray-900 border border-rose-200/50 dark:border-rose-500/20 rounded-xl text-[10px] font-bold outline-none">
-                            </div>
+                        <div class="col-span-4">
+                            <label class="block text-[8px] font-black text-gray-400 uppercase mb-1 ml-1 tracking-widest">Diagnóstico</label>
+                            <input type="text" id="field-diagnostico" wire:model="diagnostico" wire:keydown.enter="store" placeholder="Descripción breve..." class="w-full h-8 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl text-[9px] font-bold outline-none focus:border-rose-400">
                         </div>
-                    </div>
-                </div>
-            @endif
+                        <div class="col-span-2">
+                            <label class="block text-[8px] font-black text-gray-400 uppercase mb-1 ml-1 tracking-widest">Folio/Licencia</label>
+                            <input type="text" id="field-num_licencia" wire:model="num_licencia" wire:keydown.enter="store" placeholder="ABC-123" class="w-full h-8 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl text-[9px] font-bold outline-none focus:border-rose-400 text-center uppercase">
+                        </div>
+                        <div class="col-span-2">
+                            <label class="block text-[8px] font-black text-gray-400 uppercase mb-1 ml-1 tracking-widest">Fecha Expedida</label>
+                            <input type="text" id="field-fecha_expedida" wire:model="fecha_expedida" wire:keydown.enter="store" placeholder="DD/MM/AA"
+                                x-data @input.stop="$el.value = $el.value.replace(/\D/g, '').replace(/(\d{2})(\d{2})?(\d{2,4})?/, (match, d, m, y) => {
+                                    let res = d || ''; if (m) res += '/' + m; if (y) res += '/' + y; return res;
+                                }).substr(0, 10); $wire.set('fecha_expedida', $el.value)"
+                                class="w-full h-8 px-3 bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl text-[9px] font-bold outline-none focus:border-rose-400 text-center">
+                        </div>
+                    @endif
 
-            {{-- Extra: TXT (900) --}}
-            @if($is_txt)
-                <div class="bg-emerald-50/30 dark:bg-emerald-500/5 border-t border-emerald-100 dark:border-emerald-500/10 px-6 py-4 animate-fadeIn">
-                    <div class="flex items-center gap-6">
-                        <div class="flex items-center gap-2 min-w-[200px]">
-                            <span class="text-xs">📝</span>
-                            <h4 class="text-[9px] font-black text-emerald-800 dark:text-emerald-400 uppercase tracking-widest">Detalles TXT:</h4>
+                    @if($is_txt)
+                        <div class="col-span-6">
+                            <label class="block text-[8px] font-black text-emerald-500 uppercase mb-1 ml-1 tracking-widest">¿Quién Cubrió?</label>
+                            <input type="text" id="field-cobertura_txt" wire:model="cobertura_txt" wire:keydown.enter="store" placeholder="Nombre completo..." class="w-full h-8 px-3 bg-gray-50 dark:bg-gray-900 border border-emerald-100 dark:border-emerald-500/20 rounded-xl text-[9px] font-bold outline-none focus:border-emerald-400">
                         </div>
-                        <div class="flex-1 grid grid-cols-2 gap-4">
-                            <input type="text" wire:model="cobertura_txt" placeholder="¿Quién cubrió?" class="h-9 px-3 bg-white dark:bg-gray-900 border border-emerald-200/50 dark:border-emerald-500/20 rounded-xl text-[10px] font-bold outline-none">
-                            <input type="text" wire:model="autoriza_txt" placeholder="¿Quién autorizó?" class="h-9 px-3 bg-white dark:bg-gray-900 border border-emerald-200/50 dark:border-emerald-500/20 rounded-xl text-[10px] font-bold outline-none">
+                        <div class="col-span-6">
+                            <label class="block text-[8px] font-black text-emerald-500 uppercase mb-1 ml-1 tracking-widest">¿Quién Autorizó?</label>
+                            <input type="text" id="field-autoriza_txt" wire:model="autoriza_txt" wire:keydown.enter="store" placeholder="Nombre completo..." class="w-full h-8 px-3 bg-gray-50 dark:bg-gray-900 border border-emerald-100 dark:border-emerald-500/20 rounded-xl text-[9px] font-bold outline-none focus:border-emerald-400">
                         </div>
-                    </div>
-                </div>
-            @endif
+                    @endif
 
-            {{-- Extra: Comisión (61) --}}
-            @if($is_comision)
-                <div class="bg-purple-50/30 dark:bg-purple-500/5 border-t border-purple-100 dark:border-purple-500/10 px-6 py-4 animate-fadeIn">
-                    <div class="flex items-center gap-6">
-                        <div class="flex items-center gap-2 min-w-[200px]">
-                            <span class="text-xs">💼</span>
-                            <h4 class="text-[9px] font-black text-purple-800 dark:text-purple-400 uppercase tracking-widest">Comisión:</h4>
+                    @if($is_comision)
+                        <div class="col-span-12">
+                            <label class="block text-[8px] font-black text-purple-500 uppercase mb-1 ml-1 tracking-widest">Motivo de la Comisión</label>
+                            <input type="text" id="field-motivo_comision" wire:model="motivo_comision" wire:keydown.enter="store" placeholder="Lugar y motivo específico..." class="w-full h-8 px-3 bg-gray-50 dark:bg-gray-900 border border-purple-100 dark:border-purple-500/20 rounded-xl text-[9px] font-bold outline-none focus:border-purple-400">
                         </div>
-                        <input type="text" wire:model="motivo_comision" placeholder="Motivo de la comisión oficial..." class="flex-1 h-9 px-3 bg-white dark:bg-gray-900 border border-purple-200/50 dark:border-purple-500/20 rounded-xl text-[10px] font-bold outline-none">
-                    </div>
-                </div>
-            @endif
+                    @endif
 
-            {{-- Extra: Otorgado (901) --}}
-            @if($is_otorgado)
-                <div class="bg-amber-50/30 dark:bg-amber-500/5 border-t border-amber-100 dark:border-amber-500/10 px-6 py-4 animate-fadeIn">
-                    <div class="flex items-center gap-6">
-                        <div class="flex items-center gap-2 min-w-[200px]">
-                            <span class="text-xs">🎖️</span>
-                            <h4 class="text-[9px] font-black text-amber-800 dark:text-amber-400 uppercase tracking-widest">Otorgado:</h4>
+                    @if($is_otorgado)
+                        <div class="col-span-12">
+                            <label class="block text-[8px] font-black text-amber-500 uppercase mb-1 ml-1 tracking-widest">Detalles del Día Otorgado</label>
+                            <input type="text" id="field-otorgado_txt" wire:model="otorgado_txt" wire:keydown.enter="store" placeholder="Comentarios adicionales..." class="w-full h-8 px-3 bg-gray-50 dark:bg-gray-900 border border-amber-100 dark:border-amber-500/20 rounded-xl text-[9px] font-bold outline-none focus:border-amber-400">
                         </div>
-                        <input type="text" wire:model="otorgado_txt" placeholder="Detalles del beneficio otorgado..." class="flex-1 h-9 px-3 bg-white dark:bg-gray-900 border border-amber-200/50 dark:border-amber-500/20 rounded-xl text-[10px] font-bold outline-none">
-                    </div>
+                    @endif
                 </div>
+            </div>
             @endif
         </div>
 
-        {{-- ═══ TABLA DE ACTIVIDAD RECIENTE ═══ --}}
-        <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-            <div class="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                <h3 class="text-sm font-black uppercase tracking-tight flex items-center gap-2">
-                    <span class="w-6 h-6 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-xs">📋</span>
-                    Últimas Capturas de la Sesión
-                </h3>
-                <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{{ count($displayCaptures) }} registros</span>
+        {{-- ═══ BLOQUE DE HISTORIAL (GRID PURA) ═══ --}}
+        <div class="flex-1 min-h-0 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col transition-all">
+            <div class="px-5 py-3 bg-gray-50/50 dark:bg-gray-900/30 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+                <h3 class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Historial de Incidencias</h3>
+                <div class="flex items-center gap-4">
+                    <span class="text-[8px] font-black text-emerald-500 bg-emerald-100 dark:bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase">Quincenas Activas</span>
+                </div>
             </div>
-            
-            <div class="overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="bg-gray-50/50 dark:bg-gray-900/50 text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                            <th class="px-6 py-4">Qna</th>
-                            <th class="px-6 py-4">Código</th>
-                            <th class="px-6 py-4">Empleado</th>
-                            <th class="px-6 py-4 text-center">Inicio</th>
-                            <th class="px-6 py-4 text-center">Final</th>
-                            <th class="px-6 py-4 text-center">Días</th>
-                            <th class="px-6 py-4">Periodo</th>
-                            <th class="px-6 py-4">Capturó</th>
-                            <th class="px-6 py-4 text-right">Acciones</th>
+
+            <style>
+                @keyframes flash-highlight {
+                    0% { background-color: rgba(16, 185, 129, 0.3); }
+                    100% { background-color: transparent; }
+                }
+                .animate-highlight {
+                    animation: flash-highlight 2s ease-out forwards;
+                }
+            </style>
+
+            <div class="flex-1 overflow-y-auto scrollbar-thin">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur z-20 shadow-sm">
+                        <tr class="border-b border-gray-100 dark:border-gray-700">
+                            <th class="px-4 py-2 text-[8px] font-black text-gray-400 uppercase tracking-widest w-16 text-center">Cód</th>
+                            <th class="px-4 py-2 text-[8px] font-black text-gray-400 uppercase tracking-widest w-20 text-center">Qna</th>
+                            <th class="px-4 py-2 text-[8px] font-black text-gray-400 uppercase tracking-widest w-24 text-center">Inicio</th>
+                            <th class="px-4 py-2 text-[8px] font-black text-gray-400 uppercase tracking-widest w-24 text-center">Final</th>
+                            <th class="px-4 py-2 text-[8px] font-black text-gray-400 uppercase tracking-widest w-12 text-center">Días</th>
+                            <th class="px-4 py-2 text-[8px] font-black text-gray-400 uppercase tracking-widest">Detalles / Etiquetas / Auditoría</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+                    <tbody class="divide-y divide-gray-50 dark:divide-gray-800">
                         @forelse($displayCaptures as $cap)
-                            <tr class="hover:bg-gray-50/80 dark:hover:bg-gray-900/20 transition-all group">
-                                <td class="px-6 py-4">
-                                    <span class="text-[10px] font-black text-gray-500">{{ $cap['qna'] }}</span>
+                            <tr wire:key="inc-{{ $cap['token'] }}" 
+                                class="group hover:bg-cyan-50/20 dark:hover:bg-cyan-900/10 transition-all animate-slideDown {{ $lastAddedToken === $cap['token'] ? 'animate-highlight' : '' }}">
+                                <td class="px-4 py-2 text-center">
+                                    <span class="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg text-[10px] font-black">{{ $cap['codigo'] }}</span>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <span class="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded text-[10px] font-black">{{ $cap['codigo'] }}</span>
+                                <td class="px-4 py-2 text-center">
+                                    <span class="text-[10px] font-black text-gray-700 dark:text-gray-200 uppercase tracking-tighter">{{ $cap['qna'] }}</span>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex flex-col">
-                                        <span class="text-xs font-black text-gray-700 dark:text-gray-200 uppercase">{{ $cap['employee'] }}</span>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 text-center">
+                                <td class="px-4 py-2 text-center">
                                     <span class="text-[10px] font-bold text-gray-600 dark:text-gray-400">{{ $cap['f_inicio'] }}</span>
                                 </td>
-                                <td class="px-6 py-4 text-center">
+                                <td class="px-4 py-2 text-center">
                                     <span class="text-[10px] font-bold text-gray-600 dark:text-gray-400">{{ $cap['f_final'] }}</span>
                                 </td>
-                                <td class="px-6 py-4 text-center">
-                                    <span class="inline-flex items-center justify-center w-6 h-6 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full text-[10px] font-black">{{ $cap['total_dias'] }}</span>
+                                <td class="px-4 py-2 text-center">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full text-[11px] font-black">{{ $cap['total_dias'] }}</span>
                                 </td>
-                                <td class="px-6 py-4">
-                                    <span class="text-[10px] font-black text-gray-500">{{ $cap['periodo'] }}</span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="flex flex-col">
-                                        <span class="text-[10px] font-black text-gray-700 dark:text-gray-200 uppercase">{{ $cap['quien'] }}</span>
-                                        <span class="text-[8px] font-bold text-gray-400 uppercase tracking-tighter">{{ $cap['time'] }}</span>
+
+                                <td class="px-4 py-2 flex items-center justify-between min-h-[44px]">
+                                    <div class="flex flex-wrap gap-1.5 items-center">
+                                        @if($cap['periodo'] && $cap['periodo'] !== '--')
+                                            <span class="text-cyan-600 font-black text-[9px] mr-2">PER: {{ $cap['periodo'] }}</span>
+                                        @endif
+
+                                        @if($cap['medico_info'])
+                                            <span title="Médico: {{ $cap['medico_info'] }}" class="cursor-help px-1.5 py-0.5 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 rounded-lg text-[6.5px] font-black tracking-wider border border-rose-100 dark:border-rose-500/20 uppercase">MÉDICO</span>
+                                        @endif
+
+                                        @if($cap['folio'])
+                                            <span title="Folio: {{ $cap['folio'] }}" class="cursor-help px-1.5 py-0.5 bg-rose-100 dark:bg-rose-500/20 text-rose-700 dark:text-rose-300 rounded-lg text-[6.5px] font-black tracking-wider uppercase">FOLIO</span>
+                                        @endif
+
+                                        @if($cap['has_fecha_expedida'])
+                                            <span title="Fecha Exp: {{ $cap['fecha_expedida_text'] }}" class="cursor-help px-1.5 py-0.5 bg-blue-100 dark:bg-blue-500/20 text-blue-700 dark:text-blue-300 rounded-lg text-[6.5px] font-black tracking-wider uppercase">FECHA EXP</span>
+                                        @endif
+
+                                        @if($cap['has_cobertura'])
+                                            <span title="Cubrió: {{ $cap['cobertura_text'] }}" class="cursor-help px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 rounded-lg text-[6.5px] font-black tracking-wider uppercase">COBERTURA</span>
+                                        @endif
+
+                                        @if($cap['has_autoriza'])
+                                            <span title="Autorizó: {{ $cap['autoriza_text'] }}" class="cursor-help px-1.5 py-0.5 bg-green-200 dark:bg-green-500/30 text-green-800 dark:text-green-200 rounded-lg text-[6.5px] font-black tracking-wider uppercase">AUTORIZA</span>
+                                        @endif
+                                        
+                                        @if((int)$cap['codigo'] === 901 || $cap['has_otorgado'])
+                                            <span title="Día Otorgado: {{ $cap['otorgado_text'] ?? 'Sí' }}" class="cursor-help px-1.5 py-0.5 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg text-[6.5px] font-black tracking-wider border border-amber-100 dark:border-amber-500/20 uppercase">OTORGADO</span>
+                                        @endif
+
+                                        @if($cap['has_diagnostico'])
+                                            <span title="Diagnóstico: {{ $cap['diagnostico_text'] }}" class="cursor-help px-1.5 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg text-[6.5px] font-black tracking-wider border border-blue-100 dark:border-blue-500/20 uppercase">DIAG</span>
+                                        @endif
+
+                                        @if($cap['has_comision'])
+                                            <span title="Comisión: {{ $cap['comision_text'] }}" class="cursor-help px-1.5 py-0.5 bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400 rounded-lg text-[6.5px] font-black tracking-wider border border-purple-100 dark:border-purple-500/20 uppercase">COMISIÓN</span>
+                                        @endif
                                     </div>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <button wire:click="delete('{{ $cap['token'] }}')" wire:confirm="¿Eliminar esta incidencia?" class="p-2 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-gray-300 hover:text-rose-500 rounded-xl transition-all opacity-0 group-hover:opacity-100">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                    </button>
+
+                                    <div class="flex items-center gap-4">
+                                        <div class="flex flex-col items-end leading-tight">
+                                            <span class="text-[9px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-tighter">{{ $cap['capturado_por'] }}</span>
+                                            <span class="text-[8px] font-bold text-gray-400 dark:text-gray-500">{{ $cap['fecha_capturado'] }}</span>
+                                        </div>
+                                        <button wire:click="delete('{{ $cap['token'] }}')" wire:confirm="¿Seguro que deseas eliminar este registro?" 
+                                            class="p-1.5 hover:bg-rose-50 dark:hover:bg-rose-500/10 text-gray-400 hover:text-rose-500 rounded-xl transition-all">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
-                            <tr>
-                                <td colspan="9" class="px-6 py-12 text-center">
-                                    <div class="flex flex-col items-center gap-2">
-                                        <span class="text-3xl">⌨️</span>
-                                        <span class="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em]">No hay capturas en esta sesión</span>
-                                    </div>
-                                </td>
-                            </tr>
+                            <tr><td colspan="6" class="px-6 py-20 text-center text-[10px] font-black text-gray-300 uppercase tracking-widest italic">No hay registros capturados recientemente</td></tr>
                         @endforelse
                     </tbody>
                 </table>
+            </div>
+        </div>
+
+        {{-- Footer Compacto --}}
+        <div class="flex items-center justify-between px-4 py-2 bg-gray-50/50 dark:bg-gray-900/30 rounded-xl border border-gray-100 dark:border-gray-700">
+            <div class="flex items-center gap-4">
+                <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Tips: [ENTER] Guardar · [TAB] Navegar</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest">Optimizado</span>
             </div>
         </div>
     </div>

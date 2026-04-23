@@ -76,6 +76,11 @@ class Incidencia extends Model
         return $this->belongsTo(Periodo::class , "periodo_id");
     }
 
+    public function medico(): BelongsTo
+    {
+        return $this->belongsTo(Employe::class, "medico_id");
+    }
+
     /**
      * Get the total days of vacation used by an employee for a specific period and code.
      *
