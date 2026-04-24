@@ -14,17 +14,21 @@ use Livewire\Attributes\On;
 use Livewire\Attributes\Computed;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class Rapida extends Component
 {
+    // Fix #9: Constante para puestos médicos (fuente única de verdad)
+    const DOCTOR_PUESTOS = ['24','25','28','30','56','57','58','59','60','61','62','63','64','65','66','67','68','87','88','101','95','96','97','98'];
+
     // Formulario de Selección de Empleado
-    public $employee_input; // E.j. '332618'
+    public $employee_input;
     public $employeeId;
     public $selectedEmployee;
     
     // Renglón de Captura Actual
-    public $codigo_input; // E.j. '55', '1', '10'
+    public $codigo_input;
     public $codigo_id;
     public $selectedCodigo;
     public $fecha_inicio;
@@ -45,14 +49,16 @@ class Rapida extends Component
     public $periodo_search = '';
     public $periodo_selected_name = '';
 
-    // Historial de sesión
+    // Historial y navegación
     public $recentCaptures = [];
     public $lastAddedToken = null;
+    public $highlightedIndex = 0;
+    public $currentResultsCount = 0;
+    public $medicos_list = [];
+    public $periodos_list = [];
 
-    public function mount()
-    {
-        $this->recentCaptures = session()->get('recent_captures_v2', []);
-    }
+    // Fix #2: Eliminado código muerto de sesión en mount()
+    public function mount() {}
 
     public function loadEmployeeData($id)
     {
@@ -60,7 +66,6 @@ class Rapida extends Component
         if ($this->selectedEmployee) {
             $this->employee_input = $this->selectedEmployee->num_empleado;
             
-            // Cargar incidencias reales de TODAS las quincenas activas
             $activeQnaIds = Qna::where('active', '1')->pluck('id');
             
             if ($activeQnaIds->isNotEmpty()) {
@@ -72,7 +77,7 @@ class Rapida extends Component
                 
                 $this->recentCaptures = $dbIncidencias->map(function($inc) {
                     return [
-                        'token' => 'db_' . $inc->id, // Prefijo para saber que es de DB
+                        'token' => 'db_' . $inc->id,
                         'id' => $inc->id,
                         'codigo' => $inc->codigo->code ?? '??',
                         'description' => $inc->codigo->description ?? '??',
@@ -108,6 +113,7 @@ class Rapida extends Component
         }
     }
 
+    // Fix #2: Eliminadas referencias a sesión
     public function clearEmployee()
     {
         $this->employee_input = '';
@@ -115,16 +121,13 @@ class Rapida extends Component
         $this->selectedEmployee = null;
         $this->recentCaptures = [];
         $this->resetRow();
-        session()->forget('recent_captures_v2');
     }
 
     public function updatedEmployeeInput($value)
     {
         $this->employeeId = null;
         $this->selectedEmployee = null;
-        // Limpiar el grid al cambiar de empleado (Requisito 1)
         $this->recentCaptures = [];
-        session()->forget('recent_captures_v2');
 
         if ($value && strlen($value) >= 3) {
             $employee = Employe::with(['department'])->where('num_empleado', $value)->first();
@@ -159,10 +162,8 @@ class Rapida extends Component
                 $this->is_comision = IncConstants::esComisionOficial($codeInt);
                 $this->is_otorgado = ($codeInt === 901);
 
-                // Validar elegibilidad de inmediato
                 $this->validateRealTime();
 
-                // Si el código es válido y no hay errores bloqueantes, saltar a la fecha
                 if (!$this->getErrorBag()->has('general')) {
                     $this->dispatch('focus-next', ['field' => 'fecha_inicio']);
                 }
@@ -173,35 +174,51 @@ class Rapida extends Component
     public function updatedFechaInicio($value)
     {
         if ($value && strlen($value) >= 8) {
-            $this->dispatch('focus-next', ['field' => 'fecha_final']);
+            $this->validateYear($value, 'fecha_inicio');
+            // Solo saltar si no fue limpiado por validateYear
+            if ($this->fecha_inicio) {
+                $this->dispatch('focus-next', ['field' => 'fecha_final']);
+            }
         }
     }
 
     public function updatedFechaFinal($value)
     {
         if ($value && strlen($value) >= 8) {
-            // Si es incapacidad, saltar al buscador de médicos
-            if ($this->is_incapacidad) {
-                $this->dispatch('focus-next', ['field' => 'medico_search']);
-            } 
-            // Si es TXT, saltar a quién cubrió
-            elseif ($this->is_txt) {
-                $this->dispatch('focus-next', ['field' => 'cobertura_txt']);
-            }
-            // Si es comisión, saltar al motivo
-            elseif ($this->is_comision) {
-                $this->dispatch('focus-next', ['field' => 'motivo_comision']);
-            }
-            // Si es otorgado, saltar a los detalles
-            elseif ($this->is_otorgado) {
-                $this->dispatch('focus-next', ['field' => 'otorgado_txt']);
+            $this->validateYear($value, 'fecha_final');
+            
+            // Solo saltar si no fue limpiado por validateYear
+            if ($this->fecha_final) {
+                if ($this->is_incapacidad) {
+                    $this->dispatch('focus-next', ['field' => 'medico_search']);
+                } elseif ($this->is_txt) {
+                    $this->dispatch('focus-next', ['field' => 'cobertura_txt']);
+                } elseif ($this->is_comision) {
+                    $this->dispatch('focus-next', ['field' => 'motivo_comision']);
+                } elseif ($this->is_otorgado) {
+                    $this->dispatch('focus-next', ['field' => 'otorgado_txt']);
+                } elseif ($this->is_vacaciones) {
+                    $this->dispatch('focus-next', ['field' => 'periodo_search']);
+                } else {
+                    $this->dispatch('focus-next', ['field' => 'save_button']);
+                }
             }
         }
     }
 
+    // Fix #5: Validación de año para fecha_expedida
+    public function updatedFechaExpedida($value)
+    {
+        if ($value && strlen($value) >= 8) {
+            $this->validateYear($value, 'fecha_expedida');
+        }
+    }
+
+    // Fix #11: Solo validar propiedades sin hook específico
     public function updated($propertyName)
     {
-        if (in_array($propertyName, ['employee_input', 'codigo_input', 'fecha_inicio', 'fecha_final', 'medico_id', 'diagnostico', 'num_licencia', 'fecha_expedida', 'cobertura_txt', 'autoriza_txt', 'motivo_comision'])) {
+        $fieldsWithoutHook = ['medico_id', 'diagnostico', 'num_licencia', 'cobertura_txt', 'autoriza_txt', 'motivo_comision'];
+        if (in_array($propertyName, $fieldsWithoutHook)) {
             $this->validateRealTime();
         }
     }
@@ -218,7 +235,7 @@ class Rapida extends Component
             $service = app(IncidenciasService::class);
             $service->validarCaptura([
                 'empleado_id' => $this->selectedEmployee->id,
-                'codigo' => $this->selectedCodigo?->id, // Puede ser null aún
+                'codigo' => $this->selectedCodigo?->id,
                 'fecha_inicio' => $this->fecha_inicio,
                 'fecha_final' => $this->fecha_final,
                 'medico_id' => $this->medico_id,
@@ -233,8 +250,22 @@ class Rapida extends Component
         } catch (\DomainException $e) {
             $this->addError('general', $e->getMessage());
         } catch (\Exception $e) {
-            // Log::error($e->getMessage());
+            // Silently ignore non-domain exceptions
         }
+    }
+
+    // Fix #7: parseDate extraído como método privado
+    private function parseDate($val): ?string
+    {
+        if (!$val) return null;
+        $val = str_replace('-', '/', $val);
+        $parts = explode('/', $val);
+        if (count($parts) == 3) {
+            $y = $parts[2];
+            if (strlen($y) == 2) $parts[2] = '20' . $y;
+            return Carbon::createFromFormat('d/m/Y', implode('/', $parts))->format('Y-m-d');
+        }
+        return null;
     }
 
     public function store(IncidenciasService $service)
@@ -246,24 +277,13 @@ class Rapida extends Component
         ]);
 
         try {
-            $parseDate = function($val) {
-                if (!$val) return null;
-                $val = str_replace('-', '/', $val);
-                $parts = explode('/', $val);
-                if (count($parts) == 3) {
-                    $y = $parts[2];
-                    if (strlen($y) == 2) $parts[2] = '20' . $y;
-                    return Carbon::createFromFormat('d/m/Y', implode('/', $parts))->format('Y-m-d');
-                }
-                return null;
-            };
-
-            $f_inicio = $parseDate($this->fecha_inicio);
-            $f_final = $this->fecha_final ? $parseDate($this->fecha_final) : $f_inicio;
+            $f_inicio = $this->parseDate($this->fecha_inicio);
+            $f_final = $this->fecha_final ? $this->parseDate($this->fecha_final) : $f_inicio;
 
             if (!$f_inicio) throw new \Exception("Formato de fecha de inicio inválido");
 
-            $token = sha1(time() . '_' . $this->employeeId . '_' . $this->codigo_id);
+            // Fix #10: Token único con UUID
+            $token = Str::uuid()->toString();
             $service->crearIncidencias([
                 'empleado_id' => $this->employeeId,
                 'codigo' => $this->codigo_id,
@@ -271,12 +291,10 @@ class Rapida extends Component
                 'datepicker_final' => $f_final,
                 'periodo_id' => $this->periodo_id,
                 'token' => $token,
-                // Médicos
                 'medico_id' => $this->medico_id,
                 'diagnostico' => $this->diagnostico,
                 'num_licencia' => $this->num_licencia,
-                'datepicker_expedida' => $this->fecha_expedida ? $parseDate($this->fecha_expedida) : null,
-                // Especiales
+                'datepicker_expedida' => $this->fecha_expedida ? $this->parseDate($this->fecha_expedida) : null,
                 'cobertura_txt' => $this->cobertura_txt,
                 'autoriza_txt' => $this->autoriza_txt,
                 'motivo_comision' => $this->motivo_comision,
@@ -285,22 +303,23 @@ class Rapida extends Component
 
             $this->loadEmployeeData($this->employeeId);
             
-            // Tomamos el token del primer registro (el más reciente) para el brillo
             if (isset($this->recentCaptures[0]['token'])) {
                 $this->lastAddedToken = $this->recentCaptures[0]['token'];
             }
             
-            // Resetear solo los datos del renglón, mantener al empleado
             $this->resetRow();
+            // Fix #1: Formato unificado de toast (siempre array)
+            $this->dispatch('toast', ['icon' => 'success', 'title' => 'Incidencia Capturada']);
             
         } catch (\Exception $e) {
+            $this->dispatch('toast', ['icon' => 'error', 'title' => $e->getMessage()]);
             $this->addError('general', $e->getMessage());
         }
     }
 
+    // Fix #2: Eliminada escritura a sesión
     public function delete($token)
     {
-        // Si el token empieza con db_, es un registro real
         if (str_starts_with($token, 'db_')) {
             $id = substr($token, 3);
             $inc = Incidencia::find($id);
@@ -309,12 +328,11 @@ class Rapida extends Component
             }
         }
 
-        $this->recentCaptures = array_filter($this->recentCaptures, function($cap) use ($token) {
+        $this->recentCaptures = array_values(array_filter($this->recentCaptures, function($cap) use ($token) {
             return $cap['token'] !== $token;
-        });
+        }));
         
-        $this->recentCaptures = array_values($this->recentCaptures);
-        session()->put('recent_captures_v2', $this->recentCaptures);
+        $this->dispatch('toast', ['icon' => 'success', 'title' => 'Incidencia Eliminada']);
     }
 
     public function selectPeriodo($id, $name)
@@ -323,7 +341,6 @@ class Rapida extends Component
         $this->periodo_selected_name = $name;
         $this->periodo_search = ''; 
         $this->validateRealTime();
-        // Después de elegir periodo, saltamos al botón de guardar (o código si prefieres)
         $this->dispatch('focus-next', ['field' => 'save_button']);
     }
 
@@ -331,10 +348,11 @@ class Rapida extends Component
     {
         $this->medico_id = $id;
         $this->medico_selected_name = $name;
-        $this->medico_search = ''; // Limpiar búsqueda para cerrar lista
+        $this->medico_search = '';
         $this->validateRealTime();
     }
 
+    // Fix #13: Se resetean highlightedIndex y currentResultsCount
     private function resetRow()
     {
         $this->codigo_input = '';
@@ -352,6 +370,9 @@ class Rapida extends Component
         $this->diagnostico = '';
         $this->num_licencia = '';
         $this->fecha_expedida = '';
+        
+        $this->highlightedIndex = 0;
+        $this->currentResultsCount = 0;
         
         $this->resetFlags();
         $this->dispatch('focus-next', ['field' => 'codigo']);
@@ -371,62 +392,110 @@ class Rapida extends Component
         $this->otorgado_txt = '';
     }
 
+    // Fix #6: Lógica de filtrado extraída a métodos dedicados
+    private function getMedicosList(): array
+    {
+        $allMedicos = Cache::remember('medicos_list_array_v4', 3600, function() {
+            return Employe::whereIn('puesto_id', self::DOCTOR_PUESTOS)
+                ->where('active', '1')
+                ->orderBy('name')
+                ->get(['id', 'name', 'father_lastname', 'mother_lastname', 'num_empleado'])
+                ->map(fn($m) => [
+                    'id' => $m->id,
+                    'fullname' => $m->name . ' ' . $m->father_lastname . ' ' . $m->mother_lastname,
+                    'num_empleado' => $m->num_empleado
+                ]);
+        });
+
+        if ($this->medico_search) {
+            $search = strtoupper($this->medico_search);
+            return $allMedicos->filter(fn($m) => 
+                str_contains(strtoupper($m['fullname']), $search) || 
+                str_contains($m['num_empleado'], $search)
+            )->take(10)->values()->toArray();
+        }
+
+        return [];
+    }
+
+    private function getPeriodosList(): array
+    {
+        $allPeriodos = Cache::remember('catalogo_periodos_5yrs_v2', 3600, function() {
+            return Periodo::where('year', '>=', (int)date('Y') - 5)
+                ->orderBy('year', 'desc')
+                ->orderBy('periodo', 'desc')
+                ->get(['id', 'periodo', 'year'])
+                ->map(fn($p) => [
+                    'id' => $p->id,
+                    'name' => $p->periodo . '/' . $p->year
+                ]);
+        });
+
+        if ($this->periodo_search) {
+            return $allPeriodos->filter(fn($p) => 
+                str_contains($p['name'], $this->periodo_search)
+            )->take(10)->values()->toArray();
+        }
+        
+        return $allPeriodos->take(10)->values()->toArray();
+    }
+
     public function render()
     {
-        $medicos = [];
-        if ($this->is_incapacidad) {
-            $allMedicos = Cache::remember('medicos_list_array_v3', 3600, function() {
-                $doctorPuestos = ['24','25','28','30','56','57','58','59','60','61','62','63','64','65','66','67','68','87','88','101','95','96','97','98'];
-                return Employe::whereIn('puesto_id', $doctorPuestos)
-                    ->orderBy('name')
-                    ->get(['id', 'name', 'father_lastname', 'mother_lastname', 'num_empleado'])
-                    ->map(function($m) {
-                        return [
-                            'id' => $m->id,
-                            'fullname' => $m->name . ' ' . $m->father_lastname . ' ' . $m->mother_lastname,
-                            'num_empleado' => $m->num_empleado
-                        ];
-                    });
-            });
+        $medicos = $this->is_incapacidad ? $this->getMedicosList() : [];
+        $periodos = $this->is_vacaciones ? $this->getPeriodosList() : [];
 
-            if ($this->medico_search) {
-                $search = strtoupper($this->medico_search);
-                $medicos = $allMedicos->filter(function($m) use ($search) {
-                    return str_contains(strtoupper($m['fullname']), $search) || 
-                           str_contains($m['num_empleado'], $search);
-                })->take(10); // Solo mostramos los primeros 10 resultados para no saturar
-            }
-        }
-
-        $periodos = [];
-        if ($this->is_vacaciones) {
-            $allPeriodos = Cache::remember('catalogo_periodos_5yrs_v2', 3600, function() {
-                return Periodo::where('year', '>=', (int)date('Y') - 5)
-                    ->orderBy('year', 'desc')
-                    ->orderBy('periodo', 'desc')
-                    ->get(['id', 'periodo', 'year'])
-                    ->map(function($p) {
-                        return [
-                            'id' => $p->id,
-                            'name' => $p->periodo . '/' . $p->year
-                        ];
-                    });
-            });
-
-            if ($this->periodo_search) {
-                $search = $this->periodo_search;
-                $periodos = $allPeriodos->filter(function($p) use ($search) {
-                    return str_contains($p['name'], $search);
-                })->take(10);
-            } else {
-                $periodos = $allPeriodos->take(10);
-            }
-        }
+        $this->medicos_list = $medicos;
+        $this->periodos_list = $periodos;
+        $this->currentResultsCount = count($medicos) ?: count($periodos);
 
         return view('livewire.incidencias.rapida', [
             'medicos' => $medicos,
             'periodos' => $periodos,
             'displayCaptures' => $this->recentCaptures
         ])->layout('layouts.app');
+    }
+
+    public function incrementHighlight()
+    {
+        if ($this->currentResultsCount > 0) {
+            $this->highlightedIndex = ($this->highlightedIndex + 1) % $this->currentResultsCount;
+        }
+    }
+
+    public function decrementHighlight()
+    {
+        if ($this->currentResultsCount > 0) {
+            $this->highlightedIndex = ($this->highlightedIndex - 1 + $this->currentResultsCount) % $this->currentResultsCount;
+        }
+    }
+
+    public function updatedMedicoSearch() { $this->highlightedIndex = 0; }
+    public function updatedPeriodoSearch() { $this->highlightedIndex = 0; }
+
+    // Fix #1: Formato unificado de toast (siempre array)
+    private function validateYear($value, $field)
+    {
+        if (strlen($value) === 8) {
+            $yearStr = substr($value, -2);
+            $currentYear = (int)date('y');
+            $year = (int)$yearStr;
+
+            if ($year !== $currentYear && $year !== ($currentYear - 1) && $year !== ($currentYear + 1)) {
+                $this->$field = '';
+                $this->dispatch('toast', ['icon' => 'error', 'title' => 'Año no permitido: ' . $yearStr]);
+            }
+        }
+    }
+
+    public function selectHighlighted()
+    {
+        if ($this->is_incapacidad && count($this->medicos_list) > 0) {
+            $item = $this->medicos_list[$this->highlightedIndex] ?? null;
+            if ($item) $this->selectMedico($item['id'], $item['fullname']);
+        } elseif ($this->is_vacaciones && count($this->periodos_list) > 0) {
+            $item = $this->periodos_list[$this->highlightedIndex] ?? null;
+            if ($item) $this->selectPeriodo($item['id'], $item['name']);
+        }
     }
 }

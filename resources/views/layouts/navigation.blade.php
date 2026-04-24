@@ -90,10 +90,39 @@
                 <!-- Navigation Links -->
                 <div class="hidden space-x-6 sm:-my-px sm:ms-10 sm:flex">
                     @if($showAdminLinks)
-                    <x-nav-link :href="route('employees.index')" :active="request()->routeIs('employees.index')"
-                        wire:navigate>
-                        {{ __('Empleados') }}
-                    </x-nav-link>
+                    {{-- Dropdown Empleados --}}
+                    <div class="flex items-center">
+                        <x-dropdown align="left" width="48"
+                            contentClasses="bg-white dark:bg-[#0d2a23] border border-gray-200 dark:border-white/10 rounded-md shadow-2xl overflow-hidden min-w-[220px]">
+                            <x-slot name="trigger">
+                                <button
+                                    class="h-16 inline-flex items-center px-1 pt-1 border-b-2 {{ request()->routeIs('employees.*') || request()->routeIs('incidencias.rapida') ? 'border-white text-white font-bold' : 'border-transparent text-gray-400 font-medium hover:text-white hover:border-gray-300' }} text-[11px] uppercase tracking-widest transition duration-150">
+                                    EMPLEADOS
+                                    <svg class="ms-1 h-4 w-4 opacity-50" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd"
+                                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                            clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </x-slot>
+                            <x-slot name="content">
+                                <x-dropdown-link :href="route('employees.index')" wire:navigate
+                                    class="hover:bg-gray-100 dark:hover:bg-white/5 py-3 border-b border-gray-100 dark:border-white/5">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fa fa-users w-4 text-center text-[#e6d194]"></i>
+                                        {{ __('Listado de Empleados') }}
+                                    </div>
+                                </x-dropdown-link>
+                                <x-dropdown-link :href="route('incidencias.rapida')" wire:navigate
+                                    class="hover:bg-gray-100 dark:hover:bg-white/5 py-3">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fa fa-bolt w-4 text-center text-emerald-400"></i>
+                                        {{ __('Captura Rápida') }}
+                                    </div>
+                                </x-dropdown-link>
+                            </x-slot>
+                        </x-dropdown>
+                    </div>
                     @endif
 
 
@@ -318,6 +347,15 @@
             @if($showAdminLinks)
             <x-responsive-nav-link :href="route('employees.index')" :active="request()->routeIs('employees.index')"
                 wire:navigate>{{ __('Empleados') }}</x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('incidencias.rapida')" :active="request()->routeIs('incidencias.rapida')"
+                wire:navigate>
+                <span class="ps-4 flex items-center gap-2">
+                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    {{ __('Captura Rápida') }}
+                </span>
+            </x-responsive-nav-link>
             @endif
 
             {{-- 
