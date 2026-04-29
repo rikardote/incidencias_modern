@@ -55,19 +55,19 @@ class TXTRule implements IncidenciaRuleInterface
         if (!\App\Models\Configuration::get('unlock_txt_limits', false)) {
             if (
                 in_array($empleado->jornada_id, Inc::JORNADA_MAT_DESP) &&
-                $total > 5
+                $total > 8
             ) {
                 throw new DomainException(
-                    'Trabajador no puede gozar más de 5 días de T.X.T'
+                    'Trabajador no puede gozar más de 8 días de T.X.T'
                 );
             }
 
             if (
                 Inc::esSyfDyf($empleado->jornada_id) &&
-                $total > 2
+                $total > 1
             ) {
                 throw new DomainException(
-                    'Trabajador no puede gozar más de 2 días de T.X.T'
+                    'Trabajador no puede gozar más de 1 día de T.X.T'
                 );
             }
  
